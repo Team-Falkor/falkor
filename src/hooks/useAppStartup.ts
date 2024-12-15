@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export const useAppStartup = () => {
   const [hasLoaded, setHasLoaded] = useState(false);
   const navigate = useNavigate();
-  const { setRealDebrid, realDebrid } = useAccountServices();
+  const { setRealDebrid, realDebrid, setTorBox, torBox } = useAccountServices();
 
   const { data, isPending, error, isError } = useQuery({
     queryKey: ["accounts", "all"],
@@ -28,7 +28,9 @@ export const useAppStartup = () => {
     if (!data) return;
     if (realDebrid) return;
 
-    const rd = data.find((account) => account.type === "real-debrid");
+    const rd = data.find(
+      (account: ExternalAccount) => account.type === "real-debrid"
+    );
     if (!rd || !rd.access_token) return;
 
     // Convert `expires_in` from seconds to milliseconds
@@ -78,10 +80,25 @@ export const useAppStartup = () => {
     setRealDebrid(rd.access_token);
   }, [data, realDebrid, setRealDebrid]);
 
-  useEffect(() => {
-    if (isPending) {
-      return;
+  const setTB = useCallback(async () => {
+    if (!data) return;
+    if (torBox) return;
+
+    const tb = data.find(
+      (account: ExternalAccount) => account.type === "torbox"
+    );
+    if (!tb || !tb.access_token) return;
+
+    try {
+      setTorBox(tb.access_token);
+      console.log("TorBox initialized successfully");
+    } catch (error) {
+      console.error("Failed to initialize TorBox:", error);
     }
+  }, [data, torBox, setTorBox]);
+
+  useEffect(() => {
+    if (isPending) return;
 
     if (isError) {
       console.error("Error fetching accounts:", error);
@@ -94,7 +111,9 @@ export const useAppStartup = () => {
     }
 
     setRD();
-  }, [data, isPending, isError, setRD, error]);
+    setTB();
+    setHasLoaded(true);
+  }, [data, isPending, isError, setRD, setTB, error]);
 
   useEffect(() => {
     window.ipcRenderer.on("app:deep-link", async (_event, url: string) => {

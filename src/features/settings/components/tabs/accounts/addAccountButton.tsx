@@ -9,12 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RealDebridDialogContent from "@/features/realDebrid/components/realDebridDialogContent";
+import TorBoxDialogContent from "@/features/realDebrid/components/torBoxDialogContent";
 import { useAccountServices } from "@/stores/account-services";
 import { useState } from "react";
 
 const AddAccountButton = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { realDebrid } = useAccountServices();
+  const [isRealDebridDialogOpen, setIsRealDebridDialogOpen] = useState(false);
+  const [isTorBoxDialogOpen, setIsTorBoxDialogOpen] = useState(false);
+  const { realDebrid, torBox } = useAccountServices();
 
   return (
     <DropdownMenu>
@@ -25,18 +27,36 @@ const AddAccountButton = () => {
         <DropdownMenuLabel>Choose an account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => setIsDialogOpen(true)}
+          onSelect={() => setIsRealDebridDialogOpen(true)}
           disabled={!!realDebrid}
         >
           Real Debrid ({realDebrid ? "Connected" : "Not Connected"})
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={() => setIsTorBoxDialogOpen(true)}
+          disabled={!!torBox}
+        >
+          TorBox ({torBox ? "Connected" : "Not Connected"})
+        </DropdownMenuItem>
       </DropdownMenuContent>
 
-      {/* Dialog triggers on state change */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* Real Debrid Dialog */}
+      <Dialog
+        open={isRealDebridDialogOpen}
+        onOpenChange={setIsRealDebridDialogOpen}
+      >
         <RealDebridDialogContent
-          setOpen={setIsDialogOpen}
-          open={isDialogOpen}
+          setOpen={setIsRealDebridDialogOpen}
+          open={isRealDebridDialogOpen}
+        />
+      </Dialog>
+
+      {/* TorBox Dialog */}
+      <Dialog open={isTorBoxDialogOpen} onOpenChange={setIsTorBoxDialogOpen}>
+        <TorBoxDialogContent
+          setOpen={setIsTorBoxDialogOpen}
+          open={isTorBoxDialogOpen}
         />
       </Dialog>
     </DropdownMenu>

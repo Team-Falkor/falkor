@@ -2,8 +2,8 @@ import { TorBoxResponse, TorBoxUser } from "@/@types/accounts";
 import { TorBoxAPI } from "./models/api";
 
 export class User extends TorBoxAPI {
-  constructor(accessToken: string) {
-    super(accessToken);
+  constructor(api_key: string) {
+    super(api_key);
   }
 
   public async getUserInfo(): Promise<TorBoxUser | null> {
@@ -18,3 +18,12 @@ export class User extends TorBoxAPI {
     return null;
   }
 }
+
+let instance: User | null = null;
+
+export const getTorBoxUserInstance = (api_key: string): User => {
+  if (!instance) {
+    instance = new User(api_key);
+  }
+  return instance;
+};
