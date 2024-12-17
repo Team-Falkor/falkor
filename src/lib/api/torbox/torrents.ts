@@ -1,6 +1,7 @@
 import "@/@types/accounts/torbox";
 import { TorBoxAPI } from "./models/api";
 import {
+  TorBoxAddTorrent,
   TorBoxAvailableTorrent,
   TorBoxDefaultInfo,
   TorBoxQueuedTorrent,
@@ -19,7 +20,7 @@ export class Torrents extends TorBoxAPI {
 
     if (currentTorrents?.length) {
       const foundInCurrent = currentTorrents.find(
-        (torrent) => torrent.hash === hash
+        (torrent) => torrent.hash.toLowerCase() === hash.toLowerCase()
       );
       if (foundInCurrent) return foundInCurrent;
     }
@@ -28,7 +29,7 @@ export class Torrents extends TorBoxAPI {
 
     if (queuedTorrents?.length) {
       const foundInQueued = queuedTorrents.find(
-        (torrent) => torrent.hash === hash
+        (torrent) => torrent.hash.toLowerCase() === hash.toLowerCase()
       );
       if (foundInQueued) return foundInQueued;
     }
@@ -57,18 +58,18 @@ export class Torrents extends TorBoxAPI {
       (torrent) => ({
         ...TorBoxDefaultInfo,
         id: torrent.id,
-        authId: torrent.authId,
+        authId: torrent.auth_id,
         hash: torrent.hash,
         name: torrent.name,
         magnet: torrent.magnet,
-        createdAt: torrent.createdAt,
+        createdAt: torrent.created_at,
         downloadState: "queued",
-        torrentFile: !!torrent.torrentFile,
+        torrentFile: !!torrent.torrent_file,
         progress: 0.0,
         files: [],
         downloadSpeed: 0,
         seeds: 0,
-        updatedAt: torrent.createdAt,
+        updatedAt: torrent.created_at,
       })
     );
 
@@ -97,7 +98,7 @@ export class Torrents extends TorBoxAPI {
     const response = await this.makeRequest<
       TorBoxResponse<TorBoxAvailableTorrent[] | null>
     >(
-      `checkcached?hash=${torrentHash}&format=list&list_files=true`,
+      `torrents/checkcached?hash=${torrentHash}&format=list&list_files=true`,
       "GET",
       false
     );
@@ -109,19 +110,37 @@ export class Torrents extends TorBoxAPI {
     return null;
   }
 
-  public async addMagnet(magnet: string): Promise<{ id: string; uri: string }> {
-    const body = new URLSearchParams({
-      magnet: magnet,
-      seed: "3",
-      zip: "false",
-    });
+  public async addMagnet(magnet: string): Promise<TorBoxAddTorrent | null> {
+    const body = new FormData();
+    body.append("magnet", magnet);
+    body.append("seed", "3");
+    body.append("zip", "false");
 
-    return await this.makeRequest(
+    const response = await this.makeRequest<TorBoxResponse<TorBoxAddTorrent>>(
       "torrents/createtorrent",
       "POST",
       true,
-      body.toString()
+      body
     );
+
+    if (response.data) {
+      return response.data;
+    }
+    return null;
+  }
+
+  public async getZipDL(torrentId: string): Promise<string | null> {
+    const response = await this.makeRequest<TorBoxResponse<string | null>>(
+      `torrents/requestdl?token=${this.accessToken}&torrent_id=${torrentId}&zip_link=true`,
+      "GET",
+      false
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    return null;
   }
 
   public async delete(torrentHash: string): Promise<boolean> {
@@ -134,7 +153,7 @@ export class Torrents extends TorBoxAPI {
       operation: "delete",
     });
     await this.makeRequest(
-      `/torrents/controltorrent`,
+      `torrents/controltorrent`,
       "POST",
       true,
       body.toString()

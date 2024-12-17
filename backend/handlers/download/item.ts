@@ -11,6 +11,7 @@ import { constants, sanitizeFilename } from "../../utils";
 import { settings } from "../../utils/settings/settings";
 import window from "../../utils/window";
 import download_events from "./events";
+import fs from "fs";
 
 class DownloadItem {
   id: string;
@@ -59,6 +60,9 @@ class DownloadItem {
     const resolvedPath = path.resolve(filePath);
     if (!resolvedPath.startsWith(constants.downloadsPath)) {
       throw new Error(`File path outside allowed directory: ${filePath}`);
+    }
+    if (!fs.existsSync(filePath)) {
+      fs.mkdirSync(filePath);
     }
     return resolvedPath;
   }

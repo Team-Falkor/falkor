@@ -1,5 +1,4 @@
 import { getRealDebridAuthInstance } from "@/lib/api/realdebrid/auth";
-import { getTorBoxUserInstance } from "@/lib/api/torbox/user";
 
 const realDebridAuth = getRealDebridAuthInstance();
 
@@ -21,9 +20,4 @@ export const pollForCredentials = async (
 
 export const obtainAccessToken = async (deviceCode: string) => {
   return await realDebridAuth.obtainAccessToken(deviceCode);
-};
-
-export const obtainTorBoxUser = async (api_key: string) => {
-  const torBoxUser = getTorBoxUserInstance(api_key);
-  return await torBoxUser.getUserInfo();
 };

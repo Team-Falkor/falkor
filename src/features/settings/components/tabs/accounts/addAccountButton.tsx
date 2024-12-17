@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RealDebridDialogContent from "@/features/realDebrid/components/realDebridDialogContent";
-import TorBoxDialogContent from "@/features/realDebrid/components/torBoxDialogContent";
+import TorBoxDialogContent from "@/features/torBox/components/torBoxDialogContent";
 import { useAccountServices } from "@/stores/account-services";
 import { useState } from "react";
 

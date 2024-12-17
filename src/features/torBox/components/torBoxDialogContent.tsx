@@ -33,7 +33,7 @@ const TorBoxDialogContent = ({ open, setOpen }: TorBoxDialogContentProps) => {
             avatar: undefined,
             email: data.email,
             username: data.email,
-            refresh_token: "",
+            refresh_token: apiKey.trim(),
             expires_in: -1,
           }
         );

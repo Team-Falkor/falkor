@@ -49,11 +49,10 @@ class TorBoxClient {
 
     // If torrent does not exist, add it and return the new ID
     const addedTorrent = await this.torrents.addMagnet(magnetLink);
-    console.log(addedTorrent);
-    if (!addedTorrent?.id) {
-      throw new Error("Failed to add torrent. No ID returned.");
+    if (!addedTorrent?.hash) {
+      throw new Error("Failed to add torrent. No Hash returned.");
     }
-    return addedTorrent.id;
+    return addedTorrent.hash;
   }
 
   public async downloadTorrentFromMagnet(magnetLink: string): Promise<string> {
@@ -63,18 +62,18 @@ class TorBoxClient {
     const torrentInfo = await this.torrents.getHashInfo(torrentHash);
 
     // Check download status
-    if (!torrentInfo || !torrentInfo.downloadPresent) {
+    if (!torrentInfo || !torrentInfo.download_present) {
       throw new Error("Torrent has not completed downloading.");
     }
 
-    const torrentRestrictedLinks: string[] = [];
+    const downloadLink = await this.torrents.getZipDL(
+      torrentInfo.id.toString()
+    );
 
-    torrentInfo.files.forEach(function (file) {
-      torrentRestrictedLinks.push(
-        `https://torbox.app/fakedl/${torrentInfo.id}/${file.id}`
-      );
-    });
-    return torrentRestrictedLinks[0];
+    if (downloadLink) {
+      return downloadLink;
+    }
+    throw Error("Could not obtain download link.");
   }
 
   public async downloadFromFileHost(
@@ -90,6 +89,19 @@ class TorBoxClient {
       });
       throw new Error(`Failed to unrestrict link: ${(error as Error).message}`);
     }
+  }
+  public async getDownloadName(url: string, type: string): Promise<string> {
+    if (type != "ddl") {
+      const torrentHash = getInfoHashFromMagnet(url);
+      if (torrentHash) {
+        const torrentInfo = await this.torrents.getHashInfo(torrentHash);
+
+        if (torrentInfo) {
+          return `${torrentInfo.name}`;
+        }
+      }
+    }
+    return "b";
   }
 }
 

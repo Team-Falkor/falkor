@@ -61,5 +61,15 @@ export default defineConfig(({ command }) => {
         "@resources": resolve(__dirname, "./resources"),
       },
     },
+    server: {
+      proxy: {
+        "/api/torbox": {
+          target: "https://api.torbox.app/v1/api",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/torbox/, ""),
+          secure: true,
+        },
+      },
+    },
   };
 });
