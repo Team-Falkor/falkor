@@ -88,7 +88,6 @@ export class Torrents extends TorBoxAPI {
     if (queuedTorrents?.length) {
       torrents.push(...queuedTorrents);
     }
-
     return torrents;
   }
 

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Torrents } from "./torrents";
 import { Unrestrict } from "./unrestrict";
 import { User } from "./user";
+import { TorBoxTorrentInfoResult } from "@/@types/accounts";
 
 class TorBoxClient {
   private static instance: TorBoxClient | null = null;
@@ -36,32 +37,34 @@ class TorBoxClient {
     return TorBoxClient.instance;
   }
 
-  private async getOrCreateTorrent(magnetLink: string): Promise<string> {
+  private async getOrCreateTorrent(
+    magnetLink: string
+  ): Promise<TorBoxTorrentInfoResult> {
     const infoHash = getInfoHashFromMagnet(magnetLink);
-    const existingTorrents = await this.torrents.getAllTorrents();
-    const foundTorrent = existingTorrents?.length
-      ? existingTorrents?.find((torrent) => torrent.hash === infoHash)
-      : null;
 
-    if (foundTorrent) {
-      return foundTorrent.hash.toString();
+    if (!infoHash) {
+      throw new Error("Invalid magnet provided.");
     }
 
-    // If torrent does not exist, add it and return the new ID
+    let foundTorrent = await this.torrents.getHashInfo(infoHash);
+    if (foundTorrent) {
+      return foundTorrent;
+    }
+
     const addedTorrent = await this.torrents.addMagnet(magnetLink);
     if (!addedTorrent?.hash) {
       throw new Error("Failed to add torrent. No Hash returned.");
     }
-    return addedTorrent.hash;
+
+    foundTorrent = await this.torrents.getHashInfo(infoHash);
+    return foundTorrent!;
   }
 
   public async downloadTorrentFromMagnet(magnetLink: string): Promise<string> {
-    const torrentHash = await this.getOrCreateTorrent(
+    const torrentInfo = await this.getOrCreateTorrent(
       decodeURIComponent(magnetLink)
     );
-    const torrentInfo = await this.torrents.getHashInfo(torrentHash);
 
-    // Check download status
     if (!torrentInfo || !torrentInfo.download_present) {
       throw new Error("Torrent has not completed downloading.");
     }

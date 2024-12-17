@@ -75,7 +75,6 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
               ? await torBox.downloadFromFileHost(url, password)
               : await torBox.downloadTorrentFromMagnet(url);
           if (props.game_data) {
-            console.log("game", props.game_data.name);
             addDownload({
               type: "download",
               data: {
