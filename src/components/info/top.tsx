@@ -1,7 +1,7 @@
 import { InfoItadProps, InfoProps } from "@/@types";
-import { cn, getSteamIdFromWebsites } from "@/lib";
+import { cn } from "@/lib";
 import { InfoReturn, ReleaseDate } from "@/lib/api/igdb/types";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import IGDBImage from "../IGDBImage";
 import ProtonDbBadge from "../protonDbBadge";
 import InfoTopSkeleton from "../skeletons/info/top.skeleton";
@@ -12,6 +12,7 @@ type InfoTopProps = InfoProps & {
   data: InfoReturn | undefined;
   isReleased: boolean;
   releaseDate: ReleaseDate | null | undefined;
+  steamID: string | null | undefined;
   // playingData: LibraryGame | null | undefined;
   // playingPending: boolean;
 };
@@ -19,13 +20,8 @@ type InfoTopProps = InfoProps & {
 type Props = InfoTopProps & InfoItadProps;
 
 const InfoTop = (props: Props) => {
-  const { data, isPending, error } = props;
+  const { data, isPending, error, steamID } = props;
   const [activeTab, setActiveTab] = useState<number>(0);
-
-  const steam_id = useMemo(
-    () => getSteamIdFromWebsites(data?.websites ?? []),
-    [data?.websites]
-  );
 
   if (error) return null;
 
@@ -56,7 +52,7 @@ const InfoTop = (props: Props) => {
               {/* ProtonDB badge */}
               <div className="flex items-start justify-end pt-5 size-full">
                 <div className="overflow-hidden rounded-l-lg">
-                  {steam_id ? <ProtonDbBadge appId={steam_id} /> : null}
+                  {steamID ? <ProtonDbBadge appId={steamID} /> : null}
                 </div>
               </div>
             </div>

@@ -1,9 +1,10 @@
 import {
   AchievementFile,
   AchivementStat,
+  ISchemaForGame,
   UnlockedAchievement,
 } from "@/@types/achievements/types";
-import { achievementData, IGetSchemaForGame } from "./data";
+import { achievementData } from "./data";
 import { AchievementFileLocator } from "./locator";
 import { AchievementParser } from "./parse";
 import { AchievementWatcher } from "./watcher";
@@ -25,7 +26,7 @@ class AchievementItem {
   private readonly parser = new AchievementParser();
   private readonly api = achievementData;
 
-  private achivement_data: IGetSchemaForGame | null = null;
+  private achivement_data: ISchemaForGame | null = null;
   private file_unlocked_achievements: Set<UnlockedAchievement> = new Set();
 
   private watcher: AchievementWatcher | null = null;
