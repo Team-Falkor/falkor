@@ -23,6 +23,8 @@ const AchievementContainer = ({ steamId }: Props) => {
   if (isPending) return null;
   if (isError) return null;
 
+  if (!data?.length) return null;
+
   return (
     <Carousel
       opts={{

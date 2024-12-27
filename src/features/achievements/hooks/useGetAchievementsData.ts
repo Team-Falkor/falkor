@@ -24,5 +24,8 @@ export const useGetAchievementsData = ({ steamId }: Achievement) => {
   return useQuery({
     queryKey: ["achievements", steamId],
     queryFn: fetcher,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
   });
 };

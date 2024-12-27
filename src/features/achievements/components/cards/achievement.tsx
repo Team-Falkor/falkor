@@ -1,4 +1,5 @@
 import { ISchemaForGameAchievement } from "@/@types";
+import { cn } from "@/lib";
 
 export const AchievementCard = ({
   displayName,
@@ -14,11 +15,17 @@ export const AchievementCard = ({
       <img
         src={unlocked ? icon : icongray}
         alt={displayName}
-        className="object-cover w-full h-40"
+        className="object-cover w-full h-40 overflow-hidden rounded-lg"
       />
 
       <div className="flex flex-col gap-0.5">
-        <h2 className="flex text-sm font-medium truncate">{displayName}</h2>
+        <h2
+          className={cn("flex text-sm font-medium truncate", {
+            "text-muted-foreground": !unlocked,
+          })}
+        >
+          {displayName}
+        </h2>
         {description && (
           <p className="text-xs text-muted-foreground line-clamp-2">
             {description}
