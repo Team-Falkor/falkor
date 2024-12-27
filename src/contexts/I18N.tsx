@@ -28,6 +28,8 @@ export const LanguageContextProvider = ({ children }: PropsWithChildren) => {
     ms: { nativeName: "Malaysian" },
     pt: { nativeName: "Portuguese" },
     it: { nativeName: "Italian" },
+    hi: { nativeName: "Hindi" },
+    ur: { nativeName: "Urdu" },
   };
 
   const { t, i18n } = useTranslation();
