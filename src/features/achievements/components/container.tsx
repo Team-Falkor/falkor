@@ -33,14 +33,16 @@ const AchievementContainer = ({ steamId }: Props) => {
       }}
       className="w-full"
     >
-      <div className="flex justify-between mb-2">
-        <h1 className="flex items-end gap-2 text-xl font-medium capitalize">
-          {t("achievements")}
-          <p className="text-sm text-muted-foreground">0/{data.length}</p>
-        </h1>
-        <div>
-          <CarouselButton direction="left" />
-          <CarouselButton direction="right" />
+      <div className="flex flex-col gap-1 mb-4">
+        <div className="flex justify-between">
+          <h1 className="flex items-end gap-2 text-xl font-medium capitalize">
+            {t("achievements")}
+            <p className="text-sm text-muted-foreground">0/{data.length}</p>
+          </h1>
+          <div>
+            <CarouselButton direction="left" />
+            <CarouselButton direction="right" />
+          </div>
         </div>
       </div>
 
