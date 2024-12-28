@@ -37,7 +37,8 @@ class GameProcessLauncher {
     this.playtime = 0;
     if (steam_id) {
       this.achivementItem = new AchievementItem({
-        game_id: steam_id,
+        game_id,
+        steam_id,
         game_name,
         game_icon,
       });

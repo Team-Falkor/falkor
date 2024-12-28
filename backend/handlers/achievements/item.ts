@@ -4,6 +4,8 @@ import {
   ISchemaForGame,
   UnlockedAchievement,
 } from "@/@types/achievements/types";
+import { achievementsDB } from "../../sql";
+import { NotificationsHandler } from "../notifications";
 import { achievementData } from "./data";
 import { AchievementFileLocator } from "./locator";
 import { AchievementParser } from "./parse";
@@ -13,6 +15,7 @@ interface Options {
   game_name: string;
   game_id: string;
   game_icon?: string;
+  steam_id?: string | null;
 }
 
 class AchievementItem {
@@ -20,6 +23,7 @@ class AchievementItem {
 
   public game_name: string;
   public game_id: string;
+  public steam_id: string | null = null;
   public game_icon: string | null = null;
 
   private achievement_files: AchievementFile[] = [];
@@ -31,9 +35,10 @@ class AchievementItem {
 
   private watcher: AchievementWatcher | null = null;
 
-  constructor({ game_name, game_id, game_icon }: Options) {
+  constructor({ game_name, game_id, game_icon, steam_id }: Options) {
     this.game_name = game_name;
     this.game_id = game_id;
+    this.steam_id = steam_id || null;
     this.game_icon = game_icon || null;
   }
 
@@ -42,10 +47,11 @@ class AchievementItem {
    */
   async init(): Promise<void> {
     if (this.initialized) return;
+    if (!this.steam_id) return;
 
     try {
       console.log(`Initializing AchievementItem for game: ${this.game_name}`);
-      this.achivement_data = await this.api.get(this.game_id);
+      this.achivement_data = await this.api.get(this.steam_id);
       console.log(`API data fetched for game: ${this.game_name}`);
       this.initialized = true;
 
@@ -64,18 +70,61 @@ class AchievementItem {
    * Locate achievement files associated with the game.
    */
   async find(): Promise<void> {
-    await this.init();
+    if (!this.steam_id) return;
+    if (!this.initialized) {
+      await this.init();
+    }
 
     try {
       console.log(`Finding achievement files for game: ${this.game_name}`);
       this.achievement_files = AchievementFileLocator.findAchievementFiles(
-        this.game_id
+        this.steam_id
       );
 
-      this.watcher = new AchievementWatcher(this.achievement_files[0].path);
+      if (this.achievement_files.length === 0) return;
+
+      const watcherPath = this.achievement_files[0].path;
+      this.watcher = new AchievementWatcher(watcherPath);
       this.watcher.start(async (event) => {
         if (event !== "change") return;
-        console.log(await this.compare());
+
+        const unlocked = await this.compare();
+        if (!unlocked) return;
+
+        if (!this.steam_id) return;
+        const dbItems = new Set(
+          (await achievementsDB.getUnlockedAchievements(this.game_id)).map(
+            (item) => item.achievement_name
+          )
+        );
+
+        for (const achievement of unlocked) {
+          if (dbItems.has(achievement.name)) continue;
+
+          console.log(`Adding new achievement: ${achievement.name}`);
+          await achievementsDB.addAchievement({
+            achievement_display_name: achievement.displayName,
+            game_id: this.game_id,
+            achievement_name: achievement.name,
+            achievement_description: achievement.description,
+            achievement_image: watcherPath,
+            achievement_unlocked: true,
+          });
+
+          NotificationsHandler.constructNotification(
+            {
+              title: achievement.displayName,
+              body: "New achievement unlocked",
+              icon: achievement.icon
+                ? await NotificationsHandler.createImage(achievement.icon)
+                : this.game_icon
+                  ? await NotificationsHandler.createImage(this.game_icon)
+                  : undefined,
+              notificationType: "achievement_unlocked",
+            },
+            true
+          );
+        }
       });
     } catch (error) {
       console.error(
@@ -89,6 +138,8 @@ class AchievementItem {
    * Parse achievements from located files and update unlocked achievements.
    */
   async parse(): Promise<void> {
+    if (!this.steam_id) return;
+
     for (const file of this.achievement_files) {
       try {
         const parsedAchievements = this.parser.parseAchievements(
@@ -129,6 +180,7 @@ class AchievementItem {
 
       if (matchedAchievement) {
         unlockedAchievements.set(fileAchievement.name, {
+          name: fileAchievement.name,
           displayName: matchedAchievement.displayName,
           hidden: matchedAchievement.hidden,
           description: matchedAchievement.description,
