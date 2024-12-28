@@ -1,6 +1,6 @@
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import path from "node:path";
+import path, { resolve } from "node:path";
 import { defineConfig } from "vite";
 import electron from "vite-plugin-electron/simple";
 import pkg from "./package.json";
@@ -57,7 +57,8 @@ export default defineConfig(({ command }) => {
     ],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": resolve(__dirname, "./src"),
+        "@resources": resolve(__dirname, "./resources"),
       },
     },
   };

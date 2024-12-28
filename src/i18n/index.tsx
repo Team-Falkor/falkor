@@ -7,6 +7,7 @@ import ChineseSimplified from "./translations/chinese-simplified.json";
 import English from "./translations/english.json";
 import French from "./translations/french.json";
 import German from "./translations/german.json";
+import Hindi from "./translations/hindi.json";
 import Indonesian from "./translations/indonesian.json";
 import Italian from "./translations/italian.json";
 import japanese from "./translations/japanese.json";
@@ -15,6 +16,7 @@ import Malay from "./translations/malay.json";
 import Portuguese from "./translations/portuguese.json";
 import Spanish from "./translations/spanish.json";
 import Thai from "./translations/thai.json";
+import Urdu from "./translations/urdu.json";
 import Vietnamese from "./translations/vietnamese.json";
 
 /**
@@ -36,13 +38,15 @@ const resources: Resource = {
   ms: { translation: Malay },
   pt: { translation: Portuguese },
   it: { translation: Italian },
+  hi: { translation: Hindi },
+  ur: { translation: Urdu },
 };
 
 i18next
   .use(initReactI18next)
   .use(LanguageDetector)
   .init({
-    resources, // Add all translation files here
+    resources,
     fallbackLng: "en", //Fallback if language is not available
     interpolation: {
       escapeValue: true,

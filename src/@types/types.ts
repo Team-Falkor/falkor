@@ -1,5 +1,5 @@
 import { ITADPrice } from "@/lib/api/itad/types";
-import { ReactElement } from "react";
+import { JSX, ReactElement } from "react";
 import { PluginConfig, PluginSearchResponse } from "./plugins";
 
 export type IGDBImageSize =
@@ -147,3 +147,20 @@ export interface Response<T = any> {
   error: boolean;
   data: T | null;
 }
+
+export type Cracker =
+  | "codex"
+  | "rune"
+  | "onlinefix"
+  | "goldberg"
+  | "rld"
+  | "empress"
+  | "skidrow"
+  | "creamapi"
+  | "smartsteamemu"
+  | "flt"
+  | "razor1911"
+  | "rle"
+  | "_3dm";
+
+export type NotificationType = "download_completed" | "achievement_unlocked";

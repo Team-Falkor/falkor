@@ -1,5 +1,6 @@
 import { SettingsConfig } from "@/@types";
 import { invoke } from "@/lib";
+import { toast } from "sonner";
 import { create } from "zustand";
 
 interface SettingsStoreState {
@@ -60,6 +61,7 @@ export const useSettingsStore = create<SettingsStoreState>((set) => ({
       );
 
       console.log("Success:", success);
+      toast.success(`Setting "${key}" updated successfully!`);
 
       if (success !== null) {
         set((state) => ({
@@ -69,6 +71,7 @@ export const useSettingsStore = create<SettingsStoreState>((set) => ({
     } catch (err) {
       set({ error: `Error updating setting "${key}": ${String(err)}` });
       console.error(`Error updating setting "${key}":`, err);
+      toast.error(`Error updating setting "${key}": ${String(err)}`);
     } finally {
       set({ loading: false });
     }

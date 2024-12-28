@@ -1,5 +1,6 @@
 import { LogEntry } from "@/@types/logs";
 import { Ban } from "lucide-react";
+import { JSX } from "react";
 import { BaseLog } from "./base";
 
 interface ConsoleErrorDisplayProps {

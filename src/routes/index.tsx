@@ -1,53 +1,63 @@
-import Banner from '@/components/banner'
-import CarouselButton from '@/components/carouselButton'
-import MainContainer from '@/components/containers/mainContainer'
-import RowContainer from '@/components/containers/row'
-import { Carousel } from '@/components/ui/carousel'
-import { useLanguageContext } from '@/contexts/I18N'
-import { createFileRoute } from '@tanstack/react-router'
-import Autoplay from 'embla-carousel-autoplay'
-import { useRef } from 'react'
+import Banner from "@/components/banner";
+import CarouselButton from "@/components/carouselButton";
+import MainContainer from "@/components/containers/mainContainer";
+import RowContainer from "@/components/containers/row";
+import { Carousel } from "@/components/ui/carousel";
+import { useLanguageContext } from "@/contexts/I18N";
+import { cn } from "@/lib";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import Autoplay from "embla-carousel-autoplay";
+import { useRef } from "react";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: Index,
-})
+});
 
 function Index() {
-  const { t } = useLanguageContext()
+  const { t } = useLanguageContext();
   const autoplay = useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true }),
-  )
+    Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true })
+  );
 
   return (
     <MainContainer id="main-page" className="w-full overflow-hidden">
       <Carousel id="top-rated-carousel" plugins={[autoplay.current]}>
-        <h3
-          id="top-rated-heading"
-          className="text-lg lg:text-xl xl:text-2xl font-mono font-medium leading-6 flex justify-between items-center mb-5"
-        >
-          {t('sections.top_rated')}
-          <div className="flex space-x-4">
+        <div className="flex items-center justify-between w-full gap-2 mb-2">
+          <div className="flex items-end gap-3">
+            <h3 className="font-mono text-lg font-medium leading-6 lg:text-xl xl:text-2xl">
+              {t("sections.top_rated")}
+            </h3>
+
+            <Link
+              to={`/sections/topRated`}
+              className={cn("p-0 m-0 text-sm text-slate-400 hover:underline")}
+            >
+              {t("view_more")}
+            </Link>
+          </div>
+
+          <div>
             <CarouselButton direction="left" id="top-rated-left-btn" />
             <CarouselButton direction="right" id="top-rated-right-btn" />
           </div>
-        </h3>
+        </div>
 
         <Banner id="top-rated-banner" />
       </Carousel>
 
-      <div className="space-y-14 mt-16">
+      <div className="mt-16 space-y-14">
         <RowContainer
           id="new-releases-row"
-          title={t('sections.new_releases')}
+          title={t("sections.new_releases")}
           dataToFetch="newReleases"
         />
 
         <RowContainer
           id="most-anticipated-row"
-          title={t('sections.most_anticipated')}
+          title={t("sections.most_anticipated")}
           dataToFetch="mostAnticipated"
         />
       </div>
     </MainContainer>
-  )
+  );
 }

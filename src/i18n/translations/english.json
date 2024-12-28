@@ -32,7 +32,10 @@
       "app-settings": "App Settings",
       "close-to-tray": "Minimize Falkor to the system tray instead of fully exiting the application",
       "max_speed": "Max Speed",
-      "max_speed_description": "The maximum speed for the downloads to be throttled to (-1 for unlimited)"
+      "max_speed_description": "The maximum speed for the downloads to be throttled to (-1 for unlimited)",
+      "toggle-notifications": "Enable Notifications",
+      "title-bar-style": "Change the style of the title bar",
+      "language": "Change the language of the application"
     }
   },
   "view_more": "View More",
@@ -122,5 +125,6 @@
   "torrent": "Torrent",
   "max_download_speed": "Max Download Speed",
   "max_upload_speed": "Max Upload Speed",
-  "add-to-list": "Add To List"
+  "add-to-list": "Add To List",
+  "steam_id": "steam id"
 }

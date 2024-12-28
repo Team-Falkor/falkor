@@ -5,7 +5,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, JSX } from "react";
 import { ControllerRenderProps, FieldValues } from "react-hook-form";
 
 interface GameFormInputProps<T extends FieldValues>

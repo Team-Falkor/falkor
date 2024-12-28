@@ -21,7 +21,7 @@ const TitleBarDropdown = () => {
           {settings?.titleBarStyle}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-full">
+      <DropdownMenuContent className="w-64">
         <DropdownMenuLabel>Title Bar Style</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup

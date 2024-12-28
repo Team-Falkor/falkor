@@ -1,82 +1,75 @@
-import { DownloadStatus } from "@/@types";
-import { ITorrentGameData } from "@/@types/torrent";
+import { DownloadgameData, DownloadStatus } from "@/@types";
 import { invoke } from "@/lib";
 import { useState } from "react";
 import { toast } from "sonner";
-import UseDownloads from "./useDownloads";
 
 interface DownloadPauseReturn {
   message: string;
   error: boolean;
+  success: boolean;
   data: {
     id: string;
     status: DownloadStatus;
-    game_data: ITorrentGameData;
+    game_data: DownloadgameData;
   };
 }
 
-export const UseDownloadAction = (id?: string, isTorrent: boolean = false) => {
-  const { fetchDownloads } = UseDownloads();
+export const UseDownloadAction = (id?: string) => {
   const [status, setStatus] = useState<DownloadStatus | null>(null);
 
-  const pauseDownload = async () => {
+  const pause = async () => {
     if (!id) return null;
 
-    const data = isTorrent
-      ? await invoke<DownloadPauseReturn, string>("torrent:pause-torrent", id)
-      : await invoke<DownloadPauseReturn, string>("download:pause", id);
+    const data = await invoke<DownloadPauseReturn, string>("queue:pause", id);
 
-    if (!data) return;
-    if (data.error) {
+    if (!data?.success) return null;
+    if (data?.error) {
       toast.error(data.message);
-      return;
+      return null;
     }
 
+    console.log({ data });
+    // Assuming "paused" is a valid status within DownloadStatus
     setStatus("paused");
-    fetchDownloads();
     return data;
   };
 
-  const startDownload = async () => {
+  const start = async () => {
     if (!id) return null;
 
-    const data = isTorrent
-      ? await invoke<DownloadPauseReturn, string>("torrent:start-torrent", id)
-      : await invoke<DownloadPauseReturn, string>("download:start", id);
+    const data = await invoke<DownloadPauseReturn, string>("queue:resume", id);
 
-    if (!data) return;
+    if (!data?.success) return null;
     if (data.error) {
       toast.error(data.message);
-      return;
+      return null;
     }
 
+    // Assuming "downloading" is a valid status within DownloadStatus
     setStatus("downloading");
-    fetchDownloads();
     return data;
   };
 
-  const stopDownload = async () => {
+  const stop = async () => {
     if (!id) return null;
 
-    const data = isTorrent
-      ? await invoke<DownloadPauseReturn, string>("torrent:delete-torrent", id)
-      : await invoke<DownloadPauseReturn, string>("download:stop", id);
+    const data = await invoke<DownloadPauseReturn, string>("queue:stop", id);
 
-    if (!data) return;
+    if (!data?.success) return null;
     if (data.error) {
       toast.error(data.message);
-      return;
+      return null;
     }
 
+    // Assuming "stopped" is a valid status within DownloadStatus
     setStatus("stopped");
-    fetchDownloads();
     return data;
   };
 
   return {
-    pauseDownload,
-    startDownload,
-    stopDownload,
+    pause,
+    start,
+    stop,
     status,
   };
 };

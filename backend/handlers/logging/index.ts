@@ -1,4 +1,4 @@
-import { LogEntry } from "@/@types/logs";
+import { LogEntry, LogLevel } from "@/@types/logs";
 import { constants } from "../../utils";
 import JsonFileEditor from "../../utils/json/jsonFileEditor";
 
@@ -16,7 +16,7 @@ class Logger {
     this.logs = new Set(this.jsonFileEditor.read() || []);
   }
 
-  public log(level: LogEntry["level"], message: string): LogEntry | null {
+  public log(level: LogLevel, message: string): LogEntry | null {
     try {
       const timestamp = Date.now();
       const log: LogEntry = { level, message, timestamp };

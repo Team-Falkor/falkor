@@ -15,7 +15,7 @@ interface ContinuePlayingCardOverlayProps {
   fetchGames: () => void;
 }
 
-const ContinuePlayingCardOverlay: React.FC<ContinuePlayingCardOverlayProps> = ({
+const ContinuePlayingCardOverlay = ({
   game,
   playGame,
   isPlaying,
@@ -23,7 +23,7 @@ const ContinuePlayingCardOverlay: React.FC<ContinuePlayingCardOverlayProps> = ({
   deleteGame,
   updateGame,
   fetchGames,
-}) => {
+}: ContinuePlayingCardOverlayProps) => {
   const { t } = useLanguageContext();
 
   return (

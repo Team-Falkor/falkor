@@ -1,3 +1,4 @@
+export * from "./achievements";
 export * from "./download";
 export * from "./launcher";
 export * from "./plugins";

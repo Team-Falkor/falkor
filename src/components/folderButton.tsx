@@ -1,5 +1,6 @@
 import { invoke } from "@/lib";
 import { Folder } from "lucide-react";
+import { JSX } from "react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 

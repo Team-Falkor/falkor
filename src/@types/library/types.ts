@@ -6,6 +6,7 @@ export interface LibraryGame {
   game_name: string;
   game_path: string;
   game_id: string;
+  game_steam_id?: string | null;
   game_icon?: string;
   game_args?: string;
   game_command?: string;

@@ -12,13 +12,13 @@ type ContinuePlayingCardProps = {
   updateGame: (gameId: string, updates: LibraryGameUpdate) => void;
 };
 
-const ContinuePlayingCard: React.FC<ContinuePlayingCardProps> = ({
+const ContinuePlayingCard = ({
   game,
   bg_image,
   fetchGames,
   deleteGame,
   updateGame,
-}) => {
+}: ContinuePlayingCardProps) => {
   const { gameRunning, playGame, stopGame } = usePlayGame(
     game.game_path,
     game.game_id,

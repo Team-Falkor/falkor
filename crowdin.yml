@@ -1,0 +1,10 @@
+project_id: "749693"
+api_token_env: "CROWDIN_PERSONAL_TOKEN"
+base_url: "https://api.crowdin.com"
+commit_message: "[skip ci] new translations %language% from Crowdin"
+append_commit_message: false
+preserve_hierarchy: true
+files:
+  - source: "/src/i18n/translations/en.json"
+    translation: "/src/i18n/translations/%language%.json"
+    type: json

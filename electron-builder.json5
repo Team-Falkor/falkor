@@ -3,7 +3,8 @@
   $schema: "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   appId: "moe.falkor",
   asar: true,
-  productName: "falkor",
+  productName: "Falkor",
+  icon: "./build/icon.ico",
   protocols: [
     {
       name: "falkor",
@@ -13,6 +14,11 @@
   directories: {
     output: "release/",
   },
+  extraResources: [
+    {
+      from: "resources",
+    },
+  ],
   appImage: {},
   files: ["dist", "dist-electron"],
   mac: {

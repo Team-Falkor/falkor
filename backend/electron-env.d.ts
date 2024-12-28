@@ -10,6 +10,7 @@ declare namespace NodeJS {
     VITE_ITAD_API_KEY: string;
     VITE_RD_CLIENT_ID: string;
     VITE_STEAMGRIDDB_API_KEY?: string;
+    FALKOR_API_BASE_URL?: string;
     debug?: boolean;
   }
 }

@@ -1,5 +1,8 @@
 import { Response } from "@/@types";
+import { app } from "electron";
 import os from "node:os";
+import path, { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const getOS = () => {
   switch (os.type().toLowerCase()) {
@@ -63,3 +66,15 @@ export const createResponse = <T>(
   error,
   data,
 });
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const getSoundPath = (soundPath: string) => {
+  try {
+    return app.isPackaged
+      ? join(process.resourcesPath, "sounds", soundPath)
+      : join(__dirname, "..", "resources", "sounds", soundPath);
+  } catch (error) {
+    console.error("Error getting sound path:", error);
+    return "";
+  }
+};

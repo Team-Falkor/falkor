@@ -15,12 +15,9 @@ const configureDeepLinking = () => {
       app.setAsDefaultProtocolClient(DEEP_LINK_NAME, process.execPath, [
         path.resolve(process.argv[1]),
       ]);
-
-      console.log("1");
     }
   } else {
     app.setAsDefaultProtocolClient(DEEP_LINK_NAME);
-    console.log("2");
   }
 };
 
@@ -47,14 +44,14 @@ const waitForWindow = async (): Promise<BrowserWindow | null> => {
 
 // Initialize the app
 const initializeApp = async () => {
+  await import("./handlers/events");
+
   window.createWindow();
 
   protocol.handle("local", (request) => {
     const filePath = request.url.slice("local:".length);
     return net.fetch(url.pathToFileURL(decodeURI(filePath)).toString());
   });
-
-  await import("./handlers/events");
 
   const mainWindow = await waitForWindow();
   if (mainWindow) {

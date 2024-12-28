@@ -7,7 +7,7 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ContinuePlayingCard from "../cards/continuePlaying";
 import { NewGameCard } from "../cards/newGame";
-import NewGameModalContent from "../modals/newGame.old/modal";
+import NewGameModal from "../modals/newGame";
 
 interface GamesContainerProps {
   games: Record<string, LibraryGame>;
@@ -29,7 +29,7 @@ const GamesContainer = ({
           <NewGameCard />
         </DialogTrigger>
 
-        <NewGameModalContent />
+        <NewGameModal />
       </Dialog>
 
       <div className="flex-1 w-full">

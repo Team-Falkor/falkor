@@ -1,10 +1,8 @@
-import { ITorrentGameData } from "../torrent";
-
 export interface DownloadData {
   id: string;
   url: string;
   filename: string;
-  game_data: ITorrentGameData;
+  game_data: DownloadgameData;
   path?: string;
   downloadSpeed: number;
   progress: number;
@@ -24,8 +22,30 @@ export type DownloadStatus =
 export interface AddDownloadData {
   id: string;
   url: string;
-  game_data: ITorrentGameData;
   file_path?: string;
   file_extension?: string;
   file_name: string;
+  game_data: DownloadgameData;
 }
+
+export type DownloadgameData = {
+  id: number;
+  name: string;
+  image_id: string;
+  banner_id?: string;
+};
+
+export type QueueDataTorrent = {
+  type: "torrent";
+  data: {
+    torrentId: string;
+    game_data: DownloadgameData;
+  };
+};
+
+export type QueueDataDownload = {
+  type: "download";
+  data: AddDownloadData;
+};
+
+export type QueueData = QueueDataTorrent | QueueDataDownload;

@@ -14,4 +14,6 @@ export const defaultSettings: SettingsConfig = {
   closeToTray: false,
   maxDownloadSpeed: -1,
   maxUploadSpeed: -1,
+  notifications: true,
+  api_base_url: constants.apiUrl ?? "https://api.falkor.moe",
 };

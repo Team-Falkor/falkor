@@ -5,6 +5,7 @@ import {
 } from "@/@types/library/types";
 import { logger } from "../../handlers/logging";
 import { db } from "../knex";
+import { BaseQuery } from "./base";
 
 /**
  * Handles operations on the `library_games` table in the database.
@@ -12,14 +13,14 @@ import { db } from "../knex";
  *
  * @class
  */
-class GamesDatabase {
+class GamesDatabase extends BaseQuery {
   /**
    * Whether the database has been initialized.
    *
-   * @private
+   * @protected
    * @type {boolean}
    */
-  private initialized: boolean = false;
+  initialized: boolean = false;
 
   /**
    * Initializes the database.
@@ -38,6 +39,7 @@ class GamesDatabase {
             table.string("game_name").notNullable().unique();
             table.string("game_path").notNullable().unique();
             table.string("game_id").notNullable().unique();
+            table.string("game_steam_id");
             table.string("game_icon");
             table.string("game_args");
             table.string("game_command");
@@ -78,6 +80,16 @@ class GamesDatabase {
           });
       });
 
+      await db.schema
+        .hasColumn("library_games", "game_steam_id")
+        .then(async (exists) => {
+          if (!exists) {
+            await db.schema.table("library_games", (table) => {
+              table.string("game_steam_id");
+            });
+          }
+        });
+
       this.initialized = true;
     } catch (error) {
       console.error("Error initializing database:", error);
@@ -113,6 +125,7 @@ class GamesDatabase {
       game_args: game.game_args || undefined,
       game_command: game.game_command || undefined,
       igdb_id: game.igdb_id || null,
+      game_steam_id: game.game_steam_id || null,
     };
 
     const newGame = await db("library_games").insert<LibraryGame>(newData);

@@ -1,20 +1,18 @@
 import { InfoItadProps, InfoProps } from "@/@types";
-import { cn, getSteamIdFromWebsites } from "@/lib";
-import { IGDBReturnDataType, ReleaseDate } from "@/lib/api/igdb/types";
-import { format } from "date-fns";
-import { Lightbulb } from "lucide-react";
-import { useMemo, useState } from "react";
+import { cn } from "@/lib";
+import { InfoReturn, ReleaseDate } from "@/lib/api/igdb/types";
+import { useState } from "react";
 import IGDBImage from "../IGDBImage";
 import ProtonDbBadge from "../protonDbBadge";
 import InfoTopSkeleton from "../skeletons/info/top.skeleton";
-import Stars from "../starts";
 import { Button } from "../ui/button";
-import Sources from "./sources";
+import SelectedInfoTab from "./tabs/selected";
 
 type InfoTopProps = InfoProps & {
-  data: IGDBReturnDataType | undefined;
+  data: InfoReturn | undefined;
   isReleased: boolean;
   releaseDate: ReleaseDate | null | undefined;
+  steamID: string | null | undefined;
   // playingData: LibraryGame | null | undefined;
   // playingPending: boolean;
 };
@@ -22,47 +20,8 @@ type InfoTopProps = InfoProps & {
 type Props = InfoTopProps & InfoItadProps;
 
 const InfoTop = (props: Props) => {
-  const {
-    data,
-    isReleased,
-    isPending,
-    error,
-    itadData,
-    itadError,
-    itadPending,
-    releaseDate,
-  } = props;
+  const { data, isPending, error, steamID } = props;
   const [activeTab, setActiveTab] = useState<number>(0);
-
-  const steam_id = useMemo(
-    () => getSteamIdFromWebsites(data?.websites ?? []),
-    [data?.websites]
-  );
-
-  const genres = useMemo(
-    () =>
-      data?.genres?.slice(0, 2)?.map((item) => ({
-        ...item,
-        name: item?.name?.split("(")?.[0]?.trim() ?? "",
-      })) ?? [],
-    [data?.genres]
-  );
-
-  const publisher = useMemo(
-    () => data?.involved_companies?.find((item) => item.publisher),
-    [data]
-  );
-
-  const developer = useMemo(
-    () => data?.involved_companies?.find((item) => item.developer),
-    [data]
-  );
-
-  const isSameDevAndPublisherSame =
-    !!developer && !!publisher
-      ? developer?.company?.name.toLowerCase() ===
-        publisher?.company?.name?.toLowerCase()
-      : false;
 
   if (error) return null;
 
@@ -87,13 +46,13 @@ const InfoTop = (props: Props) => {
 
       <div className="relative z-10 flex items-start justify-between w-full gap-6 mb-5">
         {/* LEFT */}
-        <div className="xl:w-[36%] w2/6 h-full overflow-hidden rounded-2xl relative">
+        <div className="xl:w-[35%] h-full overflow-hidden rounded-2xl relative">
           <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
             <div className="flex flex-col justify-between w-full h-full">
               {/* ProtonDB badge */}
               <div className="flex items-start justify-end pt-5 size-full">
                 <div className="overflow-hidden rounded-l-lg">
-                  {steam_id ? <ProtonDbBadge appId={steam_id} /> : null}
+                  {steamID ? <ProtonDbBadge appId={steamID} /> : null}
                 </div>
               </div>
             </div>
@@ -130,96 +89,7 @@ const InfoTop = (props: Props) => {
               System Requirements
             </Button>
           </div>
-
-          <div className="flex flex-col flex-shrink-0 w-full gap-2 p-4 overflow-hidden h-52 rounded-2xl bg-background">
-            <div className="flex items-center justify-between h-10 overflow-hidden">
-              <div className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold flex-shrink-0 flex-grow-0">
-                <Lightbulb fill="currentColor" size={15} />
-                About this game
-              </div>
-
-              <div className="flex items-center justify-end flex-1 gap-7">
-                {!!isReleased && (data?.aggregated_rating ?? 0) > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold">
-                    <Stars stars={(data?.aggregated_rating ?? 0) / 10} />
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 p-2.5  text-sm rounded-full bg-secondary/20 font-semibold">
-                  {!isReleased
-                    ? "Coming Soon"
-                    : !releaseDate?.date
-                      ? "N/A"
-                      : format(releaseDate.date * 1000, "MMM d, yyyy")}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                {isSameDevAndPublisherSame ? (
-                  <div
-                    key={publisher?.company?.id}
-                    className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
-                  >
-                    {developer?.company?.name ?? "N/A"}
-                  </div>
-                ) : (
-                  <>
-                    <div
-                      key={publisher?.company?.id}
-                      className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
-                    >
-                      {publisher?.company?.name ?? "N/A"}
-                    </div>
-                    <div
-                      key={developer?.company?.id}
-                      className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
-                    >
-                      {developer?.company?.name ?? "N/A"}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {!!genres && (
-                <div className="flex items-center gap-1.5">
-                  {genres.map((genre) => (
-                    <div
-                      key={genre?.slug}
-                      className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
-                    >
-                      {genre?.name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <p className="-mt-1 text-sm text-muted-foreground text-pretty line-clamp-4">
-              {data?.storyline ?? data?.summary ?? ""}
-            </p>
-          </div>
-
-          {!!isReleased && !isPending && !!data && (
-            <div className="">
-              <Sources
-                title={data?.name}
-                isReleased={isReleased}
-                websites={data?.websites}
-                slug={data?.slug}
-                itadData={itadData}
-                itadError={itadError}
-                itadPending={itadPending}
-                game_data={{
-                  banner_id: data.screenshots?.[0].image_id,
-                  id: data.id,
-                  image_id: data.cover?.image_id,
-                  name: data.name,
-                }}
-              />
-            </div>
-          )}
+          <SelectedInfoTab selectedTab={activeTab} {...props} />
         </div>
       </div>
     </div>

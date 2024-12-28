@@ -17,7 +17,7 @@ const RequirementsRow = ({ type, data }: RequirementsRowProps) => {
   return (
     <ul
       className={cn(
-        "flex-1 py-4 bg-white border-gray-200 divide-gray-200 rounded-lg dark:divide-gray-700 dark:border-gray-700 dark:bg-muted dark:text-gray-100"
+        "flex-1 py-4 bg-white border-gray-200 divide-gray-200 rounded-lg dark:divide-gray-700 dark:border-gray-700 dark:bg-background dark:text-gray-100"
       )}
     >
       <h3 className="p-4 pt-1 pb-2 text-lg font-bold leading-6 capitalize text-primary">

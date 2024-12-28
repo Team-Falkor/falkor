@@ -15,25 +15,25 @@ interface DownloadCardActionsProps {
 const DownloadCardActions = ({
   stats,
   deleteStats,
-  isPaused,
 }: DownloadCardActionsProps) => {
   const isTorrentType = isTorrent(stats);
 
-  const { pauseDownload, startDownload, stopDownload, status } =
-    UseDownloadAction(isTorrentType ? stats.infoHash : stats.id, isTorrentType);
+  const { pause, start, stop, status } = UseDownloadAction(
+    isTorrentType ? stats.infoHash : stats.id
+  );
 
   if (status === "stopped" || !stats) return null;
 
   return (
     <div className="flex flex-row gap-4">
-      {isPaused ? (
+      {status === "paused" ? (
         <Button
           size="default"
           variant="secondary"
           className="gap-2"
-          onClick={startDownload ?? undefined}
+          onClick={start ?? undefined}
         >
-          <Play fill="currentColor" />
+          <Play className="fill-current" />
           Start Download
         </Button>
       ) : (
@@ -41,7 +41,7 @@ const DownloadCardActions = ({
           size="default"
           variant="secondary"
           className="gap-2"
-          onClick={pauseDownload ?? undefined}
+          onClick={pause ?? undefined}
         >
           <Pause fill="currentColor" />
           Pause Download
@@ -53,7 +53,7 @@ const DownloadCardActions = ({
         variant="destructive"
         className="p-0.5"
         onClick={() => {
-          stopDownload();
+          stop();
           deleteStats(isTorrentType ? stats.infoHash : stats.id);
         }}
       >

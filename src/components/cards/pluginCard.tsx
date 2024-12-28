@@ -36,9 +36,9 @@ const PluginCard = ({
   const { t } = useLanguageContext();
 
   return (
-    <div className="grid relative ritems-center gap-4 px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+    <div className="relative grid gap-4 px-4 py-2 border border-gray-200 rounded-lg ritems-center bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
       {!!banner && (
-        <div className="absolute top-0 left-0 right-0 bottom-0 rounded-lg transition-all -z-0">
+        <div className="absolute top-0 bottom-0 left-0 right-0 transition-all rounded-lg -z-0">
           <img
             src={banner}
             alt={name}
@@ -49,18 +49,18 @@ const PluginCard = ({
         </div>
       )}
 
-      <div className="flex flex-col items-start gap-4 relative z-10">
-        <div className="flex self-start gap-3 relative">
+      <div className="relative z-10 flex flex-col items-start gap-4">
+        <div className="relative flex self-start gap-4">
           <img
             src={image}
             alt={name}
-            className="rounded object-contain size-[50px] bg-card-foreground"
+            className="rounded-xl drop-shadow-lg object-contain size-[50px]"
           />
 
           <div className="flex flex-col items-start justify-end">
-            <p className="text-xs font-medium flex items-center gap-1 text-gray-500 dark:text-gray-400">
+            <p className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
               {needsUpdate && (
-                <span className="text-red-500 font-bold">
+                <span className="font-bold text-red-500">
                   [Update available]
                 </span>
               )}
@@ -90,7 +90,7 @@ const PluginCard = ({
         <p className="text-xs font-medium text-left">{description}</p>
       </div>
 
-      <div className="flex items-center justify-end gap-3 relative z-10">
+      <div className="relative z-10 flex items-center justify-end gap-3">
         {needsUpdate && (
           <Button variant="secondary" onClick={updatePlugin} size={"icon"}>
             <Download />

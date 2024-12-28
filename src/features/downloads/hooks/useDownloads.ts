@@ -1,46 +1,65 @@
 import { useDownloadStore } from "@/stores/downloads";
+import { useEffect } from "react";
 
-const UseDownloads = () => {
+interface UseDownloadsProps {
+  fetch: boolean;
+  forceFetch: boolean;
+}
+
+const UseDownloads = ({
+  fetch = true,
+  forceFetch = false,
+}: Partial<UseDownloadsProps> = {}) => {
   const {
-    addDownload,
-    addTorrent,
-    downloading,
+    addToQueue,
     downloads,
-    error,
     fetchDownloads,
-    getDownload,
-    getTorrent,
-    getTorrents,
-    loading,
+    fetchQueue,
+    maxConcurrentDownloads,
     pauseDownload,
-    pauseTorrent,
-    getQueue,
-    removeTorrent,
+    queue,
+    removeFromQueue,
     resumeDownload,
-    resumeTorrent,
     stopDownload,
-    torrents,
+    updateMaxConcurrentDownloads,
   } = useDownloadStore();
 
-  return {
-    addDownload,
-    addTorrent,
-    downloading,
-    downloads,
-    error,
+  useEffect(() => {
+    if (!fetch && !forceFetch) return;
+
+    if (!forceFetch && queue?.length === 0) {
+      fetchQueue();
+    }
+
+    if (!forceFetch && downloads?.length === 0) {
+      fetchDownloads();
+    }
+
+    if (forceFetch) {
+      fetchQueue();
+      fetchDownloads();
+    }
+  }, [
+    fetch,
+    forceFetch,
+    queue?.length,
+    downloads?.length,
+    fetchQueue,
     fetchDownloads,
-    getDownload,
-    getTorrent,
-    getTorrents,
-    loading,
+  ]);
+
+  return {
+    addDownload: addToQueue,
+    downloads,
+    fetchDownloads,
+    fetchQueue,
+    maxConcurrentDownloads,
     pauseDownload,
-    pauseTorrent,
-    getQueue,
-    removeTorrent,
+    queue,
+    removeFromQueue,
     resumeDownload,
-    resumeTorrent,
     stopDownload,
-    torrents,
+    updateMaxConcurrentDownloads,
   };
 };
 

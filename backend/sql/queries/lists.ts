@@ -1,15 +1,16 @@
 import { List, ListGame } from "@/@types";
 import { logger } from "../../handlers/logging";
 import { db } from "../knex";
+import { BaseQuery } from "./base";
 
 /**
  * Handles CRUD operations for lists and games in the database
  */
-class ListsDatabase {
+class ListsDatabase extends BaseQuery {
   /**
    * Indicates if the database has been initialized
    */
-  private initialized: boolean = false;
+  initialized: boolean = false;
 
   /**
    * Initializes the database tables if they don't exist

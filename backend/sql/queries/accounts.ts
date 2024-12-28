@@ -6,12 +6,13 @@ import {
 } from "@/@types/accounts";
 import { logger } from "../../handlers/logging";
 import { db } from "../knex";
+import { BaseQuery } from "./base";
 
 /**
  * Handles CRUD operations for accounts in the database
  */
-class AccountsDB {
-  private initialized = false;
+class AccountsDB extends BaseQuery {
+  initialized = false;
 
   /**
    * Initializes the database tables if they don't exist

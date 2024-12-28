@@ -156,8 +156,8 @@ class IGDB extends BaseApi {
     offset?: number
   ): Promise<IGDBReturnDataType[]> {
     return await this.request<IGDBReturnDataType[]>("games", {
-      sort: "total_rating desc",
-      where: `platforms.abbreviation = "PC" & total_rating != n & total_rating > 85 & hypes > 2 & rating_count > 5 & version_parent = null & category = 0`,
+      sort: "aggregated_rating  desc",
+      where: `platforms.abbreviation = "PC" & aggregated_rating != n & aggregated_rating_count > 7 & version_parent = null & category = 0`,
       limit: limit?.toString() ?? undefined,
       offset: offset?.toString() ?? undefined,
     });
