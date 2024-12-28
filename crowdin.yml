@@ -5,6 +5,6 @@ commit_message: "[skip ci] new translations %language% from Crowdin"
 append_commit_message: false
 preserve_hierarchy: true
 files:
-  - source: "/src/i18n/translations/en.json"
+  - source: "/src/i18n/translations/english.json"
     translation: "/src/i18n/translations/%language%.json"
     type: json
