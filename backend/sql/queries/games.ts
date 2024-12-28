@@ -39,6 +39,7 @@ class GamesDatabase extends BaseQuery {
             table.string("game_name").notNullable().unique();
             table.string("game_path").notNullable().unique();
             table.string("game_id").notNullable().unique();
+            table.string("game_steam_id");
             table.string("game_icon");
             table.string("game_args");
             table.string("game_command");
@@ -79,6 +80,16 @@ class GamesDatabase extends BaseQuery {
           });
       });
 
+      await db.schema
+        .hasColumn("library_games", "game_steam_id")
+        .then(async (exists) => {
+          if (!exists) {
+            await db.schema.table("library_games", (table) => {
+              table.string("game_steam_id");
+            });
+          }
+        });
+
       this.initialized = true;
     } catch (error) {
       console.error("Error initializing database:", error);
@@ -114,6 +125,7 @@ class GamesDatabase extends BaseQuery {
       game_args: game.game_args || undefined,
       game_command: game.game_command || undefined,
       igdb_id: game.igdb_id || null,
+      game_steam_id: game.game_steam_id || null,
     };
 
     const newGame = await db("library_games").insert<LibraryGame>(newData);

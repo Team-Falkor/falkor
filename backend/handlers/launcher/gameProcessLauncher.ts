@@ -3,8 +3,17 @@ import fs from "fs";
 import ms from "ms";
 import { gamesDB } from "../../sql";
 import windoww from "../../utils/window";
+import { AchievementItem } from "../achievements/item";
 import { logger } from "../logging";
 import { gamesLaunched } from "./games_launched";
+
+interface Options {
+  game_path: string;
+  game_id: string;
+  steam_id?: string | null;
+  game_name: string;
+  game_icon?: string;
+}
 
 class GameProcessLauncher {
   private gamePath: string;
@@ -16,14 +25,23 @@ class GameProcessLauncher {
   private isPlaying: boolean = false;
   private interval: NodeJS.Timeout | null = null;
 
-  constructor(gamePath: string, gameId: string, currentPlaytime: number = 0) {
-    if (!GameProcessLauncher.isValidExecutable(gamePath)) {
-      throw new Error(`Invalid game path: ${gamePath}`);
+  private achivementItem: AchievementItem | null = null;
+
+  constructor({ game_name, game_path, steam_id, game_icon, game_id }: Options) {
+    if (!GameProcessLauncher.isValidExecutable(game_path)) {
+      throw new Error(`Invalid game path: ${game_path}`);
     }
 
-    this.gamePath = gamePath;
-    this.gameId = gameId;
-    this.playtime = currentPlaytime;
+    this.gamePath = game_path;
+    this.gameId = game_id;
+    this.playtime = 0;
+    if (steam_id) {
+      this.achivementItem = new AchievementItem({
+        game_id: steam_id,
+        game_name,
+        game_icon,
+      });
+    }
   }
 
   /**
@@ -45,6 +63,9 @@ class GameProcessLauncher {
         stdio: "ignore",
       });
       this.gameProcess.unref();
+
+      console.log("info", "achivement item find");
+      this.achivementItem?.find();
 
       this.gameProcess.on("exit", (code, signal) => {
         console.log("info", `Game exited. Code: ${code}, Signal: ${signal}`);
@@ -126,6 +147,8 @@ class GameProcessLauncher {
         this.gameProcess.kill("SIGTERM");
         console.log("info", "Game process terminated.");
       }
+
+      if (this.achivementItem) this.achivementItem?.watcher_instance?.destroy();
     } catch (error) {
       logger.log("error", `Error during cleanup: ${(error as Error).message}`);
     }

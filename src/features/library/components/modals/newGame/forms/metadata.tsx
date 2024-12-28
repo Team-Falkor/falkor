@@ -117,6 +117,18 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
           />
         )}
       />
+
+      <FormField
+        control={form.control}
+        name="steamId"
+        render={({ field }) => (
+          <GameFormInput
+            text={t("steam_id")}
+            description={t("steam_id")}
+            field={field}
+          />
+        )}
+      />
     </div>
   );
 };

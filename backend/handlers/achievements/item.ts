@@ -44,13 +44,19 @@ class AchievementItem {
     if (this.initialized) return;
 
     try {
+      console.log(`Initializing AchievementItem for game: ${this.game_name}`);
       this.achivement_data = await this.api.get(this.game_id);
+      console.log(`API data fetched for game: ${this.game_name}`);
       this.initialized = true;
+
+      return;
     } catch (error) {
       console.error(
         `Failed to initialize AchievementItem for game: ${this.game_name}`,
         error
       );
+      this.initialized = false;
+      return;
     }
   }
 
@@ -61,12 +67,16 @@ class AchievementItem {
     await this.init();
 
     try {
+      console.log(`Finding achievement files for game: ${this.game_name}`);
       this.achievement_files = AchievementFileLocator.findAchievementFiles(
         this.game_id
       );
 
       this.watcher = new AchievementWatcher(this.achievement_files[0].path);
-      this.watcher.start();
+      this.watcher.start(async (event) => {
+        if (event !== "change") return;
+        console.log(await this.compare());
+      });
     } catch (error) {
       console.error(
         `Error finding achievement files for game: ${this.game_name}`,
@@ -79,8 +89,6 @@ class AchievementItem {
    * Parse achievements from located files and update unlocked achievements.
    */
   async parse(): Promise<void> {
-    await this.find();
-
     for (const file of this.achievement_files) {
       try {
         const parsedAchievements = this.parser.parseAchievements(
@@ -125,6 +133,8 @@ class AchievementItem {
           hidden: matchedAchievement.hidden,
           description: matchedAchievement.description,
           icon: matchedAchievement?.icon ?? this.game_icon,
+          icongray: matchedAchievement?.icongray ?? this.game_icon,
+          unlockTime: fileAchievement.unlockTime,
         });
       }
     }

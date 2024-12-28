@@ -302,6 +302,7 @@ class AchievementFileLocator {
 
   static findAllAchievementFiles(): Map<string, AchievementFile[]> {
     const gameAchievementFiles = new Map<string, AchievementFile[]>();
+    console.log(`searching for achievement files`);
 
     for (const [cracker, paths] of Object.entries(this.crackerPaths) as [
       Cracker,
@@ -310,6 +311,8 @@ class AchievementFileLocator {
       paths.forEach(
         ({ achievement_folder_location, achievement_file_location }) => {
           if (!existsSync(achievement_folder_location)) return;
+
+          console.log(`${achievement_folder_location}`);
 
           const gameStoreIds = readdirSync(achievement_folder_location);
           gameStoreIds.forEach((gameStoreId) => {

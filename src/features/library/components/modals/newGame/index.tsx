@@ -32,6 +32,7 @@ const NewGameModal = () => {
       gameName: "",
       gamePath: "",
       igdbId: "",
+      steamId: "",
     },
   });
 
@@ -44,6 +45,7 @@ const NewGameModal = () => {
       gameIcon,
       gameArgs,
       gameCommand,
+      steamId,
     } = values;
 
     try {
@@ -55,6 +57,7 @@ const NewGameModal = () => {
         game_args: gameArgs,
         game_command: gameCommand,
         igdb_id: igdbId ? Number(igdbId) : null,
+        game_steam_id: steamId,
       });
 
       form.reset();

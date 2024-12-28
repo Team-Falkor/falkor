@@ -125,5 +125,6 @@
   "torrent": "Torrent",
   "max_download_speed": "Max Download Speed",
   "max_upload_speed": "Max Upload Speed",
-  "add-to-list": "Add To List"
+  "add-to-list": "Add To List",
+  "steam_id": "steam id"
 }

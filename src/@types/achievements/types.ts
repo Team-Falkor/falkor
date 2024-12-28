@@ -15,6 +15,8 @@ export interface AchivementStat {
   hidden: number;
   description?: string;
   icon: string;
+  icongray: string;
+  unlockTime: number;
 }
 
 export interface ISchemaForGame {

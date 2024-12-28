@@ -1,8 +1,8 @@
 import { ISchemaForGame } from "@/@types";
-import { constants } from "backend/utils";
+import { settings } from "../../utils/settings/settings";
 
 class AchievementData {
-  readonly api_url: string | undefined = constants.apiUrl;
+  readonly api_url: string | undefined = settings.get("api_base_url");
 
   async get(steamId: string, lang: string = "en"): Promise<ISchemaForGame> {
     try {

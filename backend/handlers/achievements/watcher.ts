@@ -1,4 +1,4 @@
-import { FSWatcher, watch } from "node:fs";
+import { FSWatcher, watch, WatchListener } from "node:fs";
 
 class AchievementWatcher {
   private filePath: string;
@@ -6,19 +6,20 @@ class AchievementWatcher {
 
   constructor(filePath: string) {
     if (!filePath) {
-      throw new Error("filePath  are required.");
+      throw new Error("filePath are required.");
     }
     this.filePath = filePath;
   }
 
   /** Initializes the watcher if not already started */
-  start(): void {
+  start(callback?: WatchListener<string>): void {
     if (this.watcher) {
       console.warn("Watcher already running. Restarting...");
       this.restart();
       return;
     }
-    this.watcher = watch(this.filePath);
+    console.log(`Watching file: ${this.filePath}`);
+    this.watcher = watch(this.filePath, callback);
   }
 
   /** Closes and nullifies the watcher */

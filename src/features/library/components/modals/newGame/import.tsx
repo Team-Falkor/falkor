@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { PopoverContent } from "@/components/ui/popover";
 import useSearch from "@/features/search/hooks/useSearch";
-import { cn } from "@/lib";
+import { cn, getSteamIdFromWebsites } from "@/lib";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import { t } from "i18next";
 import { ShipWheel } from "lucide-react";
@@ -25,6 +25,7 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
   const { results, loading } = useSearch(searchTerm, 5);
 
   const handleClick = (game: IGDBReturnDataType) => {
+    const steam_id = getSteamIdFromWebsites(game.websites);
     form.setValue("gameName", game.name);
     form.setValue("igdbId", game.id.toString());
     form.setValue(
@@ -32,6 +33,7 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
       replaceUrl(game.screenshots?.[0]?.url ?? game.cover?.url)
     );
     form.setValue("gameId", game.id.toString());
+    form.setValue("steamId", steam_id);
 
     setPopoverOpen(false);
   };
