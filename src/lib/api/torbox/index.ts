@@ -1,7 +1,6 @@
 import { getInfoHashFromMagnet } from "@/lib/utils";
-import { toast } from "sonner";
 import { Torrents } from "./torrents";
-import { Unrestrict } from "./unrestrict";
+import { Unrestrict } from "./webdl";
 import { User } from "./user";
 import { TorBoxTorrentInfoResult } from "@/@types/accounts";
 
@@ -80,18 +79,10 @@ class TorBoxClient {
   }
 
   public async downloadFromFileHost(
-    url: string,
-    password?: string
+    _url: string,
+    _password?: string
   ): Promise<string> {
-    try {
-      const unrestrictedLink = await this.unrestrict.link(url, password);
-      return unrestrictedLink.download;
-    } catch (error) {
-      toast.error(`Failed to unrestrict link`, {
-        description: (error as Error).message,
-      });
-      throw new Error(`Failed to unrestrict link: ${(error as Error).message}`);
-    }
+    throw new Error("TorBox currently does not support file host downloads.");
   }
   public async getDownloadName(url: string, type: string): Promise<string> {
     if (type != "ddl") {

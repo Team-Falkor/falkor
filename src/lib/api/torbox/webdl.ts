@@ -1,4 +1,4 @@
-import { RealDebridUnrestrictFileFolder } from "@/@types/accounts";
+import { TorBoxResponse } from "@/@types/accounts";
 import { TorBoxAPI } from "./models/api";
 
 export class Unrestrict extends TorBoxAPI {
@@ -8,13 +8,25 @@ export class Unrestrict extends TorBoxAPI {
 
   public async link(
     link: string,
-    password?: string,
-    remote?: number
+    password?: string
   ): Promise<RealDebridUnrestrictFileFolder> {
-    const body = new URLSearchParams({ link });
+    const body = new FormData();
+    body.append("link", link);
+    if (password) body.append("password", password);
+
+    const response = await this.makeRequest<TorBoxResponse<TorBoxAddTorrent>>(
+      "webdl/createwebdownload",
+      "POST",
+      true,
+      body
+    );
+
+    if (response.data) {
+      return response.data;
+    }
+    return null;
 
     if (password) body.set("password", password);
-    if (remote) body.set("remote", remote.toString());
 
     return await this.makeRequest(
       "/rest/1.0/unrestrict/link",
@@ -50,25 +62,5 @@ export class Unrestrict extends TorBoxAPI {
 
     const path = uri.pathname.split("/").pop() || "";
     return decodeURIComponent(path.split("?")[0]);
-  }
-
-  public async folder(link: string): Promise<RealDebridUnrestrictFileFolder[]> {
-    const body = new URLSearchParams({ link });
-    return this.makeRequest("/rest/1.0/unrestrict/folder", "POST", true, body, {
-      "Content-Type": "application/x-www-form-urlencoded",
-    });
-  }
-
-  public async containerLink(
-    link: string
-  ): Promise<RealDebridUnrestrictFileFolder[]> {
-    const body = new URLSearchParams({ link });
-    return this.makeRequest(
-      "/rest/1.0/unrestrict/containerLink",
-      "POST",
-      true,
-      body.toString(),
-      { "Content-Type": "application/x-www-form-urlencoded" }
-    );
   }
 }
