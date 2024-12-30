@@ -1,3 +1,4 @@
+// @see - https://www.electron.build/configuration/configuration
 {
   $schema: "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   appId: "moe.falkor",
@@ -50,15 +51,14 @@
     category: "Game",
     maintainer: "team-falkor",
     mimeTypes: ["x-scheme-handler/falkor"],
+    publish: ["github"],
   },
-  publish: [
-    {
-      provider: "github",
-      repo: "falkor",
-      owner: "team-falkor",
-      private: false,
-      publishAutoUpdate: true,
-      releaseType: "draft",
-    },
-  ],
+  publish: {
+    provider: "github",
+    repo: "app",
+    owner: "team-falkor",
+    private: false,
+    publishAutoUpdate: true,
+    releaseType: "draft",
+  },
 }
