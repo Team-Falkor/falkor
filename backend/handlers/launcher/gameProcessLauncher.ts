@@ -79,7 +79,7 @@ class GameProcessLauncher {
     );
 
     try {
-      if (this.gameCommand) {
+      if (this.gameCommand?.length) {
         this.gameProcess = spawn(this.gameCommand, {
           shell: true,
           detached: true,
@@ -136,14 +136,21 @@ class GameProcessLauncher {
     if (!this.gameId) return;
 
     try {
+      // Fetch existing playtime from the database
+      const existingGame = await gamesDB.getGameById(this.gameId);
+      const existingPlaytime = existingGame?.game_playtime || 0;
+
+      // Add the new playtime to the existing playtime
+      const totalPlaytime = existingPlaytime + this.playtime;
+
       await gamesDB.updateGame(this.gameId, {
-        game_playtime: this.playtime,
+        game_playtime: totalPlaytime,
         game_last_played: new Date(),
       });
 
       console.log(
         "info",
-        `Playtime updated successfully. Total: ${ms(this.playtime)}`
+        `Playtime updated successfully. Total: ${ms(totalPlaytime)}`
       );
     } catch (error) {
       logger.log(
