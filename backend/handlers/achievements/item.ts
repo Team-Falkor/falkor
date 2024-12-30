@@ -18,6 +18,9 @@ interface Options {
   steam_id?: string | null;
 }
 
+/**
+ * Class representing an Achievement Item for a specific game.
+ */
 class AchievementItem {
   private initialized = false;
 
@@ -34,7 +37,13 @@ class AchievementItem {
   private file_unlocked_achievements: Set<UnlockedAchievement> = new Set();
 
   private watcher: AchievementWatcher | null = null;
+  private notificationBuffer: AchivementStat[] = [];
+  private notificationTimer: NodeJS.Timeout | null = null;
 
+  /**
+   * Creates an instance of AchievementItem.
+   * @param {Options} options - Options for initializing the AchievementItem.
+   */
   constructor({ game_name, game_id, game_icon, steam_id }: Options) {
     this.game_name = game_name;
     this.game_id = game_id;
@@ -43,37 +52,31 @@ class AchievementItem {
   }
 
   /**
-   * Initialize the AchievementItem with API data.
+   * Initializes the AchievementItem by fetching achievement data.
+   * @returns {Promise<void>}
    */
   async init(): Promise<void> {
-    if (this.initialized) return;
-    if (!this.steam_id) return;
+    if (this.initialized || !this.steam_id) return;
 
     try {
       console.log(`Initializing AchievementItem for game: ${this.game_name}`);
       this.achivement_data = await this.api.get(this.steam_id);
-      console.log(`API data fetched for game: ${this.game_name}`);
       this.initialized = true;
-
-      return;
     } catch (error) {
       console.error(
         `Failed to initialize AchievementItem for game: ${this.game_name}`,
         error
       );
-      this.initialized = false;
-      return;
     }
   }
 
   /**
-   * Locate achievement files associated with the game.
+   * Finds achievement files and starts watching for changes.
+   * @returns {Promise<void>}
    */
   async find(): Promise<void> {
     if (!this.steam_id) return;
-    if (!this.initialized) {
-      await this.init();
-    }
+    if (!this.initialized) await this.init();
 
     try {
       console.log(`Finding achievement files for game: ${this.game_name}`);
@@ -86,45 +89,7 @@ class AchievementItem {
       const watcherPath = this.achievement_files[0].path;
       this.watcher = new AchievementWatcher(watcherPath);
       this.watcher.start(async (event) => {
-        if (event !== "change") return;
-
-        const unlocked = await this.compare();
-        if (!unlocked) return;
-
-        if (!this.steam_id) return;
-        const dbItems = new Set(
-          (await achievementsDB.getUnlockedAchievements(this.game_id)).map(
-            (item) => item.achievement_name
-          )
-        );
-
-        for (const achievement of unlocked) {
-          if (dbItems.has(achievement.name)) continue;
-
-          console.log(`Adding new achievement: ${achievement.name}`);
-          await achievementsDB.addAchievement({
-            achievement_display_name: achievement.displayName,
-            game_id: this.game_id,
-            achievement_name: achievement.name,
-            achievement_description: achievement.description,
-            achievement_image: watcherPath,
-            achievement_unlocked: true,
-          });
-
-          NotificationsHandler.constructNotification(
-            {
-              title: achievement.displayName,
-              body: "New achievement unlocked",
-              icon: achievement.icon
-                ? await NotificationsHandler.createImage(achievement.icon)
-                : this.game_icon
-                  ? await NotificationsHandler.createImage(this.game_icon)
-                  : undefined,
-              notificationType: "achievement_unlocked",
-            },
-            true
-          );
-        }
+        if (event === "change") await this.handleAchievementChange();
       });
     } catch (error) {
       console.error(
@@ -135,11 +100,109 @@ class AchievementItem {
   }
 
   /**
-   * Parse achievements from located files and update unlocked achievements.
+   * Handles achievement file changes by comparing and notifying new achievements.
+   * @private
+   * @returns {Promise<void>}
+   */
+  private async handleAchievementChange(): Promise<void> {
+    const unlocked = await this.compare();
+    if (!unlocked) return;
+
+    const dbItems = new Set(
+      (await achievementsDB.getUnlockedAchievements(this.game_id)).map(
+        (item) => item.achievement_name
+      )
+    );
+
+    const newAchievements = unlocked.filter(
+      (achievement) => !dbItems.has(achievement.name)
+    );
+
+    if (newAchievements.length > 0) {
+      await this.saveAndNotify(newAchievements);
+    }
+  }
+
+  /**
+   * Saves new achievements to the database and buffers notifications.
+   * @private
+   * @param {AchivementStat[]} achievements - Array of new achievements to save and notify.
+   * @returns {Promise<void>}
+   */
+  private async saveAndNotify(achievements: AchivementStat[]): Promise<void> {
+    for (const achievement of achievements) {
+      console.log(`Adding new achievement: ${achievement.name}`);
+      await achievementsDB.addAchievement({
+        achievement_display_name: achievement.displayName,
+        game_id: this.game_id,
+        achievement_name: achievement.name,
+        achievement_description: achievement.description,
+        achievement_image: achievement.icon,
+        achievement_unlocked: true,
+      });
+    }
+
+    this.bufferNotifications(achievements);
+  }
+
+  /**
+   * Buffers notifications to be sent after a delay.
+   * @private
+   * @param {AchivementStat[]} achievements - Array of new achievements to notify.
+   */
+  private bufferNotifications(achievements: AchivementStat[]): void {
+    this.notificationBuffer.push(...achievements);
+
+    if (this.notificationTimer) {
+      clearTimeout(this.notificationTimer);
+    }
+
+    this.notificationTimer = setTimeout(() => this.flushNotifications(), 2000); // Adjust time window as needed
+  }
+
+  /**
+   * Flushes buffered notifications, sending a summary notification.
+   * @private
+   * @returns {Promise<void>}
+   */
+  private async flushNotifications(): Promise<void> {
+    if (this.notificationBuffer.length === 0) return;
+
+    const summaryTitle =
+      this.notificationBuffer.length === 1
+        ? this.notificationBuffer[0].displayName
+        : `${this.notificationBuffer.length} Achievements Unlocked!`;
+
+    const summaryBody =
+      this.notificationBuffer.length === 1
+        ? (this.notificationBuffer[0].description ?? "New achievement unlocked")
+        : this.notificationBuffer
+            .map((ach) => `- ${ach.displayName}`)
+            .join("\n");
+
+    await NotificationsHandler.constructNotification(
+      {
+        title: summaryTitle,
+        body: summaryBody,
+        icon:
+          this.notificationBuffer[0].icon ||
+          (this.game_icon
+            ? await NotificationsHandler.createImage(this.game_icon)
+            : undefined),
+        notificationType: "achievement_unlocked",
+      },
+      true
+    );
+
+    this.notificationBuffer = [];
+    this.notificationTimer = null;
+  }
+
+  /**
+   * Parses achievement files to get unlocked achievements.
+   * @returns {Promise<void>}
    */
   async parse(): Promise<void> {
-    if (!this.steam_id) return;
-
     for (const file of this.achievement_files) {
       try {
         const parsedAchievements = this.parser.parseAchievements(
@@ -156,7 +219,8 @@ class AchievementItem {
   }
 
   /**
-   * Compare unlocked achievements with API data to generate a detailed list of unlocked stats.
+   * Compares parsed achievements with the schema data to find newly unlocked achievements.
+   * @returns {Promise<AchivementStat[] | undefined>}
    */
   async compare(): Promise<AchivementStat[] | undefined> {
     await this.parse();
@@ -167,7 +231,6 @@ class AchievementItem {
     }
 
     const unlockedAchievements = new Map<string, AchivementStat>();
-
     const achievements =
       this.achivement_data.game.availableGameStats.achievements;
 
@@ -184,8 +247,8 @@ class AchievementItem {
           displayName: matchedAchievement.displayName,
           hidden: matchedAchievement.hidden,
           description: matchedAchievement.description,
-          icon: matchedAchievement?.icon ?? this.game_icon,
-          icongray: matchedAchievement?.icongray ?? this.game_icon,
+          icon: matchedAchievement.icon ?? this.game_icon,
+          icongray: matchedAchievement.icongray ?? this.game_icon,
           unlockTime: fileAchievement.unlockTime,
         });
       }
@@ -194,6 +257,10 @@ class AchievementItem {
     return Array.from(unlockedAchievements.values());
   }
 
+  /**
+   * Gets the instance of the AchievementWatcher.
+   * @returns {AchievementWatcher | null}
+   */
   get watcher_instance() {
     return this.watcher;
   }
