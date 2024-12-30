@@ -91,7 +91,7 @@ function Info() {
           steamID={steam_id}
         />
 
-        {!!steam_id && <AchievementContainer steamId={steam_id} />}
+        {!!steam_id && <AchievementContainer steamId={steam_id} gameId={id} />}
 
         <SimilarGames data={data?.similar_games ?? []} />
       </div>

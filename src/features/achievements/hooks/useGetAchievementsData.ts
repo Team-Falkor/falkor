@@ -27,5 +27,6 @@ export const useGetAchievementsData = ({ steamId }: Achievement) => {
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
+    enabled: !!steamId,
   });
 };

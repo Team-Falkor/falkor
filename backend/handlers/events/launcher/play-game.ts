@@ -25,9 +25,9 @@ const playGame = async (
     const launcher = new GameProcessLauncher({
       game_name: game_info.game_name,
       game_path,
-      steam_id: game_info.game_steam_id,
       game_icon: game_info.game_icon,
       game_id: game_info.game_id,
+      steam_id: game_info.game_steam_id,
     });
     launcher.launchGame();
     gamesLaunched.set(game_id, launcher);

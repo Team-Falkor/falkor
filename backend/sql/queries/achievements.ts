@@ -1,173 +1,205 @@
 import { AchievementDBItem, NewAchievementInputDBItem } from "@/@types";
-import { logger } from "../../handlers/logging";
 import { db } from "../knex";
 import { BaseQuery } from "./base";
 
-class AchievementsDB extends BaseQuery {
-  protected initialized: boolean = false;
-
+/**
+ * Handles operations on the `achievements` table in the database.
+ * The `achievements` table contains all achievements for games in the library.
+ *
+ * @class
+ */
+class AchievementsDatabase extends BaseQuery {
+  initialized: boolean = false;
   /**
-   * Initializes the database schema for achievements if it doesn't already exist.
+   * Initializes the achievements database.
+   *
+   * @returns {Promise<void>}
    */
   async init(): Promise<void> {
     if (this.initialized) return;
 
     try {
-      const exists = await db.schema.hasTable("achievements");
-      if (!exists) {
-        await db.schema.createTable("achievements", (table) => {
-          table.increments("id").primary().notNullable();
-          table.string("game_id").notNullable().unique();
-          table.string("game_name").notNullable();
-          table.string("achievement_name").notNullable().unique();
-          table.string("achievement_display_name").notNullable();
-          table.string("achievement_description").defaultTo("");
-          table.string("achievement_image").notNullable();
-          table.boolean("achievement_unlocked").defaultTo(false); // Boolean field.
-        });
-      }
+      // Ensure the "achievements" table exists
+      await db.schema.hasTable("achievements").then(async (exists) => {
+        if (!exists) {
+          await db.schema.createTable("achievements", (table) => {
+            table.increments("id").primary();
+            table
+              .string("game_id")
+              .notNullable()
+              .references("game_id")
+              .inTable("library_games")
+              .onDelete("CASCADE");
+
+            table.string("achievement_display_name").notNullable();
+            table.string("achievement_name").notNullable();
+            table.string("description");
+            table.boolean("unlocked").defaultTo(false);
+            table.dateTime("unlocked_at").defaultTo(db.fn.now());
+            table.unique(["game_id", "achievement_name"]); // Ensure no duplicate achievements per game
+          });
+        }
+      });
+
       this.initialized = true;
     } catch (error) {
       console.error("Error initializing achievements database:", error);
-      logger.log("error", `Error initializing achievements database: ${error}`);
+      this.initialized = false;
+
+      throw error;
     }
   }
 
   /**
-   * Adds a new achievement to the database.
-   * @param input - The achievement details to add.
+   * Adds a new achievement for a game.
+   *
+   * @param {NewAchievementInputDBItem} achievement - The achievement to add.
+   * @returns {Promise<void>}
    */
-  async addAchievement(input: NewAchievementInputDBItem): Promise<void> {
+  async addAchievement(achievement: NewAchievementInputDBItem): Promise<void> {
     await this.init();
 
-    const {
-      game_id,
-      game_name,
-      achievement_name,
-      achievement_display_name,
-      achievement_image,
-    } = input;
-    if (
-      !game_id ||
-      !game_name ||
-      !achievement_name ||
-      !achievement_display_name ||
-      !achievement_image
-    ) {
-      throw new Error("Missing required fields for adding an achievement.");
+    // Check if the game exists
+    const gameExists = await db("library_games")
+      .where("game_id", achievement.game_id)
+      .first();
+
+    if (!gameExists) {
+      throw new Error(`Game with ID ${achievement.game_id} does not exist.`);
     }
 
     try {
       await db("achievements").insert({
-        game_id,
-        game_name,
-        achievement_name,
-        achievement_display_name,
-        achievement_description: input.achievement_description || "",
-        achievement_image,
-        achievement_unlocked: input.achievement_unlocked ?? false,
+        game_id: achievement.game_id,
+        achievement_name: achievement.achievement_name,
+        achievement_display_name: achievement.achievement_display_name,
+        description: achievement.achievement_description ?? null,
+        unlocked: achievement.achievement_unlocked ?? false,
       });
     } catch (error) {
       console.error("Error adding achievement:", error);
-      logger.log("error", `Error adding achievement: ${error}`);
+      throw error;
     }
   }
 
   /**
-   * Retrieves an achievement by its unique ID.
-   * @param id - The ID of the achievement.
-   * @returns The achievement if found, or null.
+   * Unlocks an achievement for a game.
+   *
+   * @param {number} gameId - The ID of the game.
+   * @param {string} achievementName - The name of the achievement.
+   * @returns {Promise<void>}
    */
-  async getAchievementById(id: number): Promise<AchievementDBItem | null> {
-    await this.init();
-
-    try {
-      return await db("achievements").where({ id }).first();
-    } catch (error) {
-      console.error("Error retrieving achievement by ID:", error);
-      logger.log("error", `Error retrieving achievement by ID: ${error}`);
-      return null;
-    }
-  }
-
-  /**
-   * Retrieves all achievements, optionally filtered by game ID or unlocked status.
-   * @param filter - Optional filters for game ID or unlocked status.
-   */
-  async getAchievements(filter?: {
-    game_id?: string;
-    achievement_unlocked?: boolean;
-    achievement_name?: string;
-  }): Promise<AchievementDBItem[]> {
-    await this.init();
-
-    try {
-      const query = db("achievements");
-
-      if (filter?.game_id) query.where("game_id", filter.game_id);
-      if (filter?.achievement_unlocked !== undefined)
-        query.andWhere("achievement_unlocked", filter.achievement_unlocked);
-
-      return await query.select("*");
-    } catch (error) {
-      console.error("Error retrieving achievements:", error);
-      logger.log("error", `Error retrieving achievements: ${error}`);
-      return [];
-    }
-  }
-
-  /**
-   * Updates an achievement's details by ID.
-   * @param id - The ID of the achievement to update.
-   * @param updates - The fields to update.
-   */
-  async updateAchievement(
-    id: number,
-    updates: Partial<NewAchievementInputDBItem>
+  async unlockAchievement(
+    gameId: number,
+    achievementName: string
   ): Promise<void> {
     await this.init();
 
     try {
-      await db("achievements").where({ id }).update(updates);
+      await db("achievements")
+        .where({ game_id: gameId, achievement_name: achievementName })
+        .update({
+          unlocked: true,
+          unlocked_at: new Date(),
+        });
     } catch (error) {
-      console.error("Error updating achievement:", error);
-      logger.log("error", `Error updating achievement: ${error}`);
+      console.error("Error unlocking achievement:", error);
+      throw error;
     }
   }
 
   /**
-   * Deletes an achievement by ID.
-   * @param id - The ID of the achievement to delete.
+   * Removes an achievement for a game.
+   *
+   * @param {number} gameId - The ID of the game.
+   * @param {string} achievementName - The name of the achievement.
+   * @returns {Promise<void>}
    */
-  async deleteAchievement(id: number): Promise<void> {
+  async removeAchievement(
+    gameId: number,
+    achievementName: string
+  ): Promise<void> {
     await this.init();
 
     try {
-      await db("achievements").where({ id }).del();
+      await db("achievements")
+        .where({ game_id: gameId, achievement_name: achievementName })
+        .del();
     } catch (error) {
-      console.error("Error deleting achievement:", error);
-      logger.log("error", `Error deleting achievement: ${error}`);
+      console.error("Error removing achievement:", error);
+      throw error;
     }
   }
 
   /**
-   * Retrieves all achievements for a specific game.
-   * @param game_id - The unique ID of the game.
-   * @returns A list of achievements for the specified game.
+   * Retrieves all achievements for a game.
+   *
+   * @param {number} gameId - The ID of the game.
+   * @returns {Promise<AchievementDBItem[]>} - List of achievements for the game.
    */
-  async getAchievementsByGame(game_id: string): Promise<AchievementDBItem[]> {
+  async getAchievementsByGameId(gameId: number): Promise<AchievementDBItem[]> {
     await this.init();
 
     try {
-      return await db("achievements").where({ game_id }).select("*");
+      const achievements: AchievementDBItem[] = await db("achievements")
+        .where({ game_id: gameId })
+        .select("*");
+      return achievements;
     } catch (error) {
-      console.error("Error retrieving achievements by game ID:", error);
-      logger.log("error", `Error retrieving achievements by game ID: ${error}`);
-      return [];
+      console.error("Error retrieving achievements:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieves unlocked achievements for a game.
+   *
+   * @param {number} gameId - The ID of the game.
+   * @returns {Promise<AchievementDBItem[]>} - List of unlocked achievements for the game.
+   */
+  async getUnlockedAchievements(gameId: string): Promise<AchievementDBItem[]> {
+    await this.init();
+
+    try {
+      const unlockedAchievements: AchievementDBItem[] = await db("achievements")
+        .where({ game_id: gameId })
+        .select("*");
+
+      console.log(unlockedAchievements);
+      return unlockedAchievements;
+    } catch (error) {
+      console.error("Error retrieving unlocked achievements:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Resets (locks) an achievement for a game.
+   *
+   * @param {number} gameId - The ID of the game.
+   * @param {string} achievementName - The name of the achievement.
+   * @returns {Promise<void>}
+   */
+  async resetAchievement(
+    gameId: number,
+    achievementName: string
+  ): Promise<void> {
+    await this.init();
+
+    try {
+      await db("achievements")
+        .where({ game_id: gameId, achievement_name: achievementName })
+        .update({
+          unlocked: false,
+          unlocked_at: null,
+        });
+    } catch (error) {
+      console.error("Error resetting achievement:", error);
+      throw error;
     }
   }
 }
 
-// Export a singleton instance of the AchievementsDB class.
-const achievementsDB = new AchievementsDB();
+const achievementsDB = new AchievementsDatabase();
+
 export { achievementsDB };

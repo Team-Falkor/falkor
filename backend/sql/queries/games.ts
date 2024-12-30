@@ -5,6 +5,7 @@ import {
 } from "@/@types/library/types";
 import { logger } from "../../handlers/logging";
 import { db } from "../knex";
+import { achievementsDB } from "./achievements";
 import { BaseQuery } from "./base";
 
 /**
@@ -14,6 +15,8 @@ import { BaseQuery } from "./base";
  * @class
  */
 class GamesDatabase extends BaseQuery {
+  achievementsDb: typeof achievementsDB = achievementsDB;
+
   /**
    * Whether the database has been initialized.
    *
@@ -240,6 +243,103 @@ class GamesDatabase extends BaseQuery {
       console.error("Error deleting game:", error);
       throw error;
     }
+  }
+
+  /**
+   * Retrieves a game by its name.
+   *
+   * @param {string} gameName - The name of the game to retrieve.
+   * @returns {Promise<LibraryGame | null>}
+   */
+  async getGameByName(gameName: string): Promise<LibraryGame | null> {
+    await this.init();
+    if (!this.initialized) throw new Error("Database not initialized");
+
+    const game = await db("library_games")
+      .where({ game_name: gameName })
+      .first();
+    return game;
+  }
+
+  /**
+   * Updates the playtime for a game.
+   *
+   * @param {string} gameId - The ID of the game to update.
+   * @param {number} playtime - The amount of playtime to add (in minutes).
+   * @returns {Promise<void>}
+   */
+  async updateGamePlaytime(gameId: string, playtime: number): Promise<void> {
+    await this.init();
+    if (!this.initialized) throw new Error("Database not initialized");
+
+    const currentGame = await this.getGameById(gameId);
+    if (!currentGame) throw new Error("Game not found");
+
+    const updatedPlaytime = (currentGame.game_playtime || 0) + playtime;
+
+    await db("library_games")
+      .where({ game_id: gameId })
+      .update({ game_playtime: updatedPlaytime });
+  }
+
+  /**
+   * Retrieves recently played games, sorted by last played date.
+   *
+   * @param {number} limit - The number of games to retrieve.
+   * @returns {Promise<LibraryGame[]>}
+   */
+  async getRecentlyPlayedGames(limit: number = 10): Promise<LibraryGame[]> {
+    await this.init();
+    if (!this.initialized) throw new Error("Database not initialized");
+
+    const games = await db("library_games")
+      .whereNotNull("game_last_played")
+      .orderBy("game_last_played", "desc")
+      .limit(limit);
+
+    return games;
+  }
+
+  /**
+   * Retrieves multiple games by their IGDB IDs.
+   *
+   * @param {number[]} igdbIds - The list of IGDB IDs to retrieve games for.
+   * @returns {Promise<LibraryGame[]>}
+   */
+  async getGamesByIGDBIds(igdbIds: number[]): Promise<LibraryGame[]> {
+    await this.init();
+    if (!this.initialized) throw new Error("Database not initialized");
+
+    const games = await db("library_games").whereIn("igdb_id", igdbIds);
+    return games;
+  }
+
+  /**
+   * Counts the total number of games in the library.
+   *
+   * @returns {Promise<number>}
+   */
+  async countGamesInLibrary(): Promise<number> {
+    await this.init();
+    if (!this.initialized) throw new Error("Database not initialized");
+
+    const count = await db("library_games").count("id as total").first();
+    return count ? Number(count.total) : 0;
+  }
+
+  /**
+   * Retrieves a game along with its achievements.
+   * @param {number} gameId - The ID of the game.
+   */
+  async getGameWithAchievements(gameId: number): Promise<any> {
+    await this.init();
+    const game = await this.getGameById(gameId.toString());
+    if (!game) throw new Error("Game not found");
+
+    const achievements = await this.achievementsDb.getAchievementsByGameId(
+      game.id
+    );
+    return { ...game, achievements };
   }
 }
 

@@ -11,6 +11,7 @@ export interface AchievementFile {
 }
 
 export interface AchivementStat {
+  name: string;
   displayName: string;
   hidden: number;
   description?: string;

@@ -1,15 +1,18 @@
 import { ISchemaForGameAchievement } from "@/@types";
 import { cn } from "@/lib";
 
+interface Props extends ISchemaForGameAchievement {
+  unlocked: boolean;
+}
+
 export const AchievementCard = ({
   displayName,
 
   icongray,
   icon,
   description,
-}: ISchemaForGameAchievement) => {
-  const unlocked = Math.random() < 0.5;
-
+  unlocked,
+}: Props) => {
   return (
     <div className="relative flex flex-col w-40 gap-2">
       <img
