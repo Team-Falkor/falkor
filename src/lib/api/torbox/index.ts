@@ -1,6 +1,5 @@
 import { getInfoHashFromMagnet } from "@/lib/utils";
 import { Torrents } from "./torrents";
-import { Unrestrict } from "./webdl";
 import { User } from "./user";
 import { TorBoxTorrentInfoResult } from "@/@types/accounts";
 
@@ -8,7 +7,6 @@ class TorBoxClient {
   private static instance: TorBoxClient | null = null;
   private readonly apiKey: string;
 
-  public readonly unrestrict: Unrestrict;
   public readonly user: User;
   public readonly torrents: Torrents;
 
@@ -19,7 +17,6 @@ class TorBoxClient {
       );
     }
     this.apiKey = apiKey;
-    this.unrestrict = new Unrestrict(apiKey);
     this.user = new User(apiKey);
     this.torrents = new Torrents(apiKey);
   }
@@ -95,7 +92,7 @@ class TorBoxClient {
         }
       }
     }
-    return "b";
+    return "";
   }
 }
 
