@@ -1,6 +1,7 @@
 export interface AchievementDBItem {
   readonly id: number;
   readonly game_id: string;
+  readonly achievement_display_name: string;
   readonly achievement_name: string;
   readonly description: string | null;
   readonly unlocked: boolean;

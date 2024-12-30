@@ -31,6 +31,7 @@ class AchievementsDatabase extends BaseQuery {
               .inTable("library_games")
               .onDelete("CASCADE");
 
+            table.string("achievement_display_name").notNullable();
             table.string("achievement_name").notNullable();
             table.string("description");
             table.boolean("unlocked").defaultTo(false);
@@ -71,6 +72,7 @@ class AchievementsDatabase extends BaseQuery {
       await db("achievements").insert({
         game_id: achievement.game_id,
         achievement_name: achievement.achievement_name,
+        achievement_display_name: achievement.achievement_display_name,
         description: achievement.achievement_description ?? null,
         unlocked: achievement.achievement_unlocked ?? false,
       });

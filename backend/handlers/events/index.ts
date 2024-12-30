@@ -1,4 +1,5 @@
 import { app } from "electron";
+import "./achievements";
 import "./app";
 import "./db";
 import "./download-queue";
