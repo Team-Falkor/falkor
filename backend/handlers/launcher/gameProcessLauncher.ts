@@ -13,27 +13,44 @@ interface Options {
   steam_id?: string | null;
   game_name: string;
   game_icon?: string;
+  game_args?: string;
+  game_command?: string;
 }
 
 class GameProcessLauncher {
-  private gamePath: string;
   private gameId: string;
+  private gameArgs: string = "";
+  private gameCommand: string = "";
+
+  private gamePath: string;
   private gameProcess: ChildProcess | null = null;
+
   private startDate: Date | null = null;
   private playtime: number; // Total playtime in milliseconds
+
   private sessionElapsed: number = 0; // Playtime for the current session
   private isPlaying: boolean = false;
-  private interval: NodeJS.Timeout | null = null;
 
+  private interval: NodeJS.Timeout | null = null;
   private achivementItem: AchievementItem | null = null;
 
-  constructor({ game_name, game_path, steam_id, game_icon, game_id }: Options) {
+  constructor({
+    game_name,
+    game_path,
+    steam_id,
+    game_icon,
+    game_id,
+    game_args = "",
+    game_command = "",
+  }: Options) {
     if (!GameProcessLauncher.isValidExecutable(game_path)) {
       throw new Error(`Invalid game path: ${game_path}`);
     }
 
     this.gamePath = game_path;
     this.gameId = game_id;
+    this.gameArgs = game_args;
+    this.gameCommand = game_command;
     this.playtime = 0;
     if (steam_id) {
       this.achivementItem = new AchievementItem({
@@ -56,16 +73,29 @@ class GameProcessLauncher {
    * Launches the game and sets up playtime tracking.
    */
   public launchGame(): void {
-    console.log("info", `Launching game: ${this.gamePath}`);
+    console.log(
+      "info",
+      `Launching game: ${this.gamePath} with args: ${this.gameArgs}`
+    );
 
     try {
-      this.gameProcess = spawn(this.gamePath, {
-        detached: true,
-        stdio: "ignore",
-      });
+      if (this.gameCommand) {
+        this.gameProcess = spawn(this.gameCommand, {
+          shell: true,
+          detached: true,
+          stdio: "ignore",
+        });
+      } else {
+        const args = this.gameArgs ? this.gameArgs.split(" ") : [];
+        this.gameProcess = spawn(this.gamePath, args, {
+          detached: true,
+          stdio: "ignore",
+        });
+      }
+
       this.gameProcess.unref();
 
-      console.log("info", "achivement item find");
+      console.log("info", "Achievement item find");
       this.achivementItem?.find();
 
       this.gameProcess.on("exit", (code, signal) => {

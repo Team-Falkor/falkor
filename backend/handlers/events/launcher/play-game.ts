@@ -28,6 +28,8 @@ const playGame = async (
       game_icon: game_info.game_icon,
       game_id: game_info.game_id,
       steam_id: game_info.game_steam_id,
+      game_args: game_info.game_args,
+      game_command: game_info.game_command,
     });
     launcher.launchGame();
     gamesLaunched.set(game_id, launcher);
