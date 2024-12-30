@@ -1,6 +1,7 @@
 import { getInfoHashFromMagnet } from "@/lib/utils";
 import { Torrents } from "./torrents";
 import { User } from "./user";
+import { toast } from "sonner";
 import { TorBoxTorrentInfoResult } from "@/@types/accounts";
 
 class TorBoxClient {
@@ -62,6 +63,9 @@ class TorBoxClient {
     );
 
     if (!torrentInfo || !torrentInfo.download_present) {
+      toast.warning(
+        "Download has not been cached yet. Please try again later."
+      );
       throw new Error("Torrent has not completed downloading.");
     }
 
