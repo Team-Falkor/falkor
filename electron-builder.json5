@@ -4,7 +4,7 @@
   appId: "moe.falkor",
   asar: true,
   productName: "Falkor",
-  icon: "./build/icon.ico",
+  icon: "./build/icons/256x256.png",
   protocols: [
     {
       name: "falkor",
@@ -55,7 +55,7 @@
   },
   publish: {
     provider: "github",
-    repo: "app",
+    repo: "falkor",
     owner: "team-falkor",
     private: false,
     publishAutoUpdate: true,
