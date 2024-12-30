@@ -10,11 +10,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/team-falkor/app.git"
+    "url": "git+https://github.com/team-falkor/falkor.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/team-falkor/app/issues"
+    "url": "https://github.com/team-falkor/falkor/issues"
   },
   "homepage": "https://falkor.moe",
   "scripts": {

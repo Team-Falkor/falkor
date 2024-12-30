@@ -22,6 +22,7 @@ interface Options {
  * Class representing an Achievement Item for a specific game.
  */
 class AchievementItem {
+  private bufferInterval: number = 2000;
   private initialized = false;
 
   public game_name: string;
@@ -157,7 +158,10 @@ class AchievementItem {
       clearTimeout(this.notificationTimer);
     }
 
-    this.notificationTimer = setTimeout(() => this.flushNotifications(), 2000); // Adjust time window as needed
+    this.notificationTimer = setTimeout(
+      () => this.flushNotifications(),
+      this.bufferInterval
+    );
   }
 
   /**

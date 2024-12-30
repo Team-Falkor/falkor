@@ -55,7 +55,7 @@
   },
   publish: {
     provider: "github",
-    repo: "app",
+    repo: "falkor",
     owner: "team-falkor",
     private: false,
     publishAutoUpdate: true,
