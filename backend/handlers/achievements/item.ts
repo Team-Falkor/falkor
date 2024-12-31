@@ -184,15 +184,14 @@ class AchievementItem {
             .map((ach) => `- ${ach.displayName}`)
             .join("\n");
 
-    await NotificationsHandler.constructNotification(
+    const findIcon = this.notificationBuffer.filter((ach) => !ach.icon?.length);
+    const icon = findIcon[0]?.icon ?? this.game_icon ?? null;
+
+    NotificationsHandler.constructNotification(
       {
         title: summaryTitle,
         body: summaryBody,
-        icon:
-          this.notificationBuffer[0].icon ||
-          (this.game_icon
-            ? await NotificationsHandler.createImage(this.game_icon)
-            : undefined),
+        icon: icon ? await NotificationsHandler.createImage(icon) : undefined,
         notificationType: "achievement_unlocked",
       },
       true

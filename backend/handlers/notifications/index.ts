@@ -12,6 +12,7 @@ class NotificationsHandler {
   public static constructNotification = (
     options?: NotificationConstructorOptions & {
       notificationType?: NotificationType;
+      volume?: number;
     },
     show: boolean = true
   ) => {
@@ -67,7 +68,7 @@ class NotificationsHandler {
       }
 
       console.log("Playing sound:", soundPath);
-      playSound(soundPath);
+      playSound(soundPath, options?.volume);
     } catch (error) {
       console.error("Error creating notification:", error);
     }

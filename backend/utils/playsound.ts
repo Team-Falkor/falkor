@@ -19,7 +19,7 @@ export const playSound = (soundPath: string, volume?: number): void => {
       case "win32":
         return `powershell -c (New-Object Media.SoundPlayer '${soundPath}').PlaySync();`;
       case "darwin":
-        return `afplay "${soundPath}" -v ${volume !== undefined ? Math.max(0, Math.min(volume, 1)) : 1}`;
+        return `afplay "${soundPath}" -v ${volume !== undefined ? Math.max(0, Math.min(volume, 1)) : 0.7}`;
       case "linux":
         return volume !== undefined
           ? `paplay --volume ${Math.floor(Math.max(0, Math.min(volume, 100)) * 655.36)} "${soundPath}" || aplay "${soundPath}"`
