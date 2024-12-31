@@ -88,9 +88,9 @@ const NewGameModal = () => {
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleAddGame)}
             className="flex flex-col gap-4 mt-3"
             autoComplete="off"
+            onSubmit={form.handleSubmit(handleAddGame)}
           >
             <TabsContent value="metadata">
               <NewGameMetadataForm form={form} />
@@ -101,13 +101,17 @@ const NewGameModal = () => {
 
             <div className="flex items-center justify-between gap-2 mt-4">
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                <PopoverTrigger>
+                <PopoverTrigger asChild>
                   <Button variant="secondary">{t("import_from_igdb")}</Button>
                 </PopoverTrigger>
                 <NewGameImport form={form} setPopoverOpen={setPopoverOpen} />
               </Popover>
 
-              <Button type="submit" variant="secondary">
+              <Button
+                type="submit"
+                variant="secondary"
+                onClick={form.handleSubmit(handleAddGame)}
+              >
                 {t("add_game")}
               </Button>
             </div>

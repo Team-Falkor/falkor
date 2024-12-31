@@ -16,7 +16,7 @@ const NewGameSettingsForm = ({ form }: NewGameMetadataFormProps) => {
   const { handleWinePrefixButton } = useFormActions(form);
 
   return (
-    <div className="grid w-full gap-4 sm:grid-cols-1 lg:grid-cols-2">
+    <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-1">
       <FormField
         control={form.control}
         name="gameArgs"
@@ -52,7 +52,7 @@ const NewGameSettingsForm = ({ form }: NewGameMetadataFormProps) => {
             Button={
               <Button
                 variant="secondary"
-                size="sm"
+                size="icon"
                 onClick={(e) => {
                   e.preventDefault();
                   handleWinePrefixButton();

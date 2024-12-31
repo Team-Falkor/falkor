@@ -38,6 +38,8 @@ const UpdateDialog = ({ fetchGames, updateGame, game }: UpdateDialogProps) => {
               game_name: values.gameName,
               game_path: values.gamePath,
               igdb_id: values.igdbId ? Number(values.igdbId) : undefined,
+              wine_prefix_folder: values.winePrefixFolder,
+              game_steam_id: values.steamId,
             });
             fetchGames();
             return;
@@ -49,6 +51,8 @@ const UpdateDialog = ({ fetchGames, updateGame, game }: UpdateDialogProps) => {
             gamePath: game.game_path,
             gameIcon: game.game_icon ?? "",
             igdbId: game.igdb_id?.toString() ?? "",
+            winePrefixFolder: game.wine_prefix_folder ?? "",
+            steamId: game.game_steam_id ?? "",
           }}
         />
       </DialogContent>

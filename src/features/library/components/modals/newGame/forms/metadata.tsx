@@ -44,8 +44,8 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
               required
               Button={
                 <Button
+                  size="icon"
                   variant="secondary"
-                  size="sm"
                   onClick={(e) => {
                     e.preventDefault();
                     handlePathButton();
@@ -70,7 +70,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
               Button={
                 <Button
                   variant="secondary"
-                  size="sm"
+                  size="icon"
                   onClick={(e) => {
                     e.preventDefault();
                     handleShuffleButton();
@@ -95,7 +95,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
               Button={
                 <Button
                   variant="secondary"
-                  size="sm"
+                  size="icon"
                   onClick={(e) => {
                     e.preventDefault();
                     handleIconButton();

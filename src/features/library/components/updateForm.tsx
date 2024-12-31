@@ -19,6 +19,8 @@ const formSchema = z.object({
     .optional()
     .refine((s) => !s?.includes(" "), "No Spaces!"),
   igdbId: z.string().optional(),
+  steamId: z.string().optional(),
+  winePrefixFolder: z.string().optional(),
 });
 
 interface UpdateGameFormProps {
@@ -37,6 +39,8 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
       gameName: defaultValues.gameName ?? "",
       gamePath: defaultValues.gamePath ?? "",
       igdbId: defaultValues.igdbId ?? "",
+      steamId: defaultValues.steamId ?? "",
+      winePrefixFolder: defaultValues.winePrefixFolder ?? "",
     },
   });
 
@@ -178,6 +182,30 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
             <GameFormInput
               text={t("igdb_id")}
               description={t("igdb_id")}
+              field={field}
+            />
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="steamId"
+          render={({ field }) => (
+            <GameFormInput
+              text={t("steam_id")}
+              description={t("steam_id")}
+              field={field}
+            />
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="winePrefixFolder"
+          render={({ field }) => (
+            <GameFormInput
+              text={t("wine_prefix_folder")}
+              description={t("the_path_to_your_wine_prefix_folder")}
               field={field}
             />
           )}
