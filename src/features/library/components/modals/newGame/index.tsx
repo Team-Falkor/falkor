@@ -19,9 +19,9 @@ import { NewGameFormSchema, newGameFormSchema } from "./schema";
 
 const NewGameModal = () => {
   const { addGame } = useGames();
-
-  const [popoverOpen, setPopoverOpen] = useState(false);
   const { t } = useLanguageContext();
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
   const form = useForm<NewGameFormSchema>({
     resolver: zodResolver(newGameFormSchema),
     defaultValues: {
@@ -33,10 +33,11 @@ const NewGameModal = () => {
       gamePath: "",
       igdbId: "",
       steamId: "",
+      winePrefixFolder: "",
     },
   });
 
-  async function onSubmit(values: NewGameFormSchema) {
+  const handleAddGame = async (values: NewGameFormSchema) => {
     const {
       gameName,
       gamePath,
@@ -46,6 +47,7 @@ const NewGameModal = () => {
       gameArgs,
       gameCommand,
       steamId,
+      winePrefixFolder,
     } = values;
 
     try {
@@ -58,35 +60,37 @@ const NewGameModal = () => {
         game_command: gameCommand,
         igdb_id: igdbId ? Number(igdbId) : null,
         game_steam_id: steamId,
+        wine_prefix_folder: winePrefixFolder,
       });
-
       form.reset();
     } catch (err) {
       console.error("Failed to add game:", err);
     }
-  }
+  };
 
   return (
-    <DialogContent className="min-w-52 min-h-[30rem]">
+    <DialogContent className="min-w-[20rem] min-h-[30rem] md:min-w-[30rem] p-4">
       <Tabs defaultValue="metadata" className="w-full">
         <DialogHeader className="space-y-4">
-          <DialogTitle>{t("new_game")}</DialogTitle>
+          <DialogTitle className="text-lg font-bold">
+            {t("new_game")}
+          </DialogTitle>
 
-          <TabsList className="w-full">
+          <TabsList className="flex justify-between w-full">
             <TabsTrigger value="metadata" className="flex-1">
-              Metadata
+              {t("sections.metadata")}
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex-1">
-              Settings
+              {t("sections.settings")}
             </TabsTrigger>
           </TabsList>
         </DialogHeader>
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col justify-between mt-3"
-            autoComplete={"off"}
+            onSubmit={form.handleSubmit(handleAddGame)}
+            className="flex flex-col gap-4 mt-3"
+            autoComplete="off"
           >
             <TabsContent value="metadata">
               <NewGameMetadataForm form={form} />
@@ -94,24 +98,22 @@ const NewGameModal = () => {
             <TabsContent value="settings">
               <NewGameSettingsForm form={form} />
             </TabsContent>
+
+            <div className="flex items-center justify-between gap-2 mt-4">
+              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                <PopoverTrigger>
+                  <Button variant="secondary">{t("import_from_igdb")}</Button>
+                </PopoverTrigger>
+                <NewGameImport form={form} setPopoverOpen={setPopoverOpen} />
+              </Popover>
+
+              <Button type="submit" variant="secondary">
+                {t("add_game")}
+              </Button>
+            </div>
           </form>
         </Form>
       </Tabs>
-      <div className="flex items-end justify-between flex-1 mt-4">
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger>
-            <Button variant={"secondary"}>Import from igdb</Button>
-          </PopoverTrigger>
-          <NewGameImport form={form} setPopoverOpen={setPopoverOpen} />
-        </Popover>
-        <Button
-          type="submit"
-          variant="secondary"
-          onClick={form.handleSubmit(onSubmit)}
-        >
-          {t("add_game")}
-        </Button>
-      </div>
     </DialogContent>
   );
 };

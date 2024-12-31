@@ -13,6 +13,7 @@ export interface LibraryGame {
   game_playtime: number;
   game_last_played?: Date | null;
   igdb_id?: number | null;
+  wine_prefix_folder?: string | null;
 }
 
 /**

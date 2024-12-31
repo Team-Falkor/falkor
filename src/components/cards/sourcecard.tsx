@@ -7,9 +7,9 @@ import { Deal } from "@/lib/api/itad/types";
 import { useAccountServices } from "@/stores/account-services";
 import { Download, ShoppingCart } from "lucide-react";
 import { useCallback } from "react";
+import { sanitizeFilename } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { sanitizeFilename } from "../../lib/utils";
 
 type SourceCardProps = {
   source: PluginSearchResponse | Deal;
@@ -58,6 +58,7 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
             type === "ddl"
               ? await realDebrid.downloadFromFileHost(url, password)
               : await realDebrid.downloadTorrentFromMagnet(url, password);
+
           if (props.game_data) {
             addDownload({
               type: "download",

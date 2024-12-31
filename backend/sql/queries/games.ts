@@ -46,6 +46,7 @@ class GamesDatabase extends BaseQuery {
             table.string("game_icon");
             table.string("game_args");
             table.string("game_command");
+            table.string("wine_prefix_folder");
             table.integer("game_playtime").defaultTo(0);
             table.dateTime("game_last_played").defaultTo(null);
             table.integer("igdb_id").defaultTo(null);
@@ -89,6 +90,16 @@ class GamesDatabase extends BaseQuery {
           if (!exists) {
             await db.schema.table("library_games", (table) => {
               table.string("game_steam_id");
+            });
+          }
+        });
+
+      await db.schema
+        .hasColumn("library_games", "wine_prefix_folder")
+        .then(async (exists) => {
+          if (!exists) {
+            await db.schema.table("library_games", (table) => {
+              table.string("wine_prefix_folder");
             });
           }
         });

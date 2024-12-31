@@ -5,6 +5,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib";
 import { InputHTMLAttributes, JSX } from "react";
 import { ControllerRenderProps, FieldValues } from "react-hook-form";
 
@@ -22,6 +23,7 @@ const GameFormInput = <T extends FieldValues>({
   required,
   field,
   Button,
+  className,
   text,
   ...props
 }: GameFormInputProps<T>) => {
@@ -33,7 +35,12 @@ const GameFormInput = <T extends FieldValues>({
       </FormLabel>
       <div className="flex flex-row flex-1">
         <FormControl>
-          <Input placeholder={description} {...props} {...field} />
+          <Input
+            placeholder={description}
+            {...props}
+            {...field}
+            className={cn("focus-visible:ring-0", className)}
+          />
         </FormControl>
         {Button}
       </div>

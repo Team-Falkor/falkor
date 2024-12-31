@@ -1,3 +1,5 @@
+import { ExternalAccountType } from "../accounts";
+
 export interface SettingsConfig {
   theme: SettingsTheme;
   language: string;
@@ -13,6 +15,7 @@ export interface SettingsConfig {
   maxUploadSpeed: number;
   notifications: boolean;
   api_base_url: string;
+  preferredDebridService?: ExternalAccountType;
 }
 
 export type SettingsTheme = "system" | "light" | "dark";

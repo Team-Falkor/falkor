@@ -19,6 +19,22 @@ export const useFormActions = (form: UseFormReturn<NewGameFormSchema>) => {
     form.setValue("gamePath", selectedPath.replace(/\\/g, "//"));
   };
 
+  const handleWinePrefixButton = async () => {
+    const selected: any = await window.ipcRenderer.invoke(
+      "generic:open-dialog",
+      {
+        properties: ["openDirectory"],
+      }
+    );
+
+    if (selected.canceled) return;
+    if (!selected.filePaths.length) return;
+
+    const selectedPath = selected.filePaths[0];
+
+    form.setValue("winePrefixFolder", selectedPath.replace(/\\/g, "//"));
+  };
+
   const handleIconButton = async () => {
     const selected: any = await window.ipcRenderer.invoke(
       "generic:open-dialog",
@@ -57,5 +73,6 @@ export const useFormActions = (form: UseFormReturn<NewGameFormSchema>) => {
     handlePathButton,
     handleIconButton,
     handleShuffleButton,
+    handleWinePrefixButton,
   };
 };

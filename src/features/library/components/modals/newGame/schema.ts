@@ -12,6 +12,7 @@ export const newGameFormSchema = z.object({
     .refine((s) => !s?.includes(" "), "No Spaces!"),
   igdbId: z.string().optional(),
   steamId: z.string().optional(),
+  winePrefixFolder: z.string().optional(),
 });
 
 export type NewGameFormSchema = z.infer<typeof newGameFormSchema>;
