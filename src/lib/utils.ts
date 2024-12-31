@@ -76,6 +76,7 @@ export const scrapeOptions = (input: string): Record<string, string[]> => {
   const options: Record<string, string[]> = {};
 
   while ((match = regex.exec(input)) !== null) {
+    // eslint-disable-next-line prefer-const
     let [_, key, value] = match;
     key = key.replace(/[^A-Za-z0-9:]/g, "").trim();
     if (options[key]) {
@@ -144,4 +145,44 @@ export const convertBytesToHumanReadable = (bytes: number): string => {
 export const getInfoHashFromMagnet = (magnetURI: string): string | null => {
   const match = magnetURI.match(/xt=urn:btih:([a-fA-F0-9]{40,})/);
   return match ? match[1] : null;
+};
+
+export const sanitizeFilename = (filename: string): string => {
+  // Remove disallowed characters
+  const sanitized = filename.replace(/[^a-zA-Z0-9._-\s]/g, "").trim();
+
+  // Enforce a reasonable length
+  const maxLength = 255;
+  const trimmed = sanitized.slice(0, maxLength);
+
+  // Check for reserved names (Windows-specific)
+  const reservedNames = [
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9",
+  ];
+  if (reservedNames.includes(trimmed.toUpperCase())) {
+    return "untitled";
+  }
+
+  return trimmed || "untitled";
 };

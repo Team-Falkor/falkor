@@ -1,4 +1,4 @@
-export type ExternalAccountType = "real-debrid";
+export type ExternalAccountType = "real-debrid" | "torbox";
 
 export interface ExternalAccount {
   id: number;
