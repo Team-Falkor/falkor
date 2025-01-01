@@ -3,6 +3,7 @@ import { AchievementFile } from "@/@types/achievements/types";
 import { app } from "electron";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { logger } from "../logging";
 
 type PathType =
   | "appData"
@@ -386,8 +387,14 @@ class AchievementFileLocator {
     gameStoreId: string,
     winePrefix?: string | null
   ): AchievementFile[] {
-    const gameAchievementFiles = this.findAllAchievementFiles(winePrefix);
-    return gameAchievementFiles.get(gameStoreId) || [];
+    try {
+      const gameAchievementFiles = this.findAllAchievementFiles(winePrefix);
+      return gameAchievementFiles.get(gameStoreId) || [];
+    } catch (error) {
+      console.error(error);
+      logger.log("error", `Error finding achievement files: ${error}`);
+      throw error;
+    }
   }
 }
 

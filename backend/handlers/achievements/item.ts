@@ -5,6 +5,7 @@ import {
   UnlockedAchievement,
 } from "@/@types/achievements/types";
 import { achievementsDB } from "../../sql";
+import { logger } from "../logging";
 import { NotificationsHandler } from "../notifications";
 import { achievementData } from "./data";
 import { AchievementFileLocator } from "./locator";
@@ -77,6 +78,7 @@ class AchievementItem {
         `Failed to initialize AchievementItem for game: ${this.game_name}`,
         error
       );
+      logger.log("error", `Failed to initialize AchievementItem: ${error}`);
     }
   }
 
@@ -107,6 +109,7 @@ class AchievementItem {
         `Error finding achievement files for game: ${this.game_name}`,
         error
       );
+      logger.log("error", `Error finding achievement files: ${error}`);
     }
   }
 
@@ -227,6 +230,7 @@ class AchievementItem {
         );
       } catch (error) {
         console.error(`Error parsing achievement file: ${file.path}`, error);
+        logger.log("error", `Error parsing achievement file: ${error}`);
       }
     }
   }

@@ -1,5 +1,6 @@
 import { ISchemaForGame } from "@/@types";
 import { settings } from "../../utils/settings/settings";
+import { logger } from "../logging";
 
 class AchievementData {
   readonly api_url: string | undefined = settings.get("api_base_url");
@@ -19,6 +20,7 @@ class AchievementData {
       return data;
     } catch (error) {
       console.log(error);
+      logger.log("error", `Error getting achievement data: ${error}`);
       throw error;
     }
   }

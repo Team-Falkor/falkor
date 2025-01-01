@@ -1,6 +1,7 @@
 import { Cracker, UnlockedAchievement } from "@/@types";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { logger } from "../logging";
 
 class AchievementParser {
   public parseAchievements(
@@ -30,6 +31,7 @@ class AchievementParser {
       console.log(
         `Unsupported cracker type "${crackerType}" for achievements in file: ${filePath}`
       );
+      logger.log("info", `Unsupported cracker type: ${crackerType}`);
       return [];
     }
 
@@ -42,6 +44,7 @@ class AchievementParser {
       return existsSync(resolvedPath);
     } catch (err) {
       console.error(`Invalid file path: ${filePath}`, err);
+      logger.log("error", `Invalid file path: ${filePath}`);
       return false;
     }
   }
@@ -56,6 +59,7 @@ class AchievementParser {
       return processor(iniData);
     } catch (err) {
       console.error(`Error parsing INI file: ${filePath}`, err);
+      logger.log("error", `Error parsing INI file: ${err}`);
       return [];
     }
   }
@@ -70,6 +74,7 @@ class AchievementParser {
       return processor(jsonData);
     } catch (err) {
       console.error(`Error parsing JSON file: ${filePath}`, err);
+      logger.log("error", `Error parsing JSON file: ${err}`);
       return [];
     }
   }
@@ -86,6 +91,7 @@ class AchievementParser {
         `Error processing achievements from flat files in: ${filePath}`,
         err
       );
+      logger.log("error", `Error processing flat file achievements: ${err}`);
       return [];
     }
   }
@@ -110,6 +116,7 @@ class AchievementParser {
         `Error processing Razor1911 achievements: ${filePath}`,
         err
       );
+      logger.log("error", `Error processing Razor1911 achievements: ${err}`);
       return [];
     }
   }
