@@ -30,6 +30,7 @@ const playGame = async (
       steam_id: game_info.game_steam_id,
       game_args: game_info.game_args,
       game_command: game_info.game_command,
+      wine_prefix_folder: game_info.wine_prefix_folder,
     });
     launcher.launchGame();
     gamesLaunched.set(game_id, launcher);

@@ -23,7 +23,7 @@ class AchievementFileLocator {
     ? app.getPath("home").split("/").pop()
     : undefined;
 
-  private static readonly winePrefix =
+  private static winePrefix =
     process.env.WINEPREFIX || join(app.getPath("home"), ".wine");
 
   private static readonly crackerPaths: Readonly<Record<Cracker, FilePath[]>> =
@@ -252,6 +252,17 @@ class AchievementFileLocator {
       ],
     });
 
+  /**
+   * Allows updating the wine prefix dynamically.
+   * @param newPrefix The new custom Wine prefix path.
+   */
+  static setWinePrefix(newPrefix: string): void {
+    if (!existsSync(newPrefix)) {
+      throw new Error(`Specified Wine prefix does not exist: ${newPrefix}`);
+    }
+    this.winePrefix = newPrefix;
+  }
+
   private static getSystemPath(type: PathType): string {
     const basePaths = {
       appData: this.isWindows
@@ -325,7 +336,11 @@ class AchievementFileLocator {
     return join(folderPath, ...mappedLocations);
   }
 
-  static findAllAchievementFiles(): Map<string, AchievementFile[]> {
+  static findAllAchievementFiles(
+    winePrefix?: string | null
+  ): Map<string, AchievementFile[]> {
+    if (winePrefix) this.setWinePrefix(winePrefix);
+
     const gameAchievementFiles = new Map<string, AchievementFile[]>();
     console.log(`Searching for achievement files`);
 
@@ -367,8 +382,11 @@ class AchievementFileLocator {
     return gameAchievementFiles;
   }
 
-  static findAchievementFiles(gameStoreId: string): AchievementFile[] {
-    const gameAchievementFiles = this.findAllAchievementFiles();
+  static findAchievementFiles(
+    gameStoreId: string,
+    winePrefix?: string | null
+  ): AchievementFile[] {
+    const gameAchievementFiles = this.findAllAchievementFiles(winePrefix);
     return gameAchievementFiles.get(gameStoreId) || [];
   }
 }

@@ -16,6 +16,7 @@ interface Options {
   game_id: string;
   game_icon?: string;
   steam_id?: string | null;
+  wine_prefix_folder?: string | null;
 }
 
 /**
@@ -29,6 +30,7 @@ class AchievementItem {
   public game_id: string;
   public steam_id: string | null = null;
   public game_icon: string | null = null;
+  public wine_prefix_folder: string | null = null;
 
   private achievement_files: AchievementFile[] = [];
   private readonly parser = new AchievementParser();
@@ -45,11 +47,18 @@ class AchievementItem {
    * Creates an instance of AchievementItem.
    * @param {Options} options - Options for initializing the AchievementItem.
    */
-  constructor({ game_name, game_id, game_icon, steam_id }: Options) {
+  constructor({
+    game_name,
+    game_id,
+    game_icon,
+    steam_id,
+    wine_prefix_folder,
+  }: Options) {
     this.game_name = game_name;
     this.game_id = game_id;
     this.steam_id = steam_id || null;
     this.game_icon = game_icon || null;
+    this.wine_prefix_folder = wine_prefix_folder || null;
   }
 
   /**
@@ -82,7 +91,8 @@ class AchievementItem {
     try {
       console.log(`Finding achievement files for game: ${this.game_name}`);
       this.achievement_files = AchievementFileLocator.findAchievementFiles(
-        this.steam_id
+        this.steam_id,
+        this.wine_prefix_folder
       );
 
       if (this.achievement_files.length === 0) return;

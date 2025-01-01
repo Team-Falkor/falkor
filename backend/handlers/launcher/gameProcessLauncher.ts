@@ -15,6 +15,7 @@ interface Options {
   game_icon?: string;
   game_args?: string;
   game_command?: string;
+  wine_prefix_folder?: string | null;
 }
 
 class GameProcessLauncher {
@@ -42,6 +43,7 @@ class GameProcessLauncher {
     game_id,
     game_args = "",
     game_command = "",
+    wine_prefix_folder = null,
   }: Options) {
     if (!GameProcessLauncher.isValidExecutable(game_path)) {
       throw new Error(`Invalid game path: ${game_path}`);
@@ -58,6 +60,7 @@ class GameProcessLauncher {
         steam_id,
         game_name,
         game_icon,
+        wine_prefix_folder,
       });
     }
   }
