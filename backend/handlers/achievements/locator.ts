@@ -9,7 +9,8 @@ type PathType =
   | "documents"
   | "publicDocuments"
   | "localAppData"
-  | "programData";
+  | "programData"
+  | "winePrefix";
 
 interface FilePath {
   achievement_folder_location: string;
@@ -21,6 +22,9 @@ class AchievementFileLocator {
   private static user = !this.isWindows
     ? app.getPath("home").split("/").pop()
     : undefined;
+
+  private static readonly winePrefix =
+    process.env.WINEPREFIX || join(app.getPath("home"), ".wine");
 
   private static readonly crackerPaths: Readonly<Record<Cracker, FilePath[]>> =
     Object.freeze({
@@ -252,19 +256,40 @@ class AchievementFileLocator {
     const basePaths = {
       appData: this.isWindows
         ? app.getPath("appData")
-        : join("drive_c", "users", this.user || "", "AppData", "Roaming"),
+        : join(
+            this.winePrefix,
+            "drive_c",
+            "users",
+            this.user || "",
+            "AppData",
+            "Roaming"
+          ),
       documents: this.isWindows
         ? app.getPath("documents")
-        : join("drive_c", "users", this.user || "", "Documents"),
+        : join(
+            this.winePrefix,
+            "drive_c",
+            "users",
+            this.user || "",
+            "Documents"
+          ),
       publicDocuments: this.isWindows
         ? join("C:", "Users", "Public", "Documents")
-        : join("drive_c", "users", "Public", "Documents"),
+        : join(this.winePrefix, "drive_c", "users", "Public", "Documents"),
       localAppData: this.isWindows
         ? join(app.getPath("appData"), "..", "Local")
-        : join("drive_c", "users", this.user || "", "AppData", "Local"),
+        : join(
+            this.winePrefix,
+            "drive_c",
+            "users",
+            this.user || "",
+            "AppData",
+            "Local"
+          ),
       programData: this.isWindows
         ? join("C:", "ProgramData")
-        : join("drive_c", "ProgramData"),
+        : join(this.winePrefix, "drive_c", "ProgramData"),
+      winePrefix: this.winePrefix,
     };
 
     return (
@@ -302,7 +327,7 @@ class AchievementFileLocator {
 
   static findAllAchievementFiles(): Map<string, AchievementFile[]> {
     const gameAchievementFiles = new Map<string, AchievementFile[]>();
-    console.log(`searching for achievement files`);
+    console.log(`Searching for achievement files`);
 
     for (const [cracker, paths] of Object.entries(this.crackerPaths) as [
       Cracker,
