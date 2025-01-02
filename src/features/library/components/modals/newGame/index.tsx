@@ -69,7 +69,7 @@ const NewGameModal = () => {
   };
 
   return (
-    <DialogContent className="min-w-[20rem] min-h-[30rem] md:min-w-[30rem] p-4">
+    <DialogContent className="min-w-[20rem] min-h-[30rem] md:min-w-[30rem]">
       <Tabs defaultValue="metadata" className="w-full">
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-lg font-bold">

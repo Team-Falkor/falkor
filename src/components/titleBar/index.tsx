@@ -13,11 +13,11 @@ const TitleBar = () => {
   if (titleBarStyle === "native") return null;
 
   return (
-    <div className="fixed top-0 z-[9999] flex items-center w-full h-8 border-b shadow-md bg-background border-muted">
+    <div className="fixed top-0 z-[999999] flex items-center w-full h-8 border-b shadow-md bg-background border-muted pointer-events-auto">
       <div className="flex flex-row items-center justify-between w-full">
         {/* Title */}
         <div id="titlebar" className="flex items-center flex-1 h-full pl-3">
-          <h1 className="text-lg font-semibold pointer-events-none select-none text-foreground">
+          <h1 className="text-lg font-semibold select-none text-foreground">
             {t("falkor")}
           </h1>
         </div>
