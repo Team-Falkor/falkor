@@ -86,10 +86,7 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
       {/* New Game Button */}
       <Dialog open={newGameOpen} onOpenChange={setNewGameOpen}>
         <DialogTrigger>
-          <Button
-            variant="secondary"
-            className="text-white bg-gradient-to-tr from-blue-400 to-purple-400 gap-1.5 rounded-full"
-          >
+          <Button className="text-white bg-gradient-to-tr from-blue-400 to-purple-400 gap-1.5 rounded-full hover:opacity-90 transition-all">
             <Plus strokeWidth={3} />
             <span className="font-bold">New Game</span>
           </Button>

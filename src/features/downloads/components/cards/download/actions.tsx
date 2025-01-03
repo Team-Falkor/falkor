@@ -27,12 +27,7 @@ const DownloadCardActions = ({
   return (
     <div className="flex flex-row gap-4">
       {status === "paused" ? (
-        <Button
-          size="default"
-          variant="secondary"
-          className="gap-2"
-          onClick={start ?? undefined}
-        >
+        <Button size="default" className="gap-2" onClick={start ?? undefined}>
           <Play className="fill-current" size="24" />
           Start Download
         </Button>

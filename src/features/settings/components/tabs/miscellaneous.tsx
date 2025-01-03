@@ -23,7 +23,7 @@ const MiscellaneousSettings = () => {
       <SettingsContainer>
         <SettingsSection title="reset-igdb-cache">
           <SettingsItem title="reset-igdb-cache">
-            <Button variant="secondary" onClick={handleResetCache}>
+            <Button onClick={handleResetCache}>
               {t("settings.settings.reset-igdb-cache")}
             </Button>
           </SettingsItem>

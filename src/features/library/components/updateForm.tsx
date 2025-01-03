@@ -108,11 +108,7 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
               text={t("path")}
               description={t("the_path_to_the_game")}
               Button={
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={handlePathButton}
-                >
+                <Button size="icon" onClick={handlePathButton}>
                   <FolderOpen />
                 </Button>
               }
@@ -131,11 +127,7 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
               description={t("the_path_or_url_of_the_icon")}
               required
               Button={
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={handleIconButton}
-                >
+                <Button size="icon" onClick={handleIconButton}>
                   <FolderOpen />
                 </Button>
               }
@@ -216,11 +208,7 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
         <DialogClose>
           <Button variant="destructive">{t("cancel")}</Button>
         </DialogClose>
-        <Button
-          variant="secondary"
-          onClick={form.handleSubmit(onSubmit)}
-          disabled={loading}
-        >
+        <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
           {loading ? `${t("updating")}...` : t("update_game")}
         </Button>
       </DialogFooter>

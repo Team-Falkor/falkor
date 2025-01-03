@@ -122,7 +122,6 @@ const Updater = () => {
             <Button variant="destructive">{t("later")}</Button>
           </DialogClose>
           <Button
-            variant="secondary"
             onClick={installUpdate}
             disabled={progress !== undefined && progress > 0}
           >

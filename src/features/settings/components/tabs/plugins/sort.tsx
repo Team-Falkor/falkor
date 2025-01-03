@@ -34,7 +34,7 @@ const PluginsSort = ({
       <Tooltip>
         <TooltipTrigger>
           <Button
-            variant={showEnabledOnly ? "secondary" : "ghost"}
+            variant={showEnabledOnly ? "default" : "ghost"}
             size={"icon"}
             onClick={() => {
               localStorage.setItem("showEnabledOnly", String(!showEnabledOnly));

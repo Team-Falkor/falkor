@@ -61,7 +61,7 @@ const BannerCard = ({
             <div className="flex flex-row gap-3">
               <TrailerButton name={name} videos={videos} />
               <Link
-                className={buttonVariants({ variant: "secondary" })}
+                className={buttonVariants()}
                 to="/info/$id"
                 params={{ id: id.toString() }}
               >

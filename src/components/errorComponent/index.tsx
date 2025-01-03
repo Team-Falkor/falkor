@@ -33,7 +33,7 @@ const ErrorComponent = (props: ErrorComponentProps) => {
       </div>
       <div className="flex flex-col items-center w-full">
         <div className="flex flex-row justify-between w-full gap-2">
-          <Link to="/" className={buttonVariants({ variant: "secondary" })}>
+          <Link to="/" className={buttonVariants()}>
             Go to Home
           </Link>
           <h1 className="text-xl font-bold">

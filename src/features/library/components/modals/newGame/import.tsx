@@ -1,10 +1,10 @@
-import { Input } from "@/components/ui/input";
+import { InputWithIcon } from "@/components/inputWithIcon";
 import { PopoverContent } from "@/components/ui/popover";
 import useSearch from "@/features/search/hooks/useSearch";
 import { cn, getSteamIdFromWebsites } from "@/lib";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import { t } from "i18next";
-import { ShipWheel } from "lucide-react";
+import { SearchIcon, ShipWheel } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { NewGameFormSchema } from "./schema";
@@ -42,11 +42,12 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
     <PopoverContent side="top" className="p-0 w-96">
       <div className="grid gap-4">
         <div className="w-full px-4 pt-4">
-          <Input
+          <InputWithIcon
             placeholder={t("search_placeholder")}
             className="w-full"
             onChange={(e) => setSearchTerm(e.target.value)}
             value={searchTerm}
+            startIcon={<SearchIcon />}
           />
         </div>
 
