@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import { useLanguageContext } from "@/contexts/I18N";
 import UsePlugins from "@/hooks/usePlugins";
-import { cn, formatName } from "@/lib";
+import { formatName } from "@/lib";
 import { Website } from "@/lib/api/igdb/types";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
@@ -102,11 +102,11 @@ const Sources = ({
             {providers.map((provider, i) => (
               <CarouselItem className="relative basis-auto" key={i}>
                 <Button
-                  variant="secondary"
-                  className={cn("rounded-full bg-background m-0.5 min-w-16", {
-                    "ring-2 ring-purple-400":
-                      selectedProvider.value === provider.value,
-                  })}
+                  variant={
+                    selectedProvider.value === provider.value
+                      ? "active"
+                      : "default"
+                  }
                   key={provider.value}
                   onClick={() => setSelectedProvider(provider)}
                 >

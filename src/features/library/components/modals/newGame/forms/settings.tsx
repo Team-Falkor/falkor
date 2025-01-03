@@ -51,7 +51,7 @@ const NewGameSettingsForm = ({ form }: NewGameMetadataFormProps) => {
             field={field}
             Button={
               <Button
-                variant="secondary"
+                className="rounded-lg rounded-l-none"
                 size="icon"
                 onClick={(e) => {
                   e.preventDefault();

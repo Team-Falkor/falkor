@@ -110,13 +110,10 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
           {tabs.map((tab, i) => (
             <CarouselItem key={i} className="basis-auto ">
               <Button
-                variant="secondary"
+                variant={activeTab?.name === tab.name ? "active" : "default"}
                 key={i}
                 className={cn(
-                  "gap-1.5 font-semibold transition-all duration-75 rounded-full",
-                  {
-                    "bg-purple-400/20": activeTab?.name === tab.name,
-                  }
+                  "gap-1.5 font-semibold transition-all duration-75 rounded-full"
                 )}
                 onClick={() => setActiveTab(tab)}
               >
@@ -130,7 +127,7 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
       {/* New List Button */}
       <Dialog open={newListOpen} onOpenChange={setNewListOpen}>
         <DialogTrigger>
-          <Button variant="secondary" className="rounded-full gap-1.5 ml-1">
+          <Button className="rounded-full gap-1.5 ml-1">
             <Plus strokeWidth={3} />
             <span className="font-bold">New List</span>
           </Button>

@@ -36,7 +36,7 @@ const PluginCard = ({
   const { t } = useLanguageContext();
 
   return (
-    <div className="relative grid gap-4 px-4 py-2 border border-gray-200 rounded-lg ritems-center bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+    <div className="relative grid items-center gap-4 px-4 py-2 rounded-lg">
       {!!banner && (
         <div className="absolute top-0 bottom-0 left-0 right-0 transition-all rounded-lg -z-0">
           <img
@@ -92,23 +92,21 @@ const PluginCard = ({
 
       <div className="relative z-10 flex items-center justify-end gap-3">
         {needsUpdate && (
-          <Button variant="secondary" onClick={updatePlugin} size={"icon"}>
+          <Button onClick={updatePlugin} size={"icon"}>
             <Download />
           </Button>
         )}
 
         {installed ? (
           <Button variant="destructive" onClick={uninstallPlugin} size={"icon"}>
-            <Trash2 />
+            <Trash2 size={"20"} />
           </Button>
         ) : (
-          <Button variant="secondary">{t("install")}</Button>
+          <Button>{t("install")}</Button>
         )}
 
         {disabled ? (
-          <Button variant={"secondary"} onClick={enablePlugin}>
-            {t("enable")}
-          </Button>
+          <Button onClick={enablePlugin}>{t("enable")}</Button>
         ) : (
           <Button variant={"destructive"} onClick={disablePlugin}>
             {t("disable")}

@@ -5,7 +5,7 @@ import { useSettings } from "@/hooks";
 import { createSlug, invoke, openLink } from "@/lib";
 import { Deal } from "@/lib/api/itad/types";
 import { useAccountServices } from "@/stores/account-services";
-import { Download, ShoppingCart } from "lucide-react";
+import { CloudDownload, ShoppingCart } from "lucide-react";
 import { useCallback } from "react";
 import { sanitizeFilename } from "../../lib/utils";
 import { Button } from "../ui/button";
@@ -129,8 +129,8 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
               {source.url}
             </p>
             <Button
-              className="items-center w-full gap-3 text-sm font-bold rounded-full"
-              variant="secondary"
+              className="items-center w-full gap-3 font-bold rounded-full"
+              variant="success"
               onClick={handleClick}
             >
               <ShoppingCart size={18} fill="currentColor" />
@@ -141,11 +141,11 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
           <>
             <h1 className="w-full font-bold line-clamp-2">{source.name}</h1>
             <Button
-              className="items-center w-full gap-3 text-sm font-bold capitalize rounded-full"
-              variant="secondary"
+              className="items-center w-full gap-3 font-bold capitalize rounded-full"
+              variant="success"
               onClick={handleClick}
             >
-              <Download
+              <CloudDownload
                 size={18}
                 fill="currentColor"
                 className="flex-shrink-0"

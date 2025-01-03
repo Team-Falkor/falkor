@@ -17,9 +17,7 @@ const TitleBarDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full capitalize">
-          {settings?.titleBarStyle}
-        </Button>
+        <Button className="w-full capitalize">{settings?.titleBarStyle}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64">
         <DropdownMenuLabel>Title Bar Style</DropdownMenuLabel>

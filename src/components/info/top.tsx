@@ -1,5 +1,4 @@
 import { InfoItadProps, InfoProps } from "@/@types";
-import { cn } from "@/lib";
 import { InfoReturn, ReleaseDate } from "@/lib/api/igdb/types";
 import { useState } from "react";
 import IGDBImage from "../IGDBImage";
@@ -71,20 +70,14 @@ const InfoTop = (props: Props) => {
           {/* TAB SELECTOR */}
           <div className="flex gap-4">
             <Button
-              variant="secondary"
-              className={cn("rounded-full bg-background m-0.5", {
-                "ring-2 ring-purple-400": activeTab === 0,
-              })}
               onClick={() => setActiveTab(0)}
+              variant={activeTab === 0 ? "active" : "default"}
             >
               Game Details
             </Button>
             <Button
-              variant="secondary"
-              className={cn("rounded-full bg-background m-0.5", {
-                "ring-2 ring-purple-400": activeTab === 1,
-              })}
               onClick={() => setActiveTab(1)}
+              variant={activeTab === 1 ? "active" : "default"}
             >
               System Requirements
             </Button>

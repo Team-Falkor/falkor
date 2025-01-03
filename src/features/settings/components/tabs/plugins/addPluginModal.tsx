@@ -65,9 +65,7 @@ const AddPluginModal = ({ setOpen }: Props) => {
           <Button variant={"destructive"}>Cancel</Button>
         </DialogClose>
 
-        <Button variant={"secondary"} onClick={handleAddPlugin}>
-          Add Plugin
-        </Button>
+        <Button onClick={handleAddPlugin}>Add Plugin</Button>
       </DialogFooter>
     </DialogContent>
   );

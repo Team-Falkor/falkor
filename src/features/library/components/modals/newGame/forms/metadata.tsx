@@ -17,7 +17,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
     useFormActions(form);
 
   return (
-    <div className="w-full min-h-[20rem] h-full overflow-y-auto">
+    <div className="w-full min-h-[20rem] h-full overflow-y-auto gap-2 flex flex-col">
       <FormField
         control={form.control}
         name="gameName"
@@ -43,7 +43,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
             Button={
               <Button
                 size="icon"
-                variant="secondary"
+                className="rounded-lg rounded-l-none"
                 onClick={(e) => {
                   e.preventDefault();
                   handlePathButton();
@@ -67,7 +67,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
             required
             Button={
               <Button
-                variant="secondary"
+                className="rounded-lg rounded-l-none"
                 size="icon"
                 onClick={(e) => {
                   e.preventDefault();
@@ -92,7 +92,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
             required
             Button={
               <Button
-                variant="secondary"
+                className="rounded-lg rounded-l-none"
                 size="icon"
                 onClick={(e) => {
                   e.preventDefault();

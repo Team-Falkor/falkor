@@ -24,7 +24,7 @@ const LibraryListActions = ({ listId }: Props) => {
       <DropdownMenu>
         <DropdownMenuTrigger>
           <Button variant="ghost" size={"icon"}>
-            <Ellipsis size={26} />
+            <Ellipsis size={23} />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-24" align="start">

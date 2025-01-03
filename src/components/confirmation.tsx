@@ -56,7 +56,7 @@ const Confirmation = ({
             </Button>
           </DialogClose>
           <DialogClose>
-            <Button type="submit" variant={"secondary"} onClick={onConfirm}>
+            <Button type="submit" onClick={onConfirm}>
               {t("confirm")}
             </Button>
           </DialogClose>

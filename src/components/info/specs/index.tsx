@@ -26,7 +26,7 @@ const PcSpecs = ({ minimum, recommended }: PcSpecsProps) => {
 
   return (
     <div className="grid gap-4">
-      <h3 className="text-lg font-bold leading-6 text-primary">
+      <h3 className="text-lg font-bold leading-6">
         {t("system_requirements")}
       </h3>
       <div className="flex gap-4 flex-2">

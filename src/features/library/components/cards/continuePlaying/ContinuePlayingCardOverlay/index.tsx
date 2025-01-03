@@ -62,7 +62,7 @@ const ContinuePlayingCardOverlay = ({
         </h2>
         {!!game?.game_last_played && (
           <div className="flex items-center gap-1">
-            <h3 className="text-sm capitalize text-primary/90">
+            <h3 className="text-sm capitalize text-secondary-foreground/80">
               {timeSince(Number(game.game_last_played))}
             </h3>
           </div>

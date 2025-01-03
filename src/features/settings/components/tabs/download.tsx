@@ -82,7 +82,7 @@ const TorrentSettings = () => {
 
       <SettingsContainer>
         <SettingsSection title="downloads_path">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <div className="flex justify-between">
               <Input
                 placeholder={t("settings.settings.downloads_path")}
@@ -90,11 +90,12 @@ const TorrentSettings = () => {
                 value={downloadPath}
                 onChange={(e) => setDownloadPath(e.target.value)}
                 aria-label="Downloads Path"
+                className="rounded-lg rounded-r-none"
               />
 
               <Button
-                variant="secondary"
                 size="icon"
+                className="rounded-lg rounded-l-none bg-muted hover:bg-muted"
                 onClick={openDialog}
                 aria-label="Select Folder"
               >
@@ -103,7 +104,7 @@ const TorrentSettings = () => {
             </div>
 
             <Button
-              variant="secondary"
+              variant="success"
               onClick={handleSave}
               disabled={!downloadPath.trim()}
             >

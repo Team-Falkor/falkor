@@ -120,11 +120,7 @@ function Downloads() {
         </div>
 
         <div>
-          <FolderButton
-            path="downloads"
-            tooltip={t("open_downloads_folder")}
-            variant={"secondary"}
-          />
+          <FolderButton path="downloads" tooltip={t("open_downloads_folder")} />
         </div>
       </div>
 

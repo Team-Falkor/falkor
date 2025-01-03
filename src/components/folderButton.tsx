@@ -23,7 +23,7 @@ const FolderButton = ({
   path,
   icon,
   tooltip,
-  variant = "secondary",
+  variant,
   size = "icon",
 }: Props) => {
   const handleClick = () => {

@@ -33,17 +33,12 @@ const DownloadCardActions = ({
           className="gap-2"
           onClick={start ?? undefined}
         >
-          <Play className="fill-current" />
+          <Play className="fill-current" size="24" />
           Start Download
         </Button>
       ) : (
-        <Button
-          size="default"
-          variant="secondary"
-          className="gap-2"
-          onClick={pause ?? undefined}
-        >
-          <Pause fill="currentColor" />
+        <Button size="default" className="gap-2" onClick={pause ?? undefined}>
+          <Pause fill="currentColor" size="24" />
           Pause Download
         </Button>
       )}
@@ -57,7 +52,7 @@ const DownloadCardActions = ({
           deleteStats(isTorrentType ? stats.infoHash : stats.id);
         }}
       >
-        <MdStop size="fill" />
+        <MdStop size="25" />
       </Button>
     </div>
   );

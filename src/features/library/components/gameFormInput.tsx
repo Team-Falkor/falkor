@@ -39,7 +39,13 @@ const GameFormInput = <T extends FieldValues>({
             placeholder={description}
             {...props}
             {...field}
-            className={cn("focus-visible:ring-0", className)}
+            className={cn(
+              "focus-visible:ring-0 rounded-lg",
+              {
+                "rounded-r-none": !!Button,
+              },
+              className
+            )}
           />
         </FormControl>
         {Button}

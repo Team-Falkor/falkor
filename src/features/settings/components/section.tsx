@@ -15,7 +15,7 @@ export const SettingsSection = ({
   const { t } = useLanguageContext();
 
   return (
-    <div className="p-4 space-y-4 bg-white shadow-md rounded-xl dark:bg-card/40">
+    <div className="p-4 space-y-4 bg-white shadow-md rounded-xl bg-card/40">
       {(title || description) && (
         <div className={cn("flex flex-col mb-4")}>
           {title && (

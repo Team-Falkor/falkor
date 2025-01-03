@@ -11,14 +11,14 @@ const AddDownloadButton = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button className="icon" variant={"secondary"} size={"icon"}>
+        <Button className="icon" size={"icon"}>
           <Download />
         </Button>
       </PopoverTrigger>
       <PopoverContent>
         <div className="grid gap-4">
           <Input placeholder="Magnet link" />
-          <Button variant={"secondary"}>Add</Button>
+          <Button>Add</Button>
         </div>
       </PopoverContent>
     </Popover>
