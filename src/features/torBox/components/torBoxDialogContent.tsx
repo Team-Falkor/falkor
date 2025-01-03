@@ -1,5 +1,7 @@
 import { ExternalNewAccountInput } from "@/@types/accounts";
+import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { invoke } from "@/lib";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
@@ -66,26 +68,20 @@ const TorBoxDialogContent = ({ open, setOpen }: TorBoxDialogContentProps) => {
       <DialogTitle>TorBox</DialogTitle>
       <div className="flex flex-col gap-3">
         <p>Please enter your TorBox API key below:</p>
-        <input
+        <Input
           type="text"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="Enter API key"
-          className="border rounded p-2"
+          className="p-2 border rounded"
         />
-        <div className="flex gap-3 justify-end mt-3">
-          <button
-            onClick={handleClose}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded"
-          >
+        <div className="flex justify-end gap-3 mt-3">
+          <Button onClick={handleClose} variant={"destructive"}>
             Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded"
-          >
+          </Button>
+          <Button onClick={handleSave} variant={"success"}>
             Save
-          </button>
+          </Button>
         </div>
       </div>
     </DialogContent>
