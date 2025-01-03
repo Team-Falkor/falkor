@@ -1,8 +1,8 @@
-import { Input } from "@/components/ui/input";
 import { PopoverContent } from "@/components/ui/popover";
 import { useLanguageContext } from "@/contexts/I18N";
 
-import { ShipWheel } from "lucide-react";
+import { InputWithIcon } from "@/components/inputWithIcon";
+import { SearchIcon, ShipWheel } from "lucide-react";
 import { useState } from "react";
 import useSearch from "../hooks/useSearch";
 import SearchCard from "./card";
@@ -20,11 +20,12 @@ const Search = ({
     <PopoverContent side="right" className="p-0 mt-10 w-96">
       <div className="grid gap-4">
         <div className="w-full px-4 pt-4">
-          <Input
+          <InputWithIcon
             placeholder={t("search_placeholder")}
             className="w-full"
             onChange={(e) => setSearchTerm(e.target.value)}
             value={searchTerm}
+            startIcon={<SearchIcon />}
           />
         </div>
 

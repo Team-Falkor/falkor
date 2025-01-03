@@ -1,13 +1,13 @@
+import { InputWithIcon } from "@/components/inputWithIcon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useLanguageContext } from "@/contexts/I18N";
-import { Plus } from "lucide-react";
+import { Filter, Plus, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SettingsSection } from "../../section";
 import SettingTitle from "../../title";
@@ -34,7 +34,7 @@ const PluginSettings = () => {
   }, []);
 
   return (
-    <div>
+    <div className="relative w-full h-[calc(100vh-3rem)]">
       <SettingTitle>{t("settings.titles.plugins")}</SettingTitle>
 
       <SettingsContainer>
@@ -43,12 +43,13 @@ const PluginSettings = () => {
           <div className="flex items-center justify-between">
             <div className="flex w-full gap-4">
               {/* Search Input */}
-              <Input
-                className="w-1/2"
+              <InputWithIcon
+                divClassName="w-1/3"
                 placeholder={t("what_plugin_are_you_looking_for")}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                startIcon={<SearchIcon />}
               />
 
               {/* Add Plugin Button */}
@@ -56,11 +57,12 @@ const PluginSettings = () => {
                 <DialogTrigger>
                   <Tooltip>
                     <TooltipTrigger>
-                      <Button variant="ghost" size="icon">
+                      <Button className="gap-2">
                         <Plus />
+                        {t("install_plugin")}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>{t("add_local_plugin")}</TooltipContent>
+                    <TooltipContent>{t("install_plugin")}</TooltipContent>
                   </Tooltip>
                 </DialogTrigger>
                 <AddPluginModal setOpen={setOpen} open={open} />
@@ -90,6 +92,10 @@ const PluginSettings = () => {
           />
         </SettingsSection>
       </SettingsContainer>
+
+      <div className="absolute p-3 rounded-full bottom-5 right-5 bg-muted">
+        <Filter size={24} />
+      </div>
     </div>
   );
 };

@@ -130,5 +130,6 @@
   "steam_id": "Steam ID",
   "wine_prefix_folder": "Wine Prefix Folder",
   "the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
-  "import_from_igdb": "Import From IGDB"
+  "import_from_igdb": "Import From IGDB",
+  "install_plugin": "Install Plugin"
 }
