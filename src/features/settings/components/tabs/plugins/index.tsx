@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useLanguageContext } from "@/contexts/I18N";
-import { Filter, Plus, SearchIcon } from "lucide-react";
+import { Plus, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SettingsSection } from "../../section";
 import SettingTitle from "../../title";
@@ -93,9 +93,9 @@ const PluginSettings = () => {
         </SettingsSection>
       </SettingsContainer>
 
-      <div className="absolute p-3 rounded-full bottom-5 right-5 bg-muted">
+      {/* <div className="absolute p-3 rounded-full bottom-5 right-5 bg-muted">
         <Filter size={24} />
-      </div>
+      </div> */}
     </div>
   );
 };
