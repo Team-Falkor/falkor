@@ -4,6 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import IGDBImage from "../IGDBImage";
 import TrailerButton from "../trailer";
+import { H2 } from "../typography/h2";
+import { TypographySmall } from "../typography/small";
 import { buttonVariants } from "../ui/button";
 
 const BannerCard = ({
@@ -40,10 +42,10 @@ const BannerCard = ({
       </div>
 
       <div className="relative z-10 flex flex-col justify-end w-full h-full gap-1 p-4">
-        <h1 className="text-2xl font-bold text-white">{name}</h1>
-        <p className="text-sm text-slate-300 line-clamp-4">
+        <H2>{name}</H2>
+        <TypographySmall className="text-muted-foreground">
           {storyline ?? summary ?? "??"}
-        </p>
+        </TypographySmall>
         <div className="flex flex-row justify-end">
           <div className="flex flex-row items-end justify-between w-full">
             <div className="flex flex-row justify-start gap-3 mt-3">

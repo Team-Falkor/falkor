@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import DefaultCard from "../cards/defaultCard";
 import Spinner from "../spinner";
+import { H1 } from "../typography/h1";
 import { Button } from "../ui/button";
 import MainContainer from "./mainContainer";
 
@@ -57,9 +58,7 @@ export const Section = ({ title, dataToFetch }: Props) => {
           <ChevronLeft className="size-8" />
         </Button>
 
-        <h2 className="text-3xl font-bold tracking-tight truncate scroll-m-20 first:mt-0">
-          {title}
-        </h2>
+        <H1>{title}</H1>
       </div>
 
       {!isPending ? (

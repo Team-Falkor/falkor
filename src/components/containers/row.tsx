@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { HTMLAttributes } from "react";
 import CarouselButton from "../carouselButton";
 import GenericRow from "../genericRow";
+import { H3 } from "../typography/h3";
 import { Carousel } from "../ui/carousel";
 
 interface RowContainerProps extends HTMLAttributes<HTMLDivElement> {
@@ -33,7 +34,7 @@ const RowContainer = ({
       >
         <div className="flex items-center justify-between pb-4">
           <div className="flex items-end gap-2">
-            <h3 className="font-mono text-lg font-medium leading-6">{title}</h3>
+            <H3>{title}</H3>
 
             <Link
               to={`/sections/${dataToFetch}`}

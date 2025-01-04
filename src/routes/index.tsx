@@ -2,6 +2,7 @@ import Banner from "@/components/banner";
 import CarouselButton from "@/components/carouselButton";
 import MainContainer from "@/components/containers/mainContainer";
 import RowContainer from "@/components/containers/row";
+import { H3 } from "@/components/typography/h3";
 import { Carousel } from "@/components/ui/carousel";
 import { useLanguageContext } from "@/contexts/I18N";
 import { cn } from "@/lib";
@@ -24,9 +25,7 @@ function Index() {
       <Carousel id="top-rated-carousel" plugins={[autoplay.current]}>
         <div className="flex items-center justify-between w-full gap-2 mb-2">
           <div className="flex items-end gap-3">
-            <h3 className="font-mono text-lg font-medium leading-6 lg:text-xl xl:text-2xl">
-              {t("sections.top_rated")}
-            </h3>
+            <H3>{t("sections.top_rated")}</H3>
 
             <Link
               to={`/sections/topRated`}
