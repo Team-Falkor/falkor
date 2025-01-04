@@ -81,15 +81,15 @@ class GameProcessLauncher {
       `Launching game: ${this.gamePath} with args: ${this.gameArgs}`
     );
 
+    const args = this.gameArgs ? this.gameArgs.split(" ") : [];
     try {
       if (this.gameCommand?.length) {
-        this.gameProcess = spawn(this.gameCommand, {
+        this.gameProcess = spawn(`${this.gameCommand} ${this.gamePath}`, args, {
           shell: true,
           detached: true,
           stdio: "ignore",
         });
       } else {
-        const args = this.gameArgs ? this.gameArgs.split(" ") : [];
         this.gameProcess = spawn(this.gamePath, args, {
           detached: true,
           stdio: "ignore",
