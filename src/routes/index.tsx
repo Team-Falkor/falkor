@@ -3,9 +3,9 @@ import CarouselButton from "@/components/carouselButton";
 import MainContainer from "@/components/containers/mainContainer";
 import RowContainer from "@/components/containers/row";
 import { H3 } from "@/components/typography/h3";
+import { TypographySmall } from "@/components/typography/small";
 import { Carousel } from "@/components/ui/carousel";
 import { useLanguageContext } from "@/contexts/I18N";
-import { cn } from "@/lib";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
@@ -29,9 +29,9 @@ function Index() {
 
             <Link
               to={`/sections/topRated`}
-              className={cn("p-0 m-0 text-sm text-slate-400 hover:underline")}
+              className="hover:underline text-muted-foreground"
             >
-              {t("view_more")}
+              <TypographySmall>{t("view_more")}</TypographySmall>
             </Link>
           </div>
 
