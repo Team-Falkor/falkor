@@ -152,9 +152,9 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
                 fill="currentColor"
                 className="flex-shrink-0"
               />
-              <span className="max-w-full capitalize truncate">
+              <P className="max-w-full capitalize truncate">
                 {source?.uploader ?? t("download")}
-              </span>
+              </P>
             </Button>
           </>
         )}

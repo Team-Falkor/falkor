@@ -1,3 +1,4 @@
+import { P } from "@/components/typography/p";
 import { DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenuContent,
@@ -39,7 +40,7 @@ const ListsDropdownContent = (props: Props) => {
       <div className="overflow-y-auto max-h-24">
         {!lists?.length ? (
           <div className="flex items-center justify-center gap-2 p-2">
-            <p className="text-center">{t("create_new_list")}</p>
+            <P className="text-center">{t("create_new_list")}</P>
           </div>
         ) : (
           lists.map((list) => (
@@ -56,7 +57,7 @@ const ListsDropdownContent = (props: Props) => {
         <DialogTrigger>
           <div className="flex items-center gap-1.5">
             <PlusIcon className="size-5 " />
-            <p className="text-sm">Create a new collection</p>
+            <P>Create a new list</P>
           </div>
         </DialogTrigger>
       </DropdownMenuItem>

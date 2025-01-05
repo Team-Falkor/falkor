@@ -20,11 +20,7 @@ export const SettingsSection = ({
     <div className="p-4 space-y-4 shadow-md rounded-xl bg-card/40">
       {(title || description) && (
         <div className={cn("flex flex-col mb-4")}>
-          {title && (
-            <H3>
-              <span>{t("settings.settings." + title)}</span>
-            </H3>
-          )}
+          {title && <H3>{t("settings.settings." + title)}</H3>}
           {description && (
             <TypographyMuted>
               {t("settings.settings." + description)}

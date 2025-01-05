@@ -1,4 +1,5 @@
 import Confirmation from "@/components/confirmation";
+import { P } from "@/components/typography/p";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
@@ -73,7 +74,7 @@ const ListsDropdownItem = ({
           onSelect={handleSelect}
           disabled={loading}
         >
-          <span className="truncate">{children || game.name}</span>
+          <P className="truncate">{children || game.name}</P>
         </DropdownMenuCheckboxItem>
       </div>
 

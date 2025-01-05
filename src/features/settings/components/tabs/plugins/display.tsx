@@ -1,5 +1,6 @@
 import { PluginSetupJSONDisabled } from "@/@types";
 import PluginCard from "@/components/cards/pluginCard";
+import { H5 } from "@/components/typography/h5";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import UsePlugins from "@/hooks/usePlugins";
 import { cn } from "@/lib";
@@ -97,10 +98,10 @@ const PluginDisplay = ({
             />
           ))
         ) : (
-          <div className="w-full flex items-center justify-start py-2">
-            <p className="text-left text-lg w-full font-bold">
+          <div className="flex items-center justify-start w-full py-2">
+            <H5 className="w-full text-left">
               {search?.length ? `No results for "${search}"` : "No plugins"}
-            </p>
+            </H5>
           </div>
         )}
       </div>

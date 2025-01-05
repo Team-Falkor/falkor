@@ -45,7 +45,7 @@ const ListContainer = ({ list_id, list_name }: ListContainerProps) => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Edit List</p>
+              <P>Edit List</P>
             </TooltipContent>
           </Tooltip>
 
@@ -56,7 +56,7 @@ const ListContainer = ({ list_id, list_name }: ListContainerProps) => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Delete List</p>
+              <P>Delete List</P>
             </TooltipContent>
           </Tooltip>
         </div>

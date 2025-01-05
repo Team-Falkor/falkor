@@ -1,4 +1,6 @@
 import ListCard from "@/components/cards/listCard";
+import { H5 } from "@/components/typography/h5";
+import { P } from "@/components/typography/p";
 import { useLists } from "@/features/lists/hooks/useLists";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -22,7 +24,7 @@ const ActiveLibraryList = ({ listId }: ActiveLibraryListProps) => {
   if (isPending) {
     return (
       <div className="flex items-center justify-center">
-        <p className="text-lg font-semibold">Loading...</p>
+        <H5>Loading...</H5>
       </div>
     );
   }
@@ -30,9 +32,7 @@ const ActiveLibraryList = ({ listId }: ActiveLibraryListProps) => {
   if (isError) {
     return (
       <div className="flex items-center justify-center">
-        <p className="text-lg font-semibold">
-          Something went wrong. Please try again later.
-        </p>
+        <H5>Something went wrong. Please try again later.</H5>
       </div>
     );
   }
@@ -44,7 +44,7 @@ const ActiveLibraryList = ({ listId }: ActiveLibraryListProps) => {
       ))}
     </div>
   ) : (
-    <p className="text-lg font-semibold">No games in this list.</p>
+    <P>No games in this list.</P>
   );
 };
 

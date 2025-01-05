@@ -1,3 +1,5 @@
+import { TypographyMuted } from "@/components/typography/muted";
+import { P } from "@/components/typography/p";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import { Link } from "@tanstack/react-router";
 
@@ -20,8 +22,8 @@ const SearchCard = ({
       onClick={() => setOpen(false)}
     >
       <div className="flex gap-1.5">
-        <p className="flex-1 text-sm line-clamp-2">{name}</p>
-        <span className="text-xs text-muted-foreground">({year})</span>
+        <P className="flex-1 line-clamp-2">{name}</P>
+        <TypographyMuted>{year}</TypographyMuted>
       </div>
     </Link>
   );

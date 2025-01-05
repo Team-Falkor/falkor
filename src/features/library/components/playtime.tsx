@@ -1,3 +1,4 @@
+import { P } from "@/components/typography/p";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import ms from "ms";
@@ -12,11 +13,11 @@ const Playtime = ({ playtime }: PlaytimeProps) => {
   return (
     <Badge className="flex items-center gap-1.5 px-2.5 py-1.5 h-full rounded-lg text-foreground backdrop-blur-md">
       <Clock size={16} className="text-foreground" />
-      <span className="font-semibold uppercase">
+      <P className="uppercase">
         {ms(playtime, {
           long: true,
         })}
-      </span>
+      </P>
     </Badge>
   );
 };

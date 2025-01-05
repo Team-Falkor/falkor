@@ -1,4 +1,5 @@
 import { Tab } from "@/@types";
+import { H5 } from "@/components/typography/h5";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -88,7 +89,7 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
         <DialogTrigger>
           <Button className="text-white bg-gradient-to-tr from-blue-400 to-purple-400 gap-1.5 rounded-full hover:opacity-90 transition-all">
             <Plus strokeWidth={3} />
-            <span className="font-bold">New Game</span>
+            <H5>New Game</H5>
           </Button>
         </DialogTrigger>
         <NewGameModal />
@@ -126,7 +127,7 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
         <DialogTrigger>
           <Button className="rounded-full gap-1.5 ml-1">
             <Plus strokeWidth={3} />
-            <span className="font-bold">New List</span>
+            <H5>New List</H5>
           </Button>
         </DialogTrigger>
         <NewListDialogContent open={newListOpen} setOpen={setNewListOpen} />

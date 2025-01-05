@@ -1,4 +1,6 @@
 import { InputWithIcon } from "@/components/inputWithIcon";
+import { TypographyMuted } from "@/components/typography/muted";
+import { TypographySmall } from "@/components/typography/small";
 import { PopoverContent } from "@/components/ui/popover";
 import useSearch from "@/features/search/hooks/useSearch";
 import { cn, getSteamIdFromWebsites } from "@/lib";
@@ -69,10 +71,12 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
                 onClick={() => handleClick(game)}
               >
                 <div className="flex gap-1.5">
-                  <p className="flex-1 text-sm line-clamp-2">{game?.name}</p>
-                  <span className="text-xs text-muted-foreground">
+                  <TypographySmall className="flex-1 line-clamp-2">
+                    {game?.name}
+                  </TypographySmall>
+                  <TypographyMuted>
                     ({game?.release_dates?.[0]?.human})
-                  </span>
+                  </TypographyMuted>
                 </div>
               </div>
             ))

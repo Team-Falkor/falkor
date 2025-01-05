@@ -1,4 +1,5 @@
 import { ExternalNewAccountInput } from "@/@types/accounts";
+import { H3 } from "@/components/typography/h3";
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -67,13 +68,12 @@ const TorBoxDialogContent = ({ open, setOpen }: TorBoxDialogContentProps) => {
     <DialogContent>
       <DialogTitle>TorBox</DialogTitle>
       <div className="flex flex-col gap-3">
-        <p>Please enter your TorBox API key below:</p>
+        <H3>Please enter your TorBox API key below:</H3>
         <Input
           type="text"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="Enter API key"
-          className="p-2 border rounded"
         />
         <div className="flex justify-end gap-3 mt-3">
           <Button onClick={handleClose} variant={"destructive"}>

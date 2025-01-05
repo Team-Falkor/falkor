@@ -32,7 +32,7 @@ const BannerCard = ({
   return (
     <div className="relative w-full overflow-hidden rounded-lg h-80">
       <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
-        <span className="absolute w-full h-full z-[1] from-background to-transparent bg-gradient-to-tr" />
+        <div className="absolute w-full h-full z-[1] from-background to-transparent bg-gradient-to-tr" />
         <IGDBImage
           imageSize="720p"
           imageId={cover.image_id}
@@ -54,7 +54,7 @@ const BannerCard = ({
                   imageSize="screenshot_med"
                   key={screenshot.id}
                   imageId={screenshot.image_id}
-                  className="object-cover rounded-md w-52 aspect-video"
+                  className="object-cover w-48 rounded-md aspect-video lg:w-56"
                   alt={name}
                 />
               ))}

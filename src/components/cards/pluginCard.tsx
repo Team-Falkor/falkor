@@ -62,9 +62,9 @@ const PluginCard = ({
           <div className="flex flex-col items-start justify-end">
             <TypographyMuted className="flex items-center gap-1 font-medium">
               {needsUpdate && (
-                <span className="font-bold text-red-500">
+                <TypographySmall className="font-bold text-red-500">
                   [Update available]
-                </span>
+                </TypographySmall>
               )}
               {id} - V{version}{" "}
             </TypographyMuted>

@@ -1,3 +1,4 @@
+import { P } from "@/components/typography/p";
 import { cn } from "@/lib/utils";
 import { JSX } from "react";
 
@@ -22,7 +23,7 @@ const SettingTab = ({ icon, title, isActive, onClick }: SettingTabProps) => {
       onClick={onClick}
     >
       {icon}
-      <span className="truncate">{title}</span>
+      <P className="truncate">{title}</P>
     </button>
   );
 };

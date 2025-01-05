@@ -1,3 +1,4 @@
+import { P } from "@/components/typography/p";
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormField } from "@/components/ui/form";
@@ -147,9 +148,9 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
                 field={field}
               />
               {form.formState.errors.gameArgs && (
-                <p className="w-full text-right text-red-500">
+                <P className="w-full text-right text-red-500">
                   {form.formState.errors.gameArgs.message}
-                </p>
+                </P>
               )}
             </>
           )}
@@ -212,7 +213,7 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
           {loading ? `${t("updating")}...` : t("update_game")}
         </Button>
       </DialogFooter>
-      {error && <p className="w-full text-right text-red-500">{error}</p>}
+      {error && <P className="w-full text-right text-red-500">{error}</P>}
     </Form>
   );
 };

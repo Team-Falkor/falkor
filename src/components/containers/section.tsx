@@ -6,6 +6,7 @@ import { useState } from "react";
 import DefaultCard from "../cards/defaultCard";
 import Spinner from "../spinner";
 import { H1 } from "../typography/h1";
+import { TypographyMuted } from "../typography/muted";
 import { Button } from "../ui/button";
 import MainContainer from "./mainContainer";
 
@@ -82,7 +83,7 @@ export const Section = ({ title, dataToFetch }: Props) => {
               <ChevronLeft />
             </Button>
 
-            <span className="text-lg text-muted-foreground">Page {page}</span>
+            <TypographyMuted>Page {page}</TypographyMuted>
 
             <Button variant={"ghost"} onClick={handleNextPage} size={"icon"}>
               <ChevronRight />

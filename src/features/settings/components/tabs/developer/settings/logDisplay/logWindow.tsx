@@ -1,3 +1,4 @@
+import { H5 } from "@/components/typography/h5";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLogger } from "@/hooks";
 import { cn } from "@/lib";
@@ -32,7 +33,7 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
             })
           ) : (
             <div className="flex items-center justify-center size-full">
-              <p className="text-lg font-bold">No logs</p>
+              <H5>No logs</H5>
             </div>
           )}
         </div>
