@@ -1,5 +1,6 @@
 import DefaultCard from "@/components/cards/defaultCard";
 import CarouselButton from "@/components/carouselButton";
+import { H2 } from "@/components/typography/h2";
 import {
   Carousel,
   CarouselContent,
@@ -30,9 +31,7 @@ const SimilarGames = ({ data }: SimilarGamesProps) => {
         className="w-full"
       >
         <div className="flex justify-between mb-2">
-          <h1 className="text-xl font-medium capitalize">
-            {t("you_may_also_like")}
-          </h1>
+          <H2>{t("you_may_also_like")}</H2>
           <div>
             <CarouselButton direction="left" />
             <CarouselButton direction="right" />

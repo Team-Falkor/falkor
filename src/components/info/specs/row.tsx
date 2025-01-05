@@ -1,4 +1,7 @@
 import { Data } from "@/components/info/specs";
+import { H4 } from "@/components/typography/h4";
+import { TypographyMuted } from "@/components/typography/muted";
+import { TypographySmall } from "@/components/typography/small";
 import { useLanguageContext } from "@/contexts/I18N";
 import { scrapeOptions } from "@/lib";
 import { useMemo } from "react";
@@ -16,14 +19,12 @@ const RequirementsRow = ({ type, data }: RequirementsRowProps) => {
 
   return (
     <div className="flex flex-col flex-shrink-0 w-full gap-2 p-4 overflow-hidden rounded-2xl bg-background">
-      <h3 className="p-4 pt-1 pb-2 text-lg font-bold leading-6 capitalize">
-        {t(type?.toLowerCase())}
-      </h3>
+      <H4 className="p-4 pt-1 pb-2 capitalize">{t(type?.toLowerCase())}</H4>
 
       {Object.entries(specs).map(([key, value]) => (
         <div className="flex flex-col justify-between gap-1 p-4 py-1" key={key}>
-          <span className="text-xs font-medium text-slate-400">{key}</span>
-          <span className="mr-1 text-sm">{value[0]}</span>
+          <TypographyMuted>{key}</TypographyMuted>
+          <TypographySmall className="mr-1">{value[0]}</TypographySmall>
         </div>
       ))}
     </div>

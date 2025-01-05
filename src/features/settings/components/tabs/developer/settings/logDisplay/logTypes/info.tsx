@@ -2,6 +2,7 @@ import { LogEntry } from "@/@types/logs";
 import { Info } from "lucide-react";
 import { JSX } from "react";
 import { BaseLog } from "./base";
+import { TypographyMuted } from "@/components/typography/muted";
 
 interface ConsoleInfoDisplayProps {
   customIcon?: JSX.Element;
@@ -20,7 +21,7 @@ const ConsoleInfoDisplay = ({
       <div className="text-orange-400">
         {customIcon ? customIcon : <Info />}
       </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <TypographyMuted>{description}</TypographyMuted>
     </BaseLog>
   );
 };

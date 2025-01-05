@@ -1,4 +1,6 @@
 import CarouselButton from "@/components/carouselButton";
+import { H2 } from "@/components/typography/h2";
+import { TypographyMuted } from "@/components/typography/muted";
 import {
   Carousel,
   CarouselContent,
@@ -52,12 +54,12 @@ const AchievementContainer = ({ steamId, gameId }: Props) => {
     >
       <div className="flex flex-col gap-1 mb-4">
         <div className="flex justify-between">
-          <h1 className="flex items-end gap-2 text-xl font-medium capitalize">
-            {t("achievements")}
-            <p className="text-sm text-muted-foreground">
+          <div className="flex items-end gap-3">
+            <H2 className="capitalize">{t("achievements")}</H2>
+            <TypographyMuted>
               {unlocked?.length}/{data.length}
-            </p>
-          </h1>
+            </TypographyMuted>
+          </div>
           <div>
             <CarouselButton direction="left" />
             <CarouselButton direction="right" />

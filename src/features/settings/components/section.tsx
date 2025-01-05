@@ -1,3 +1,5 @@
+import { H3 } from "@/components/typography/h3";
+import { TypographyMuted } from "@/components/typography/muted";
 import { useLanguageContext } from "@/contexts/I18N";
 import { cn } from "@/lib";
 import { PropsWithChildren } from "react";
@@ -19,14 +21,14 @@ export const SettingsSection = ({
       {(title || description) && (
         <div className={cn("flex flex-col mb-4")}>
           {title && (
-            <h2 className="text-xl font-semibold">
+            <H3>
               <span>{t("settings.settings." + title)}</span>
-            </h2>
+            </H3>
           )}
           {description && (
-            <p className="text-sm text-muted-foreground">
+            <TypographyMuted>
               {t("settings.settings." + description)}
-            </p>
+            </TypographyMuted>
           )}
         </div>
       )}

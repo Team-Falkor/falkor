@@ -1,4 +1,6 @@
 import { ISchemaForGameAchievement } from "@/@types";
+import { TypographyMuted } from "@/components/typography/muted";
+import { TypographySmall } from "@/components/typography/small";
 import { cn } from "@/lib";
 
 interface Props extends ISchemaForGameAchievement {
@@ -22,17 +24,17 @@ export const AchievementCard = ({
       />
 
       <div className="flex flex-col gap-0.5">
-        <h2
-          className={cn("flex text-sm font-medium truncate", {
+        <TypographySmall
+          className={cn("flex font-medium truncate", {
             "text-muted-foreground": !unlocked,
           })}
         >
           {displayName}
-        </h2>
+        </TypographySmall>
         {description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">
+          <TypographyMuted className="text-xs line-clamp-2">
             {description}
-          </p>
+          </TypographyMuted>
         )}
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { TypographyMuted } from "@/components/typography/muted";
 import useDownloadTime from "@/features/downloads/hooks/useDownloadTime";
 import { useMemo } from "react";
 
@@ -19,14 +20,14 @@ const PercentBar = ({ percent, timeRemaning }: Props) => {
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-row justify-between w-full">
         {!!estimatedTime && (
-          <div className="text-sm text-muted-foreground font-semibold">
+          <TypographyMuted className="font-semibold">
             <span>ETA:</span>
             <span className="ml-1">{estimatedTime}</span>
-          </div>
+          </TypographyMuted>
         )}
-        <p className="text-sm text-muted-foreground font-semibold">
+        <TypographyMuted className="font-semibold">
           {percent.toFixed(2)}%
-        </p>
+        </TypographyMuted>
       </div>
       <div className="inset-x-0 bottom-0 z-[3] w-full h-1 bg-primary/20 overflow-hidden relative rounded-full">
         <div

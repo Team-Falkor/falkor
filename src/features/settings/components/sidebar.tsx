@@ -1,4 +1,7 @@
 import { AppInfo, LinkItemType } from "@/@types";
+import { H3 } from "@/components/typography/h3";
+import { TypographyMuted } from "@/components/typography/muted";
+import { P } from "@/components/typography/p";
 import { Button } from "@/components/ui/button";
 import { useLanguageContext } from "@/contexts/I18N";
 import { useSettings } from "@/hooks";
@@ -64,16 +67,14 @@ const SettingsSidebar = ({
       )}
     >
       <div className="p-4">
-        <h1 className="text-lg font-bold md:text-xl">
-          {t("sections.settings")}
-        </h1>
+        <H3>{t("sections.settings")}</H3>
       </div>
       <nav className="flex-1 space-y-2 md:space-y-3">{settingsTabs}</nav>
       <div className="flex flex-col gap-2 p-3 px-4 mt-auto">
         {!isPending && !isError && (
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold capitalize">{t("falkor")}</h1>
+              <P className="font-bold capitalize">{t("falkor")}</P>
               {updateAvailable && (
                 <Button
                   variant={"ghost"}
@@ -85,9 +86,9 @@ const SettingsSidebar = ({
                 </Button>
               )}
             </div>
-            <span className="text-sm text-muted-foreground">
+            <TypographyMuted>
               {t("version")}: {data?.app_version}
-            </span>
+            </TypographyMuted>
           </div>
         )}
         <div className="flex justify-between">

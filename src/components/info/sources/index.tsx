@@ -4,6 +4,8 @@ import {
   ItemDownload,
   SourceProvider,
 } from "@/@types";
+import { P } from "@/components/typography/p";
+import { TypographySmall } from "@/components/typography/small";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -87,9 +89,7 @@ const Sources = ({
 
   return (
     <div className="flex flex-col w-full gap-1">
-      <h1 className="text-sm font-medium text-secondary-foreground">
-        {t("sources")}
-      </h1>
+      <TypographySmall>{t("sources")}</TypographySmall>
 
       <div className="flex flex-col gap-2">
         <Carousel
@@ -118,7 +118,7 @@ const Sources = ({
         </Carousel>
 
         {isError ? (
-          <p className="text-red-500">{t("error_loading_sources")}</p>
+          <P className="text-red-500">{t("error_loading_sources")}</P>
         ) : filteredSources?.length ? (
           <Carousel
             opts={{
@@ -134,7 +134,7 @@ const Sources = ({
         ) : (
           <div className="flex items-center justify-start gap-2.5 mt-2 font-bold text-sm">
             <X className="size-7" />
-            <p>{t("no_sources_found")}</p>
+            <P>{t("no_sources_found")}</P>
           </div>
         )}
       </div>

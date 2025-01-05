@@ -1,6 +1,7 @@
 import { DownloadData, QueueData } from "@/@types";
 import { ITorrent } from "@/@types/torrent";
 import FolderButton from "@/components/folderButton";
+import { H4 } from "@/components/typography/h4";
 import { useLanguageContext } from "@/contexts/I18N";
 import DownloadCard from "@/features/downloads/components/cards/download";
 import { DownloadCardLoading } from "@/features/downloads/components/cards/loading";
@@ -114,9 +115,7 @@ function Downloads() {
       {/* ACTION BAR */}
       <div className="w-full flex justify-between flex-row bg-background/50 border-b mb-5 p-4 py-2.5">
         <div className="flex flex-row items-center gap-2">
-          <h1 className="text-xl font-bold text-foreground">
-            {t("sections.downloads")}
-          </h1>
+          <H4 className="text-foreground">{t("sections.downloads")}</H4>
         </div>
 
         <div>
@@ -130,9 +129,7 @@ function Downloads() {
         </div>
       ) : (
         <div className="flex items-center justify-center w-full h-60 bg-muted/50">
-          <h1 className="text-xl font-bold text-foreground">
-            {t("no_downloads_in_progress")}
-          </h1>
+          <H4 className="text-foreground">{t("no_downloads_in_progress")}</H4>
         </div>
       )}
     </div>

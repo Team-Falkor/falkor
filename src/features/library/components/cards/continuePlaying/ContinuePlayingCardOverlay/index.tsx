@@ -1,4 +1,6 @@
 import { LibraryGame, LibraryGameUpdate } from "@/@types/library/types";
+import { P } from "@/components/typography/p";
+import { TypographySmall } from "@/components/typography/small";
 import { useLanguageContext } from "@/contexts/I18N";
 import { cn, timeSince } from "@/lib";
 import Playtime from "../../../playtime";
@@ -47,24 +49,24 @@ const ContinuePlayingCardOverlay = ({
           />
         </div>
 
-        <h3
+        <TypographySmall
           className={cn(
-            "text-sm transition-all opacity-0 text-secondary-foreground/80 group-hover:opacity-100",
+            "transition-all opacity-0 text-secondary-foreground/80 group-hover:opacity-100",
             {
               "opacity-100": isPlaying,
             }
           )}
         >
           {isPlaying ? t("stop_playing") : t("continue_playing")}
-        </h3>
-        <h2 className="-mt-1 text-lg font-bold text-white capitalize line-clamp-1">
+        </TypographySmall>
+        <P className="-mt-1 font-bold text-white capitalize line-clamp-1">
           {game.game_name}
-        </h2>
+        </P>
         {!!game?.game_last_played && (
           <div className="flex items-center gap-1">
-            <h3 className="text-sm capitalize text-secondary-foreground/80">
+            <TypographySmall className="capitalize text-secondary-foreground/80">
               {timeSince(Number(game.game_last_played))}
-            </h3>
+            </TypographySmall>
           </div>
         )}
       </div>

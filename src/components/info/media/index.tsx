@@ -2,6 +2,7 @@ import { useLanguageContext } from "@/contexts/I18N";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import MediaScreenshots from "./screenshots";
 import MediaTrailer from "./trailer";
+import { H1 } from "@/components/typography/h1";
 
 const GameMedia = (props: IGDBReturnDataType) => {
   const { t } = useLanguageContext();
@@ -9,7 +10,7 @@ const GameMedia = (props: IGDBReturnDataType) => {
 
   return (
     <div>
-      <h1 className="pb-4 text-xl font-medium">{t("media")}</h1>
+      <H1 className="pb-4">{t("media")}</H1>
 
       <MediaTrailer videos={videos} />
 

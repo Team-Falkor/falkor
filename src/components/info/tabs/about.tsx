@@ -1,5 +1,7 @@
 import { InfoItadProps, InfoProps } from "@/@types";
 import Stars from "@/components/starts";
+import { TypographyMuted } from "@/components/typography/muted";
+import { TypographySmall } from "@/components/typography/small";
 import { useLanguageContext } from "@/contexts/I18N";
 import { IGDBReturnDataType, ReleaseDate } from "@/lib/api/igdb/types";
 import { format } from "date-fns";
@@ -50,55 +52,57 @@ const InfoAboutTab = ({
       ? developer?.company?.name.toLowerCase() ===
         publisher?.company?.name?.toLowerCase()
       : false;
+
   return (
     <>
       <div className="flex flex-col flex-shrink-0 w-full gap-2 p-4 overflow-hidden h-52 rounded-2xl bg-background">
         <div className="flex items-center justify-between h-10 overflow-hidden">
-          <div className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold flex-shrink-0 flex-grow-0">
+          <TypographySmall className="flex items-center gap-2 p-2.5 rounded-full bg-secondary/20 font-semibold flex-shrink-0 flex-grow-0">
             <Lightbulb fill="currentColor" size={15} />
             {t("about_this_game")}
-          </div>
+          </TypographySmall>
 
           <div className="flex items-center justify-end flex-1 gap-7">
             {!!isReleased && (data?.aggregated_rating ?? 0) > 0 && (
-              <div className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold">
+              <TypographySmall className="flex items-center gap-2 p-2.5 rounded-full bg-secondary/20 font-semibold">
                 <Stars stars={(data?.aggregated_rating ?? 0) / 10} />
-              </div>
+              </TypographySmall>
             )}
 
-            <div className="flex items-center gap-2 p-2.5  text-sm rounded-full bg-secondary/20 font-semibold">
+            <TypographySmall className="flex items-center gap-2 p-2.5 rounded-full bg-secondary/20 font-semibold">
               {!isReleased
                 ? t("not_released")
                 : !releaseDate?.date
                   ? "N/A"
                   : format(releaseDate.date * 1000, "MMM d, yyyy")}
-            </div>
+            </TypographySmall>
           </div>
         </div>
 
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-1.5">
             {isSameDevAndPublisherSame ? (
-              <div
+              <TypographySmall
                 key={publisher?.company?.id}
-                className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
+                className="flex items-center gap-2 p-2.5 rounded-full bg-secondary/20 font-semibold truncate"
               >
                 {developer?.company?.name ?? "N/A"}
-              </div>
+              </TypographySmall>
             ) : (
               <>
-                <div
+                <TypographySmall
                   key={publisher?.company?.id}
-                  className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
+                  className="flex items-center gap-2 p-2.5 rounded-full bg-secondary/20 font-semibold truncate"
                 >
                   {publisher?.company?.name ?? "N/A"}
-                </div>
-                <div
+                </TypographySmall>
+
+                <TypographySmall
                   key={developer?.company?.id}
-                  className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
+                  className="flex items-center gap-2 p-2.5 rounded-full bg-secondary/20 font-semibold truncate"
                 >
                   {developer?.company?.name ?? "N/A"}
-                </div>
+                </TypographySmall>
               </>
             )}
           </div>
@@ -106,20 +110,20 @@ const InfoAboutTab = ({
           {!!genres && (
             <div className="flex items-center gap-1.5">
               {genres.map((genre) => (
-                <div
+                <TypographySmall
                   key={genre?.slug}
-                  className="flex items-center gap-2 p-2.5 text-sm rounded-full bg-secondary/20 font-semibold truncate"
+                  className="flex items-center gap-2 p-2.5 rounded-full bg-secondary/20 font-semibold truncate"
                 >
                   {genre?.name}
-                </div>
+                </TypographySmall>
               ))}
             </div>
           )}
         </div>
 
-        <p className="-mt-1 text-sm text-muted-foreground text-pretty line-clamp-4">
+        <TypographyMuted className="-mt-1 text-pretty line-clamp-4">
           {data?.storyline ?? data?.summary ?? ""}
-        </p>
+        </TypographyMuted>
       </div>
 
       {!!isReleased && !isPending && !!data && (

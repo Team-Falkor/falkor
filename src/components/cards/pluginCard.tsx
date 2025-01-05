@@ -4,6 +4,8 @@ import { useLanguageContext } from "@/contexts/I18N";
 import { usePluginActions } from "@/hooks";
 import { cn, openLink } from "@/lib";
 import { Download, Trash2 } from "lucide-react";
+import { TypographyMuted } from "../typography/muted";
+import { TypographySmall } from "../typography/small";
 
 interface Props {
   image: string;
@@ -58,36 +60,35 @@ const PluginCard = ({
           />
 
           <div className="flex flex-col items-start justify-end">
-            <p className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            <TypographyMuted className="flex items-center gap-1 font-medium">
               {needsUpdate && (
                 <span className="font-bold text-red-500">
                   [Update available]
                 </span>
               )}
               {id} - V{version}{" "}
-            </p>
+            </TypographyMuted>
 
-            <h3 className="text-sm font-semibold truncate">{name}</h3>
+            <TypographySmall className="truncate">{name}</TypographySmall>
 
             {!!author && (
-              <p
-                className={cn(
-                  "text-xs font-medium text-gray-500 dark:text-gray-400",
-                  {
-                    "cursor-pointer hover:underline": author.url,
-                  }
-                )}
+              <TypographyMuted
+                className={cn({
+                  "cursor-pointer hover:underline": author.url,
+                })}
                 onClick={() => {
                   if (author.url) openLink(author.url);
                 }}
               >
                 {author.name}
-              </p>
+              </TypographyMuted>
             )}
           </div>
         </div>
 
-        <p className="text-xs font-medium text-left">{description}</p>
+        <TypographyMuted className="text-xs font-medium text-left">
+          {description}
+        </TypographyMuted>
       </div>
 
       <div className="relative z-10 flex items-center justify-end gap-3">

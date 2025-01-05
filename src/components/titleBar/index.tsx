@@ -1,5 +1,6 @@
 import { useLanguageContext } from "@/contexts/I18N";
 import { useSettings } from "@/hooks";
+import { H4 } from "../typography/h4";
 import TitleBarIcons from "./icons";
 import TitleBarTrafficLights from "./traffic-lights";
 
@@ -17,9 +18,7 @@ const TitleBar = () => {
       <div className="flex flex-row items-center justify-between w-full">
         {/* Title */}
         <div id="titlebar" className="flex items-center flex-1 h-full pl-3">
-          <h1 className="text-lg font-semibold select-none text-foreground">
-            {t("falkor")}
-          </h1>
+          <H4>{t("falkor")}</H4>
         </div>
         <div className="flex gap-1 pr-3">
           {titleBarStyle === "icons" ? (

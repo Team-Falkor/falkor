@@ -1,7 +1,7 @@
+import { H3 } from "@/components/typography/h3";
+
 interface TitleProps {
   text: string;
 }
 
-export const Title = ({ text }: TitleProps) => (
-  <h1 className="font-bold leading-tight truncate">{text}</h1>
-);
+export const Title = ({ text }: TitleProps) => <H3>{text}</H3>;

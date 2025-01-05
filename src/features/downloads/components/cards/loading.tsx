@@ -1,7 +1,7 @@
+import { H3 } from "@/components/typography/h3";
+
 export const DownloadCardLoading = () => (
-  <div className="w-full h-60 flex justify-center items-center bg-primary/5">
-    <h1 className="text-xl font-bold text-foreground">
-      Download is loading, please wait...
-    </h1>
+  <div className="flex items-center justify-center w-full h-60 bg-primary/5">
+    <H3 className="text-foreground">Download is loading, please wait...</H3>
   </div>
 );

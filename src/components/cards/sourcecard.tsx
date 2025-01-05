@@ -8,6 +8,8 @@ import { useAccountServices } from "@/stores/account-services";
 import { CloudDownload, ShoppingCart } from "lucide-react";
 import { useCallback } from "react";
 import { sanitizeFilename } from "../../lib/utils";
+import { H3 } from "../typography/h3";
+import { P } from "../typography/p";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 
@@ -121,13 +123,13 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 
   return (
     <Card className="w-full h-28 p-2.5 overflow-hidden border-none rounded-2xl">
-      <div className="flex flex-col items-center justify-between w-full h-full overflow-hidden">
+      <div className="flex flex-col items-start justify-between w-full h-full overflow-hidden">
         {isDeal(source) ? (
           <>
-            <h1 className="font-bold">{source.shop.name}</h1>
-            <p className="w-full text-sm truncate text-muted-foreground">
+            <H3>{source.shop.name}</H3>
+            <P className="w-full -mt-0.5 truncate text-muted-foreground">
               {source.url}
-            </p>
+            </P>
             <Button
               className="items-center w-full gap-3 font-bold rounded-full"
               variant="success"
@@ -139,7 +141,7 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
           </>
         ) : (
           <>
-            <h1 className="w-full font-bold line-clamp-2">{source.name}</h1>
+            <P className="w-full line-clamp-2">{source.name}</P>
             <Button
               className="items-center w-full gap-3 font-bold capitalize rounded-full"
               variant="success"

@@ -1,6 +1,8 @@
 import { useSettings } from "@/hooks";
 import { cn, shouldHideTitleBar } from "@/lib";
 import { ErrorComponentProps, Link } from "@tanstack/react-router";
+import { H1 } from "../typography/h1";
+import { H2 } from "../typography/h2";
 import { Button, buttonVariants } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 
@@ -17,8 +19,8 @@ const ErrorComponent = (props: ErrorComponentProps) => {
       )}
     >
       <div className="flex flex-col items-start justify-center w-full gap-0.5">
-        <h1 className="text-3xl font-bold">{props.error.name}</h1>
-        <h2 className="text-lg text-muted-foreground">{props.error.message}</h2>
+        <H1>{props.error.name}</H1>
+        <H2 className="text-muted-foreground">{props.error.message}</H2>
       </div>
       <div className="flex-1 w-full p-1 overflow-hidden">
         <ScrollArea
@@ -36,9 +38,7 @@ const ErrorComponent = (props: ErrorComponentProps) => {
           <Link to="/" className={buttonVariants()}>
             Go to Home
           </Link>
-          <h1 className="text-xl font-bold">
-            Report This Error to the Developer
-          </h1>
+          <H1>Report This Error to the Developer</H1>
           <Button onClick={props.reset} variant={"destructive"}>
             Try Again
           </Button>

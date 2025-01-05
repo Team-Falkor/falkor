@@ -1,4 +1,6 @@
 import { AppInfo } from "@/@types";
+import { H5 } from "@/components/typography/h5";
+import { TypographyMuted } from "@/components/typography/muted";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -80,34 +82,30 @@ const Updater = () => {
         <div className="flex flex-col">
           {appInfo && !isPending && !isError && appInfo.app_version && (
             <div className="flex flex-row items-end gap-2">
-              <p className="text-sm text-muted-foreground min-w-28">
+              <TypographyMuted className="min-w-28">
                 {t("current_version")}:
-              </p>
-              <h2 className="text-lg font-bold capitalize">
-                {appInfo.app_version}
-              </h2>
+              </TypographyMuted>
+              <H5 className="font-bold capitalize">{appInfo.app_version}</H5>
             </div>
           )}
 
           {updateInfo?.version && (
             <div className="flex flex-row items-end gap-2">
-              <p className="text-sm text-muted-foreground min-w-28">
+              <TypographyMuted className="min-w-28">
                 {t("new_version")}:
-              </p>
-              <h2 className="text-lg font-bold capitalize">
-                {updateInfo.version}
-              </h2>
+              </TypographyMuted>
+              <H5 className="font-bold capitalize">{updateInfo.version}</H5>
             </div>
           )}
 
           {updateInfo?.releaseDate && (
             <div className="flex flex-row items-end gap-2">
-              <p className="text-sm text-muted-foreground min-w-28">
+              <TypographyMuted className="min-w-28">
                 {t("release_date")}:
-              </p>
-              <h2 className="text-lg font-bold capitalize">
+              </TypographyMuted>
+              <H5 className="text-lg font-bold capitalize">
                 {formatWithOrdinal(new Date(updateInfo.releaseDate))}
-              </h2>
+              </H5>
             </div>
           )}
 
