@@ -18,8 +18,10 @@ const AccountSettings = () => {
 
       <SettingsContainer>
         <SettingsSection>
-          <div className="flex gap-4">
-            <AddAccountButton />
+          <div className="flex gap-2">
+            <div className="w-2/12">
+              <AddAccountButton />
+            </div>
             <div className="flex items-center space-x-2">
               <Switch
                 id="use-accounts-for-downloads"
