@@ -69,8 +69,8 @@ const SettingsSidebar = ({
       <div className="p-4">
         <H3>{t("sections.settings")}</H3>
       </div>
-      <nav className="flex-1 space-y-2 md:space-y-3">{settingsTabs}</nav>
-      <div className="flex flex-col gap-2 p-3 px-4 mt-auto">
+      <nav className="flex-1 space-y-1 ">{settingsTabs}</nav>
+      <div className="flex flex-col gap-2 p-1 px-4 mt-auto">
         {!isPending && !isError && (
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-3">
@@ -91,7 +91,7 @@ const SettingsSidebar = ({
             </TypographyMuted>
           </div>
         )}
-        <div className="flex justify-between">
+        <div className="flex justify-between flex-grow-0 flex-shrink-0">
           <SettingsLinkGroup links={LINKS} />
           <SettingsLinkGroup links={LINKS_RIGHT} />
         </div>
