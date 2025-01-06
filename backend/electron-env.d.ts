@@ -12,6 +12,8 @@ declare namespace NodeJS {
     VITE_STEAMGRIDDB_API_KEY?: string;
     FALKOR_API_BASE_URL?: string;
     debug?: boolean;
+
+    [key: string]: string | undefined;
   }
 }
 

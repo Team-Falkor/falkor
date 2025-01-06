@@ -1,8 +1,9 @@
+import { H3 } from "@/components/typography/h3";
+import { H4 } from "@/components/typography/h4";
 import { useSettings } from "@/hooks";
 import { cn, shouldHideTitleBar } from "@/lib";
 import { ErrorComponentProps, Link } from "@tanstack/react-router";
 import { H1 } from "../typography/h1";
-import { H2 } from "../typography/h2";
 import { Button, buttonVariants } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 
@@ -19,8 +20,8 @@ const ErrorComponent = (props: ErrorComponentProps) => {
       )}
     >
       <div className="flex flex-col items-start justify-center w-full gap-0.5">
-        <H1>{props.error.name}</H1>
-        <H2 className="text-muted-foreground">{props.error.message}</H2>
+        <H3>{props.error.name}</H3>
+        <H4 className="text-muted-foreground">{props.error.message}</H4>
       </div>
       <div className="flex-1 w-full p-1 overflow-hidden">
         <ScrollArea

@@ -6,6 +6,7 @@ import windoww from "../../utils/window";
 import { AchievementItem } from "../achievements/item";
 import { logger } from "../logging";
 import { gamesLaunched } from "./games_launched";
+import { spawnSync } from "./utils";
 
 interface Options {
   game_path: string;
@@ -84,8 +85,7 @@ class GameProcessLauncher {
     const args = this.gameArgs ? this.gameArgs.split(" ") : [];
     try {
       if (this.gameCommand?.length) {
-        this.gameProcess = spawn(`${this.gameCommand} ${this.gamePath}`, args, {
-          shell: true,
+        this.gameProcess = spawnSync(this.gameCommand, this.gamePath, args, {
           detached: true,
           stdio: "ignore",
         });
@@ -94,6 +94,10 @@ class GameProcessLauncher {
           detached: true,
           stdio: "ignore",
         });
+      }
+
+      if (!this.gameProcess) {
+        throw new Error("Failed to launch game process");
       }
 
       this.gameProcess.unref();
@@ -107,11 +111,29 @@ class GameProcessLauncher {
       });
 
       this.gameProcess.on("error", (error) => {
+        console.log("error", `Game process error: ${(error as Error).message}`);
         logger.log("error", `Game process error: ${(error as Error).message}`);
+      });
+
+      this.gameProcess.on("close", (code, signal) => {
+        console.log(
+          "info",
+          `Game process closed. Code: ${code}, Signal: ${signal}`
+        );
+        this.onGameExit();
+      });
+
+      this.gameProcess.on("disconnect", () => {
+        console.log("info", "Game process disconnected.");
+        this.onGameExit();
       });
 
       this.startGameSession();
     } catch (error) {
+      console.log(
+        "error",
+        `Failed to launch game: ${(error as Error).message}`
+      );
       logger.log("error", `Failed to launch game: ${(error as Error).message}`);
     }
   }

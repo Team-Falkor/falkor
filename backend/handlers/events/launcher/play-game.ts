@@ -21,6 +21,16 @@ const playGame = async (
       console.log("Game not found");
       return false;
     }
+    console.log({
+      game_name: game_info.game_name,
+      game_path,
+      game_icon: game_info.game_icon,
+      game_id: game_info.game_id,
+      steam_id: game_info.game_steam_id,
+      game_args: game_info.game_args,
+      game_command: game_info.game_command,
+      wine_prefix_folder: game_info.wine_prefix_folder,
+    });
 
     const launcher = new GameProcessLauncher({
       game_name: game_info.game_name,
