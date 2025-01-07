@@ -5,3 +5,8 @@ export interface LogEntry {
 }
 
 export type LogLevel = "error" | "warn" | "info" | "debug" | "trace";
+
+export interface LoggerFilterOptions {
+  date?: Date;
+  level?: LogLevel;
+}

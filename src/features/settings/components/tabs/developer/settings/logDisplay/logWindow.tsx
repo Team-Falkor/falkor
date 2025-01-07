@@ -14,7 +14,10 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
 
   useQuery({
     queryKey: ["logs"],
-    queryFn: retrieveLogs,
+    queryFn: async () => {
+      await retrieveLogs();
+      return null;
+    },
     enabled: enabled,
   });
 

@@ -1,4 +1,5 @@
-import { LogEntry } from "@/@types/logs";
+import { LogEntry, LoggerFilterOptions } from "@/@types/logs";
+import { invoke } from "@/lib";
 import { create } from "zustand";
 
 interface LoggerState {
@@ -9,6 +10,8 @@ interface LoggerState {
   clear: () => Promise<void>;
   log: (level: LogEntry["level"], message: string) => Promise<void>;
   getLog: (timestamp: number) => Promise<LogEntry | null>;
+  filter: (options: LoggerFilterOptions) => Promise<LogEntry[]>;
+  getLoggedDates: (includeTime?: boolean) => Promise<string[]>;
 }
 
 export const useLoggerStore = create<LoggerState>((set) => ({
@@ -83,6 +86,40 @@ export const useLoggerStore = create<LoggerState>((set) => ({
       set({ error: String(err) });
       console.error("Error fetching log:", err);
       return null;
+    }
+  },
+
+  filter: async (options: LoggerFilterOptions): Promise<LogEntry[]> => {
+    set({ loading: true, error: null });
+    try {
+      const filteredLogs = await invoke<LogEntry[], LoggerFilterOptions>(
+        "logger:filter",
+        options
+      );
+      return filteredLogs ?? [];
+    } catch (err) {
+      set({ error: String(err) });
+      console.error("Error filtering logs:", err);
+      return [];
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  getLoggedDates: async (includeTime = false): Promise<string[]> => {
+    set({ loading: true, error: null });
+    try {
+      const dates = await invoke<string[], boolean>(
+        "logger:get-logged-dates",
+        includeTime
+      );
+      return dates ?? [];
+    } catch (err) {
+      set({ error: String(err) });
+      console.error("Error fetching logged dates:", err);
+      return [];
+    } finally {
+      set({ loading: false });
     }
   },
 }));

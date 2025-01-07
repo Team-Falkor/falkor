@@ -1,4 +1,4 @@
-import { LogEntry, LogLevel } from "@/@types/logs";
+import { LogEntry, LogLevel, LoggerFilterOptions } from "@/@types/logs";
 import { constants } from "../../utils";
 import JsonFileEditor from "../../utils/json/jsonFileEditor";
 
@@ -61,6 +61,39 @@ class Logger {
       this.jsonFileEditor.write(filteredLogs);
     } catch (error) {
       console.error("Error removing log:", error);
+    }
+  }
+
+  public filter(options: LoggerFilterOptions): Array<LogEntry> {
+    try {
+      const { date, level } = options;
+      const filteredLogs = Array.from(this.logs).filter((log) => {
+        const logDate = new Date(log.timestamp);
+        return (
+          (!date || logDate.toDateString() === date.toDateString()) &&
+          (!level || log.level === level)
+        );
+      });
+      return filteredLogs;
+    } catch (error) {
+      console.error("Error filtering logs:", error);
+      return [];
+    }
+  }
+
+  public getLoggedDates(includeTime?: boolean): string[] {
+    try {
+      // if includeTime return all unque dates filtered with the time included, if not return all unique dates
+      const dates = Array.from(this.logs).map((log) => {
+        const logDate = new Date(log.timestamp);
+        return includeTime
+          ? `${logDate.toDateString()} ${logDate.toLocaleTimeString()}`
+          : logDate.toDateString();
+      });
+      return Array.from(new Set(dates));
+    } catch (error) {
+      console.error("Error getting logged dates:", error);
+      return [];
     }
   }
 
