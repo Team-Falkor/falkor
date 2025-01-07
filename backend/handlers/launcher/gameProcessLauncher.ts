@@ -6,7 +6,7 @@ import windoww from "../../utils/window";
 import { AchievementItem } from "../achievements/item";
 import { logger } from "../logging";
 import { gamesLaunched } from "./games_launched";
-import { spawnSync } from "./utils";
+import { getRealPath, spawnSync } from "./utils";
 
 interface Options {
   game_path: string;
@@ -50,7 +50,7 @@ class GameProcessLauncher {
       throw new Error(`Invalid game path: ${game_path}`);
     }
 
-    this.gamePath = game_path;
+    this.gamePath = getRealPath(game_path);
     this.gameId = game_id;
     this.gameArgs = game_args;
     this.gameCommand = game_command;
