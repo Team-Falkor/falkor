@@ -111,7 +111,11 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
                   text={t("path")}
                   description={t("the_path_to_the_game")}
                   Button={
-                    <Button size="icon" onClick={handlePathButton}>
+                    <Button
+                      size="icon"
+                      onClick={handlePathButton}
+                      className="rounded-l-none rounded-r-lg"
+                    >
                       <FolderOpen />
                     </Button>
                   }
@@ -130,7 +134,11 @@ const UpdateGameForm = ({ defaultValues, onSubmit }: UpdateGameFormProps) => {
                   description={t("the_path_or_url_of_the_icon")}
                   required
                   Button={
-                    <Button size="icon" onClick={handleIconButton}>
+                    <Button
+                      size="icon"
+                      onClick={handleIconButton}
+                      className="rounded-l-none rounded-r-lg"
+                    >
                       <FolderOpen />
                     </Button>
                   }
