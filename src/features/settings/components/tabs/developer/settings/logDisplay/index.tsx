@@ -30,14 +30,14 @@ const LogDisplay = () => {
   return (
     <div className="flex flex-col" id="developer-settings">
       <div className="flex justify-between">
-        <div className="flex items-center gap-2" id="enable-dev-console">
+        <div className="flex items-center gap-2" id="show-dev-console">
           <Switch
-            id="enable-dev-console"
+            id="show-dev-console"
             onCheckedChange={onCheckedChange}
             checked={enabled}
           />
-          <Label htmlFor="enable-dev-console">
-            {t("settings.settings.enable_developer_console")}
+          <Label htmlFor="show-dev-console">
+            {t("settings.settings.show_dev_console")}
           </Label>
         </div>
 

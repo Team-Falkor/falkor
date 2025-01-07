@@ -25,7 +25,7 @@
       "check-for-plugin-updates-on-startup": "Check for plugin updates on startup",
       "check-for-app-updates-on-startup": "Check for app updates on startup",
       "update_settings": "Update Settings",
-      "enable_developer_console": "Enable Developer Console",
+      "show_dev_console": "Show Developer Console",
       "change-title-bar-style": "Change Title Bar Style",
       "change_title_bar_style_description": "Some options require a restart to take effect",
       "launch-on-startup": "Launch Falkor on system startup",
