@@ -70,7 +70,7 @@ const NewGameModal = () => {
   };
 
   return (
-    <Tabs defaultValue="metadata" className="w-full">
+    <Tabs defaultValue="metadata">
       <DialogContent className="h-[calc(100vh-10rem)] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("new_game")}</DialogTitle>
