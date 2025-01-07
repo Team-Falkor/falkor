@@ -17,7 +17,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
     useFormActions(form);
 
   return (
-    <div className="w-full min-h-[20rem] h-full overflow-y-auto gap-2 flex flex-col">
+    <div className="flex flex-col w-full h-full gap-4">
       <FormField
         control={form.control}
         name="gameName"

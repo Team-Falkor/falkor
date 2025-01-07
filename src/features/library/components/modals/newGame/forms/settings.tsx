@@ -16,7 +16,7 @@ const NewGameSettingsForm = ({ form }: NewGameMetadataFormProps) => {
   const { handleWinePrefixButton } = useFormActions(form);
 
   return (
-    <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-1">
+    <div className="flex flex-col w-full h-full gap-4">
       <FormField
         control={form.control}
         name="gameArgs"

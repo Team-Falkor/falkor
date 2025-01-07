@@ -25,10 +25,11 @@ const UpdateDialog = ({ fetchGames, updateGame, game }: UpdateDialogProps) => {
           {t("update")}
         </DropdownMenuItem>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="h-[calc(100vh-10rem)] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("update_game")}</DialogTitle>
         </DialogHeader>
+
         <UpdateGameForm
           onSubmit={(values) => {
             updateGame(game.game_id, {
