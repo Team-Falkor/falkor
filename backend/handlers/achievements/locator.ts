@@ -2,7 +2,7 @@ import { Cracker } from "@/@types";
 import { AchievementFile } from "@/@types/achievements/types";
 import { app } from "electron";
 import { existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { logger } from "../logging";
 
 type PathType =
@@ -20,12 +20,21 @@ interface FilePath {
 
 class AchievementFileLocator {
   private static isWindows = process.platform === "win32";
-  private static user = !this.isWindows
-    ? app.getPath("home").split("/").pop()
-    : undefined;
+  private static user = this.isWindows
+    ? undefined
+    : app.getPath("home").split("/").pop();
 
   private static winePrefix =
     process.env.WINEPREFIX || join(app.getPath("home"), ".wine");
+
+  private static validateWinePrefix(): void {
+    if (!existsSync(this.winePrefix)) {
+      logger.log(
+        "warn",
+        `Wine prefix not found at ${this.winePrefix}. Check WINEPREFIX environment variable.`
+      );
+    }
+  }
 
   private static readonly crackerPaths: Readonly<Record<Cracker, FilePath[]>> =
     Object.freeze({
@@ -253,17 +262,6 @@ class AchievementFileLocator {
       ],
     });
 
-  /**
-   * Allows updating the wine prefix dynamically.
-   * @param newPrefix The new custom Wine prefix path.
-   */
-  static setWinePrefix(newPrefix: string): void {
-    if (!existsSync(newPrefix)) {
-      throw new Error(`Specified Wine prefix does not exist: ${newPrefix}`);
-    }
-    this.winePrefix = newPrefix;
-  }
-
   private static getSystemPath(type: PathType): string {
     const basePaths = {
       appData: this.isWindows
@@ -272,7 +270,7 @@ class AchievementFileLocator {
             this.winePrefix,
             "drive_c",
             "users",
-            this.user || "",
+            this.user || "unknown",
             "AppData",
             "Roaming"
           ),
@@ -282,7 +280,7 @@ class AchievementFileLocator {
             this.winePrefix,
             "drive_c",
             "users",
-            this.user || "",
+            this.user || "unknown",
             "Documents"
           ),
       publicDocuments: this.isWindows
@@ -294,7 +292,7 @@ class AchievementFileLocator {
             this.winePrefix,
             "drive_c",
             "users",
-            this.user || "",
+            this.user || "unknown",
             "AppData",
             "Local"
           ),
@@ -304,37 +302,19 @@ class AchievementFileLocator {
       winePrefix: this.winePrefix,
     };
 
-    return (
-      basePaths[type] ||
-      (() => {
-        throw new Error(`Unknown path type: ${type}`);
-      })()
-    );
-  }
-
-  static getCrackerPath(cracker: Cracker): FilePath[] {
-    return this.crackerPaths[cracker] || [];
-  }
-
-  private static replacePlaceholders(
-    path: string,
-    gameStoreId: string
-  ): string {
-    if (!gameStoreId) {
-      throw new Error("Invalid gameStoreId provided");
+    const path = basePaths[type];
+    if (!path) {
+      throw new Error(`Unknown path type: ${type}`);
     }
-    return path.replace(/<game_store_id>/g, gameStoreId);
+    return resolve(path);
   }
 
-  private static buildFilePath(
-    folderPath: string,
-    fileLocations: string[],
-    gameStoreId: string
-  ): string {
-    const mappedLocations = fileLocations.map((location) =>
-      this.replacePlaceholders(location, gameStoreId)
-    );
-    return join(folderPath, ...mappedLocations);
+  static setWinePrefix(newPrefix: string): void {
+    if (!existsSync(newPrefix)) {
+      throw new Error(`Specified Wine prefix does not exist: ${newPrefix}`);
+    }
+    this.winePrefix = newPrefix;
+    this.validateWinePrefix();
   }
 
   static findAllAchievementFiles(
@@ -343,7 +323,11 @@ class AchievementFileLocator {
     if (winePrefix) this.setWinePrefix(winePrefix);
 
     const gameAchievementFiles = new Map<string, AchievementFile[]>();
-    console.log(`Searching for achievement files`);
+
+    logger.log(
+      "info",
+      `Searching for achievement files for platform: ${process.platform}`
+    );
 
     for (const [cracker, paths] of Object.entries(this.crackerPaths) as [
       Cracker,
@@ -351,11 +335,20 @@ class AchievementFileLocator {
     ][]) {
       paths.forEach(
         ({ achievement_folder_location, achievement_file_location }) => {
-          if (!existsSync(achievement_folder_location)) return;
+          if (!existsSync(achievement_folder_location)) {
+            logger.log(
+              "debug",
+              `Folder not found: ${achievement_folder_location}`
+            );
+            return;
+          }
 
-          console.log(`${achievement_folder_location}`);
-
+          logger.log(
+            "debug",
+            `Processing folder: ${achievement_folder_location}`
+          );
           const gameStoreIds = readdirSync(achievement_folder_location);
+
           gameStoreIds.forEach((gameStoreId) => {
             const filePath = this.buildFilePath(
               achievement_folder_location,
@@ -363,7 +356,10 @@ class AchievementFileLocator {
               gameStoreId
             );
 
-            if (!existsSync(filePath)) return;
+            if (!existsSync(filePath)) {
+              logger.log("debug", `File not found: ${filePath}`);
+              return;
+            }
 
             const achievementFile: AchievementFile = {
               cracker,
@@ -381,6 +377,17 @@ class AchievementFileLocator {
     }
 
     return gameAchievementFiles;
+  }
+
+  private static buildFilePath(
+    folderPath: string,
+    fileLocations: string[],
+    gameStoreId: string
+  ): string {
+    const mappedLocations = fileLocations.map((location) =>
+      location.replace(/<game_store_id>/g, gameStoreId)
+    );
+    return join(folderPath, ...mappedLocations);
   }
 
   static findAchievementFiles(

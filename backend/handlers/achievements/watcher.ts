@@ -1,25 +1,44 @@
-import { FSWatcher, watch, WatchListener } from "node:fs";
+import { FSWatcher, statSync, watch, WatchListener } from "node:fs";
+import { platform } from "node:os";
 
 class AchievementWatcher {
   private filePath: string;
   private watcher: FSWatcher | null = null;
+  private isLinux: boolean = platform() === "linux";
 
   constructor(filePath: string) {
     if (!filePath) {
-      throw new Error("filePath are required.");
+      throw new Error("filePath is required.");
     }
     this.filePath = filePath;
+
+    // Validate file path exists and is accessible
+    try {
+      const stats = statSync(this.filePath);
+      if (!stats.isFile()) {
+        throw new Error("Provided path is not a file.");
+      }
+    } catch (err) {
+      throw new Error(`Invalid file path: ${(err as Error).message}`);
+    }
   }
 
   /** Initializes the watcher if not already started */
   start(callback?: WatchListener<string>): void {
     if (this.watcher) {
       console.warn("Watcher already running. Restarting...");
-      this.restart();
+      this.restart(callback);
       return;
     }
+
     console.log(`Watching file: ${this.filePath}`);
-    this.watcher = watch(this.filePath, callback);
+    if (this.isLinux) {
+      console.log("Using Linux-compatible watcher settings.");
+      this.watcher = watch(this.filePath, { persistent: true }, callback);
+    } else {
+      console.log("Using default watcher settings.");
+      this.watcher = watch(this.filePath, callback);
+    }
   }
 
   /** Closes and nullifies the watcher */
@@ -33,9 +52,9 @@ class AchievementWatcher {
   }
 
   /** Restarts the watcher */
-  restart(): void {
+  restart(callback?: WatchListener<string>): void {
     this.destroy();
-    this.start();
+    this.start(callback);
   }
 
   /** Attaches an event listener to the watcher */
@@ -72,6 +91,7 @@ class AchievementWatcher {
     console.log("Watcher Status:");
     console.log(`File Path: ${this.filePath}`);
     console.log(`Running: ${this.isRunning()}`);
+    console.log(`Platform: ${this.isLinux ? "Linux" : "Other (Windows/Mac)"}`);
   }
 
   /** Ensures that the watcher is initialized before performing operations */

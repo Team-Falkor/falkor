@@ -81,7 +81,8 @@ class AchievementParser {
 
   private processFlatFileAchievements(filePath: string): UnlockedAchievement[] {
     try {
-      const achievementFiles = readdirSync(filePath);
+      const normalizedPath = path.normalize(filePath);
+      const achievementFiles = readdirSync(normalizedPath);
       return achievementFiles.map((filename) => ({
         name: filename,
         unlockTime: Date.now(),
