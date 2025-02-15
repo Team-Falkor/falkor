@@ -14,9 +14,17 @@ import { client, combineTorrentData, torrents } from "./torrent";
 import window from "./window";
 
 const THROTTLE_INTERVAL = 1000; // Send progress updates every second
-let lastUpdateTime: number | null = null;
 
-// Helper to determine if the item is a Torrent
+/**
+ * Helper to extract a unique ID for a queue item.
+ */
+function getQueueItemId(item: QueueData): string {
+  return item.type === "torrent" ? item.data.torrentId : item.data.id;
+}
+
+/**
+ * Helper to determine if the downloader is a Torrent.
+ */
 export const isTorrent = (item: HttpDownloader | Torrent): item is Torrent => {
   return !!(item as Torrent).magnetURI;
 };
@@ -28,7 +36,7 @@ class AllQueue {
   constructor(private maxConcurrentDownloads = 1) {}
 
   async add(item: QueueData): Promise<void> {
-    const id = item.type === "torrent" ? item.data.torrentId : item.data.id;
+    const id = getQueueItemId(item);
     this.queue.set(id, item);
     window.emitToFrontend("queue:add", { id, item });
     void this.processQueue();
@@ -75,9 +83,9 @@ class AllQueue {
 
     try {
       if (item.type === "torrent") {
-        await this.processTorrent(item);
+        await this.processTorrent(item as QueueDataTorrent);
       } else if (item.type === "download") {
-        await this.processDownload(item);
+        await this.processDownload(item as QueueDataDownload);
       }
     } catch (error) {
       window.emitToFrontend("queue:error", {
@@ -93,19 +101,10 @@ class AllQueue {
     return new Promise((resolve, reject) => {
       client.add(
         item.data.torrentId,
-        {
-          path: settings.get("downloadsPath") ?? constants.downloadsPath,
-        },
+        { path: settings.get("downloadsPath") ?? constants.downloadsPath },
         (torrent) => {
-          torrents.set(
-            item.data.torrentId,
-            combineTorrentData(torrent, item.data.game_data)
-          );
-
-          this.activeDownloads.set(item.data.torrentId, torrent);
-          this.queue.delete(item.data.torrentId);
-
-          const returnData: ITorrent = {
+          // Helper to generate live torrent status data
+          const getTorrentStatus = (): ITorrent => ({
             infoHash: torrent.infoHash,
             name: torrent.name,
             progress: torrent.progress,
@@ -122,36 +121,49 @@ class AllQueue {
                 : "downloading",
             path: torrent.path,
             game_data: item.data.game_data,
-          };
+          });
 
-          window.emitToFrontend("torrent:status", returnData);
+          torrent.on("ready", () => {
+            torrents.set(
+              torrent.infoHash,
+              combineTorrentData(torrent, item.data.game_data)
+            );
+
+            this.activeDownloads.set(torrent.infoHash, torrent);
+            this.queue.delete(torrent.infoHash);
+
+            // Emit initial status
+            window.emitToFrontend("torrent:status", getTorrentStatus());
+          });
+
+          // Local throttling per torrent
+          let lastUpdateTime = 0;
+          torrent.on("download", () => {
+            const now = Date.now();
+            if (now - lastUpdateTime >= THROTTLE_INTERVAL) {
+              this.activeDownloads.set(torrent.infoHash, torrent);
+              torrents.set(
+                torrent.infoHash,
+                combineTorrentData(torrent, item.data.game_data)
+              );
+              window.emitToFrontend("torrent:status", getTorrentStatus());
+              lastUpdateTime = now;
+            }
+          });
 
           torrent.on("done", () => {
-            this.completeDownload(item.data.torrentId);
-            window.emitToFrontend("torrent:status", returnData);
+            this.completeDownload(torrent.infoHash);
+            window.emitToFrontend("torrent:status", getTorrentStatus());
             resolve();
           });
 
           torrent.on("error", (error) => {
-            this.completeDownload(item.data.torrentId);
+            this.completeDownload(torrent.infoHash);
             window.emitToFrontend("torrent:error", {
               infoHash: torrent.infoHash,
               error: (error as Error).message,
             });
             reject(error);
-          });
-
-          torrent.on("download", () => {
-            const now = Date.now();
-
-            if (!lastUpdateTime || now - lastUpdateTime >= THROTTLE_INTERVAL) {
-              torrents.set(
-                torrent.infoHash,
-                combineTorrentData(torrent, item.data.game_data)
-              );
-              window.emitToFrontend("torrent:status", returnData);
-              lastUpdateTime = now;
-            }
           });
         }
       );
@@ -173,7 +185,7 @@ class AllQueue {
         error: (error as Error).message,
       });
     } finally {
-      this.completeDownload(item.data.id);
+      await this.completeDownload(item.data.id);
       void this.processQueue();
     }
   }
@@ -191,13 +203,22 @@ class AllQueue {
       : activeDownload.item.getReturnData();
 
     if (!item) return;
-    // check if download has finished
-    if (!item.progress || item.progress < 99) return;
+    // Use a type-safe check: if the item has a "done" property, verify it is complete;
+    // otherwise, check that its progress is at least 99.
+    if ("done" in item) {
+      if (!item.done) return;
+    } else {
+      if (!item.progress || item.progress < 99) return;
+    }
 
-    await this.notification(
-      item?.game_data.name,
-      `https://images.igdb.com/igdb/image/upload/t_original/${item.game_data.image_id ?? item.game_data.banner_id}.png`
-    );
+    if (item.game_data && item.game_data.name) {
+      await this.notification(
+        item.game_data.name,
+        `https://images.igdb.com/igdb/image/upload/t_original/${
+          item.game_data.image_id ?? item.game_data.banner_id
+        }.png`
+      );
+    }
   }
 
   private async notification(title: string, icon: string | null | undefined) {
@@ -226,25 +247,34 @@ class AllQueue {
     if (!downloader) return;
 
     this.stopDownloader(downloader);
-    this.completeDownload(id);
+    await this.completeDownload(id);
     window.emitToFrontend("queue:stop", { id });
     void this.processQueue();
   }
 
-  async pause(id: string): Promise<void> {
-    const downloader = this.activeDownloads.get(id);
-    if (!downloader) return;
+  async pause(id: string): Promise<boolean> {
+    try {
+      const downloader = this.activeDownloads.get(id);
+      console.log("testing", {
+        downloader,
+        id,
+        activeDownloads: this.activeDownloads.keys(),
+      });
+      if (!downloader) return false;
 
-    console.log("[download]: pausing", id);
-    downloader.pause();
-    window.emitToFrontend("queue:pause", { id });
+      downloader.pause();
+      window.emitToFrontend("queue:pause", { id });
+    } catch (error) {
+      console.error(`Error pausing download with ID ${id}:`, error);
+      return false;
+    }
+
+    return true;
   }
 
   async resume(id: string): Promise<void> {
     const downloader = this.activeDownloads.get(id);
     if (!downloader) return;
-
-    console.log("[download]: resuming", id);
 
     downloader.resume();
     window.emitToFrontend("queue:resume", { id });

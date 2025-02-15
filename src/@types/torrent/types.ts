@@ -13,4 +13,5 @@ export interface ITorrent {
   totalSize: number;
   timeRemaining: number;
   game_data?: DownloadgameData;
+  url?: string;
 }

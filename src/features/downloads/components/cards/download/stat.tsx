@@ -1,4 +1,4 @@
-import { H3 } from "@/components/typography/h3";
+import { H5 } from "@/components/typography/h5";
 import { TypographyMuted } from "@/components/typography/muted";
 
 interface Props {
@@ -9,10 +9,8 @@ interface Props {
 const DownloadCardStat = ({ text, title }: Props) => {
   return (
     <div className="flex flex-col gap-0.5">
-      <H3 className="font-bold text-foreground">{text}</H3>
-      <TypographyMuted className="font-semibold uppercase">
-        {title}
-      </TypographyMuted>
+      <H5 className="font-bold text-foreground">{text}</H5>
+      <TypographyMuted className="font-semibold ">{title}</TypographyMuted>
     </div>
   );
 };

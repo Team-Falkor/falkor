@@ -9,14 +9,13 @@ import {
   itad,
   Mapping,
 } from "@/lib";
+import { ReleaseDate } from "@/lib/api/igdb/types";
 import { goBack } from "@/lib/history";
 import { useQuery } from "@tanstack/react-query";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-export const Route = createLazyFileRoute("/info/$id")({
-  component: Info,
-});
+export const Route = createLazyFileRoute("/info/$id")({ component: Info });
 
 function Info() {
   const { id } = Route.useParams();
@@ -30,8 +29,9 @@ function Info() {
   const releaseDate = useMemo(
     () =>
       data
-        ? (data.release_dates?.find((item) => item.platform === 6) ??
-          data.release_dates?.[0])
+        ? (data.release_dates?.find(
+            (item: ReleaseDate) => item.platform === 6
+          ) ?? data.release_dates?.[0])
         : null,
     [data]
   );

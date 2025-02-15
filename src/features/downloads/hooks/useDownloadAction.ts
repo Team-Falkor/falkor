@@ -7,11 +7,7 @@ interface DownloadPauseReturn {
   message: string;
   error: boolean;
   success: boolean;
-  data: {
-    id: string;
-    status: DownloadStatus;
-    game_data: DownloadgameData;
-  };
+  data: { id: string; status: DownloadStatus; game_data: DownloadgameData };
 }
 
 export const UseDownloadAction = (id?: string) => {
@@ -22,14 +18,19 @@ export const UseDownloadAction = (id?: string) => {
 
     const data = await invoke<DownloadPauseReturn, string>("queue:pause", id);
 
-    if (!data?.success) return null;
+    if (!data?.success) {
+      toast.error(id, { description: "failed to pause download" });
+      return null;
+    }
     if (data?.error) {
       toast.error(data.message);
       return null;
     }
 
-    console.log({ data });
-    // Assuming "paused" is a valid status within DownloadStatus
+    window.ipcRenderer.on("queue:pause", () => {
+      console.log("paused");
+    });
+
     setStatus("paused");
     return data;
   };
@@ -66,10 +67,5 @@ export const UseDownloadAction = (id?: string) => {
     return data;
   };
 
-  return {
-    pause,
-    start,
-    stop,
-    status,
-  };
+  return { pause, start, stop, status };
 };

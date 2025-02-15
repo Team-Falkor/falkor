@@ -37,15 +37,9 @@ export type DownloadgameData = {
 
 export type QueueDataTorrent = {
   type: "torrent";
-  data: {
-    torrentId: string;
-    game_data: DownloadgameData;
-  };
+  data: { torrentId: string; url?: string; game_data: DownloadgameData };
 };
 
-export type QueueDataDownload = {
-  type: "download";
-  data: AddDownloadData;
-};
+export type QueueDataDownload = { type: "download"; data: AddDownloadData };
 
 export type QueueData = QueueDataTorrent | QueueDataDownload;
