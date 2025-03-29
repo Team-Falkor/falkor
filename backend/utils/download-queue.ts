@@ -70,30 +70,49 @@ class AllQueue {
     });
   }
 
-  private async processQueue(): Promise<void> {
-    if (
-      this.queue.size === 0 ||
-      this.activeDownloads.size >= this.maxConcurrentDownloads
-    ) {
-      return;
-    }
+  private isProcessingQueue = false;
 
-    const [id, item] = this.queue.entries().next().value || [];
-    if (!item) return;
+  private async processQueue(): Promise<void> {
+    if (this.isProcessingQueue) return;
 
     try {
-      if (item.type === "torrent") {
-        await this.processTorrent(item as QueueDataTorrent);
-      } else if (item.type === "download") {
-        await this.processDownload(item as QueueDataDownload);
+      this.isProcessingQueue = true;
+
+      while (
+        this.queue.size > 0 &&
+        this.activeDownloads.size < this.maxConcurrentDownloads
+      ) {
+        const entry = this.queue.entries().next();
+        if (entry.done) break;
+        const [id, item] = entry.value;
+        if (!item) break;
+
+        // Remove from queue before processing to prevent duplicates
+        this.queue.delete(id);
+        window.emitToFrontend("queue:remove", { id });
+
+        try {
+          // Emit download start event
+          window.emitToFrontend("download:start", { id, item });
+
+          if (item.type === "torrent") {
+            await this.processTorrent(item as QueueDataTorrent);
+          } else if (item.type === "download") {
+            await this.processDownload(item as QueueDataDownload);
+          }
+        } catch (error) {
+          window.emitToFrontend("queue:error", {
+            id,
+            error: (error as Error).message,
+          });
+        }
       }
-    } catch (error) {
-      window.emitToFrontend("queue:error", {
-        id,
-        error: (error as Error).message,
-      });
     } finally {
-      void this.processQueue();
+      this.isProcessingQueue = false;
+      // Check if there are more items to process
+      if (this.queue.size > 0 && this.activeDownloads.size < this.maxConcurrentDownloads) {
+        void this.processQueue();
+      }
     }
   }
 
@@ -192,10 +211,6 @@ class AllQueue {
 
   private async completeDownload(id: string): Promise<void> {
     const activeDownload = this.activeDownloads.get(id);
-
-    this.activeDownloads.delete(id);
-    this.queue.delete(id);
-
     if (!activeDownload) return;
 
     const item = isTorrent(activeDownload)
@@ -203,13 +218,28 @@ class AllQueue {
       : activeDownload.item.getReturnData();
 
     if (!item) return;
+
     // Use a type-safe check: if the item has a "done" property, verify it is complete;
     // otherwise, check that its progress is at least 99.
-    if ("done" in item) {
-      if (!item.done) return;
-    } else {
-      if (!item.progress || item.progress < 99) return;
-    }
+    const isComplete = "done" in item
+      ? item.done
+      : item.progress && item.progress >= 99;
+
+    if (!isComplete) return;
+
+    // Clean up resources before notifications
+    this.activeDownloads.delete(id);
+    this.queue.delete(id);
+
+    // Emit final status update
+    const status = isTorrent(activeDownload)
+      ? { ...item, status: "completed" as const }
+      : { ...item, status: "completed" as const };
+    
+    window.emitToFrontend(
+      isTorrent(activeDownload) ? "torrent:status" : "download:status",
+      status
+    );
 
     if (item.game_data && item.game_data.name) {
       await this.notification(
@@ -242,42 +272,128 @@ class AllQueue {
     window.emitToFrontend("queue:clear");
   }
 
-  async stop(id: string): Promise<void> {
-    const downloader = this.activeDownloads.get(id);
-    if (!downloader) return;
+  async stop(id: string): Promise<boolean> {
+    try {
+      const downloader = this.activeDownloads.get(id);
+      if (!downloader) {
+        console.warn(`No active download found with ID ${id}`);
+        return false;
+      }
 
-    this.stopDownloader(downloader);
-    await this.completeDownload(id);
-    window.emitToFrontend("queue:stop", { id });
-    void this.processQueue();
+      this.stopDownloader(downloader);
+
+      // Emit stopped status before cleanup
+      if (isTorrent(downloader)) {
+        const torrentData = torrents.get(id);
+        if (torrentData) {
+          const status = {
+            infoHash: torrentData.infoHash,
+            name: torrentData.name,
+            progress: 0,
+            status: "stopped" as const,
+            downloadSpeed: 0,
+            uploadSpeed: 0,
+            numPeers: 0,
+            timeRemaining: 0,
+            totalSize: torrentData.length,
+            path: torrentData.path,
+            game_data: torrentData.game_data
+          };
+          window.emitToFrontend("torrent:status", status);
+        }
+      } else {
+        const status = {
+          id: downloader.item.id,
+          filename: downloader.item.filename,
+          status: "stopped" as const,
+          progress: 0,
+          downloadSpeed: 0,
+          timeRemaining: 0,
+          totalSize: downloader.item.totalSize,
+          path: downloader.item.filePath,
+          game_data: downloader.item.game_data
+        };
+        window.emitToFrontend("download:status", status);
+      }
+
+      // Clean up resources
+      this.activeDownloads.delete(id);
+      this.queue.delete(id);
+      window.emitToFrontend("queue:stop", { id });
+
+      // Process next item in queue
+      void this.processQueue();
+      return true;
+    } catch (error) {
+      console.error(`Error stopping download with ID ${id}:`, error);
+      return false;
+    }
   }
 
   async pause(id: string): Promise<boolean> {
     try {
       const downloader = this.activeDownloads.get(id);
-      console.log("testing", {
-        downloader,
-        id,
-        activeDownloads: this.activeDownloads.keys(),
-      });
-      if (!downloader) return false;
+      if (!downloader) {
+        console.warn(`No active download found with ID ${id}`);
+        return false;
+      }
 
-      downloader.pause();
+      if (isTorrent(downloader)) {
+        downloader.pause();
+        const status = {
+          ...torrents.get(id),
+          status: "paused" as const,
+          paused: true
+        };
+        window.emitToFrontend("torrent:status", status);
+      } else {
+        downloader.pause();
+        const status = {
+          ...downloader.item.getReturnData(),
+          status: "paused" as const
+        };
+        window.emitToFrontend("download:status", status);
+      }
+
       window.emitToFrontend("queue:pause", { id });
+      return true;
     } catch (error) {
       console.error(`Error pausing download with ID ${id}:`, error);
       return false;
     }
-
-    return true;
   }
 
-  async resume(id: string): Promise<void> {
-    const downloader = this.activeDownloads.get(id);
-    if (!downloader) return;
+  async resume(id: string): Promise<boolean> {
+    try {
+      const downloader = this.activeDownloads.get(id);
+      if (!downloader) {
+        console.warn(`No active download found with ID ${id}`);
+        return false;
+      }
 
-    downloader.resume();
-    window.emitToFrontend("queue:resume", { id });
+      if (isTorrent(downloader)) {
+        downloader.resume();
+        const status = {
+          ...torrents.get(id),
+          status: "downloading" as const,
+          paused: false
+        };
+        window.emitToFrontend("torrent:status", status);
+      } else {
+        downloader.resume();
+        const status = {
+          ...downloader.item.getReturnData(),
+          status: "downloading" as const
+        };
+        window.emitToFrontend("download:status", status);
+      }
+
+      window.emitToFrontend("queue:resume", { id });
+      return true;
+    } catch (error) {
+      console.error(`Error resuming download with ID ${id}:`, error);
+      return false;
+    }
   }
 
   private stopDownloader(downloader: HttpDownloader | Torrent): void {

@@ -1,5 +1,7 @@
 import { useDownloadStore } from "@/stores/downloads";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
+import { DownloadData } from "@/@types";
+import { ITorrent } from "@/@types/torrent";
 
 interface UseDownloadsProps {
   fetch: boolean;
@@ -10,57 +12,40 @@ const UseDownloads = ({
   fetch = true,
   forceFetch = false,
 }: Partial<UseDownloadsProps> = {}) => {
-  const {
-    addToQueue,
-    downloads,
-    fetchDownloads,
-    fetchQueue,
-    maxConcurrentDownloads,
-    pauseDownload,
-    queue,
-    removeFromQueue,
-    resumeDownload,
-    stopDownload,
-    updateMaxConcurrentDownloads,
-  } = useDownloadStore();
+  const store = useDownloadStore();
 
+  // Initial fetch effect
   useEffect(() => {
-    if (!fetch && !forceFetch) return;
+    const fetchData = async () => {
+      if (fetch || forceFetch) {
+        const promises = [];
+        if (forceFetch || !store.queue?.length) {
+          promises.push(store.fetchQueue());
+        }
+        if (forceFetch || !store.downloads?.length) {
+          promises.push(store.fetchDownloads());
+        }
+        await Promise.all(promises);
+      }
+    };
 
-    if (!forceFetch && queue?.length === 0) {
-      fetchQueue();
-    }
-
-    if (!forceFetch && downloads?.length === 0) {
-      fetchDownloads();
-    }
-
-    if (forceFetch) {
-      fetchQueue();
-      fetchDownloads();
-    }
-  }, [
-    fetch,
-    forceFetch,
-    queue?.length,
-    downloads?.length,
-    fetchQueue,
-    fetchDownloads,
-  ]);
+    void fetchData();
+  }, [fetch, forceFetch, store.queue?.length, store.downloads?.length, store.fetchQueue, store.fetchDownloads]);
 
   return {
-    addDownload: addToQueue,
-    downloads,
-    fetchDownloads,
-    fetchQueue,
-    maxConcurrentDownloads,
-    pauseDownload,
-    queue,
-    removeFromQueue,
-    resumeDownload,
-    stopDownload,
-    updateMaxConcurrentDownloads,
+    addDownload: store.addToQueue,
+    downloads: store.downloads,
+    fetchDownloads: store.fetchDownloads,
+    fetchQueue: store.fetchQueue,
+    maxConcurrentDownloads: store.maxConcurrentDownloads,
+    pauseDownload: store.pauseDownload,
+    queue: store.queue,
+    removeFromQueue: store.removeFromQueue,
+    resumeDownload: store.resumeDownload,
+    stopDownload: store.stopDownload,
+    updateMaxConcurrentDownloads: store.updateMaxConcurrentDownloads,
   };
+
 };
 
 export default UseDownloads;
