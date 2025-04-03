@@ -461,13 +461,11 @@ export class PluginHandler {
       const disabledPath = join(this.path, `${pluginId}.disabled`);
       
       let filePath: string;
-      let isDisabled = false;
       
       if (fs.existsSync(enabledPath)) {
         filePath = enabledPath;
       } else if (fs.existsSync(disabledPath)) {
         filePath = disabledPath;
-        isDisabled = true;
       } else {
         return false; // Plugin not found
       }

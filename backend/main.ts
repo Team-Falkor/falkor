@@ -23,7 +23,7 @@ const configureDeepLinking = () => {
 
 // Handle second instance
 const handleSecondInstance = (commandLine: string[]) => {
-  const mainWindow = window.window;
+  const mainWindow = window.getWindow();
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
@@ -36,10 +36,11 @@ const handleSecondInstance = (commandLine: string[]) => {
 
 // Wait until the main window is ready
 const waitForWindow = async (): Promise<BrowserWindow | null> => {
-  while (!window.window) {
+  const w = window.getWindow();;
+  while (!w) {
     await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
   }
-  return window.window;
+  return w;
 };
 
 // Initialize the app

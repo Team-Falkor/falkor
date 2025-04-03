@@ -20,7 +20,7 @@ const DownloadCardChartArea = ({ progress, timeRemaining, chartData }: Props) =>
     <div className="size-full p-3.5 py-4 bg-card border rounded-xl overflow-hidden">
       <div className="size-full flex flex-col relative gap-5 justify-between">
         <div className="size-full overflow-hidden">
-          <DownloadCardChart chartData={chartData} />
+          <DownloadCardChart chartData={memoizedChartData} />
         </div>
         <div className="w-full">
           <PercentBar percent={memoizedProgress} timeRemaning={timeRemaining} />

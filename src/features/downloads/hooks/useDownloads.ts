@@ -1,7 +1,5 @@
 import { useDownloadStore } from "@/stores/downloads";
-import { useEffect, useCallback } from "react";
-import { DownloadData } from "@/@types";
-import { ITorrent } from "@/@types/torrent";
+import { useEffect} from "react";
 
 interface UseDownloadsProps {
   fetch: boolean;
