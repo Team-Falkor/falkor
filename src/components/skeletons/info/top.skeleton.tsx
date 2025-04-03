@@ -6,7 +6,7 @@ const InfoTopSkeleton = () => {
       {/* BACKGROUND */}
       <div className="absolute w-full  h-[38rem] z-0 bg-cover bg-center bg-no-repeat inset-0 overflow-hidden">
         <Skeleton className="relative z-0 w-full h-full blur-md" />
-        <span className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+        <span className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
       </div>
 
       <div className="relative z-10 flex items-start justify-between w-full gap-6 mb-5">

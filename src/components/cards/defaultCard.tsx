@@ -27,7 +27,7 @@ const DefaultCard = ({
     <Card className="group relative m-0 w-[200px] rounded-t-lg p-0 overflow-hidden">
       <CardContent className="p-0 m-0">
         <Link to={`/info/$id`} params={{ id: id.toString() }}>
-          <div className="relative overflow-hidden rounded-t-lg group focus:outline-none dark:ring-offset-gray-900">
+          <div className="relative overflow-hidden rounded-t-lg group focus:outline-hidden dark:ring-offset-gray-900">
             <IGDBImage
               imageId={cover?.image_id ?? ""}
               imageSize="cover_med"
@@ -54,7 +54,7 @@ const DefaultCard = ({
                   </div>
                 )}
 
-                <div className="flex items-center justify-center w-full gap-1 px-2 line-clamp-1 overflow-ellipsis">
+                <div className="flex items-center justify-center w-full gap-1 px-2 line-clamp-1 text-ellipsis">
                   {!!genres?.length &&
                     genres.slice(0, 2).map((genre, i) => (
                       <TypographyMuted

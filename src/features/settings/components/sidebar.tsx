@@ -91,7 +91,7 @@ const SettingsSidebar = ({
             </TypographyMuted>
           </div>
         )}
-        <div className="flex justify-between flex-grow-0 flex-shrink-0">
+        <div className="flex justify-between grow-0 shrink-0">
           <SettingsLinkGroup links={LINKS} />
           <SettingsLinkGroup links={LINKS_RIGHT} />
         </div>

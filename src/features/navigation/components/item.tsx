@@ -39,7 +39,7 @@ const NavItem: FunctionComponent<NavItemProps> = (props) => {
               className: "rounded-lg [&.active]:bg-muted",
             })}
           >
-            <div className="[&>*]:size-5">{icon}</div>
+            <div className="*:size-5">{icon}</div>
           </Link>
         </TooltipTrigger>
         <TooltipContent side="right" sideOffset={8}>
@@ -65,7 +65,7 @@ const NavItem: FunctionComponent<NavItemProps> = (props) => {
             ])}
             {...rest}
           >
-            <div className="[&>*]:size-5">{icon}</div>
+            <div className="*:size-5">{icon}</div>
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right" sideOffset={8}>

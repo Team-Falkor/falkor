@@ -150,7 +150,7 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
               <CloudDownload
                 size={18}
                 fill="currentColor"
-                className="flex-shrink-0"
+                className="shrink-0"
               />
               <P className="max-w-full capitalize truncate">
                 {source?.uploader ?? t("download")}

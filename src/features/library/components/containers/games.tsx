@@ -25,7 +25,7 @@ const GamesContainer = ({
   return (
     <div className="flex gap-2 overflow-hidden">
       <Dialog>
-        <DialogTrigger className="w-[200px] h-full flex-shrink-0 flex-grow-0">
+        <DialogTrigger className="w-[200px] h-full shrink-0 grow-0">
           <NewGameCard />
         </DialogTrigger>
 

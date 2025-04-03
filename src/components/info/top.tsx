@@ -40,7 +40,7 @@ const InfoTop = (props: Props) => {
           loading="eager"
         />
 
-        <span className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+        <span className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
       </div>
 
       <div className="relative z-10 flex items-start justify-between w-full gap-6 mb-5">

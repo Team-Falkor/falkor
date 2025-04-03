@@ -13,7 +13,7 @@ const TitleBarControlWithIcon = ({
 }: PropsWithChildren<TitleBarControlProps>) => {
   return (
     <button
-      className="p-1 transition-transform transform rounded-full outline-none cursor-pointer titlebar-button group hover:scale-110 focus-visible:ring-2"
+      className="p-1 transition-transform transform rounded-full outline-hidden cursor-pointer titlebar-button group hover:scale-110 focus-visible:ring-2"
       onClick={() => invoke(`app:${type}`)}
       aria-label={type}
       {...props}

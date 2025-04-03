@@ -44,10 +44,10 @@ const PluginCard = ({
           <img
             src={banner}
             alt={name}
-            className="rounded object-cover w-full h-full relative z-[1]"
+            className="rounded object-cover w-full h-full relative z-1"
           />
 
-          <div className="absolute top-0 left-0 right-0 bottom-0 rounded-lg bg-gradient-to-tl from-card to-transparent z-[2]" />
+          <div className="absolute top-0 left-0 right-0 bottom-0 rounded-lg bg-linear-to-tl from-card to-transparent z-2" />
         </div>
       )}
 

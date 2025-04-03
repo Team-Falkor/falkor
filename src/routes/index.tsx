@@ -27,8 +27,8 @@ function Index() {
   return (
     <MainContainer id="main-page" className="w-full overflow-hidden">
       {/* Hero Section */}
-      <div className="relative w-full mb-10 overflow-hidden rounded-xl bg-gradient-to-br from-background via-secondary/30 to-primary/20 p-8">
-        <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 bg-gradient-to-bl from-primary to-transparent rounded-l-full"></div>
+      <div className="relative w-full mb-10 overflow-hidden rounded-xl bg-linear-to-br from-background via-secondary/30 to-primary/20 p-8">
+        <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 bg-linear-to-bl from-primary to-transparent rounded-l-full"></div>
         <div className="relative z-10 flex flex-col items-start max-w-3xl gap-4">
           <H1 className="flex items-end gap-2">Falkor 
             <TypographyMuted>
@@ -55,7 +55,7 @@ function Index() {
       <div className="mb-16">
         <Carousel id="top-rated-carousel" plugins={[autoplay.current]} 
           className="overflow-hidden rounded-xl ring-1 ring-muted/20 shadow-lg">
-          <div className="flex items-center justify-between w-full gap-2 p-4 bg-gradient-to-r from-background to-secondary/10">
+          <div className="flex items-center justify-between w-full gap-2 p-4 bg-linear-to-r from-background to-secondary/10">
             <div className="flex items-end gap-3">
               <H3>
                 {t("sections.top_rated")}
@@ -120,14 +120,14 @@ function Index() {
           id="new-releases-row"
           title={t("sections.new_releases")}
           dataToFetch="newReleases"
-          className="ring-1 ring-muted/20 rounded-xl p-4 shadow-sm bg-gradient-to-r from-background to-secondary/5"
+          className="ring-1 ring-muted/20 rounded-xl p-4 shadow-xs bg-linear-to-r from-background to-secondary/5"
         />
 
         <RowContainer
           id="most-anticipated-row"
           title={t("sections.most_anticipated")}
           dataToFetch="mostAnticipated"
-          className="ring-1 ring-muted/20 rounded-xl p-4 shadow-sm bg-gradient-to-r from-background to-secondary/5"
+          className="ring-1 ring-muted/20 rounded-xl p-4 shadow-xs bg-linear-to-r from-background to-secondary/5"
         />
       </div>
     </MainContainer>

@@ -54,7 +54,7 @@ function RouteComponent() {
     <div className="relative flex w-full min-h-full">
       <SettingsSidebar settingsTabs={settingsTabs} />
 
-      <div className="flex flex-col flex-grow w-full h-full overflow-y-auto md:pl-80">
+      <div className="flex flex-col grow w-full h-full overflow-y-auto md:pl-80">
         <Suspense
           fallback={
             <div className="flex items-center justify-center size-full">

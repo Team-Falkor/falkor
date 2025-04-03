@@ -33,7 +33,7 @@ function Root() {
           <NavBar />
 
           {/* Main content area */}
-          <div className="flex flex-col flex-grow w-full h-full overflow-y-auto sm:pl-16">
+          <div className="flex flex-col grow w-full h-full overflow-y-auto sm:pl-16">
             <Outlet />
           </div>
         </div>

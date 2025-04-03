@@ -32,7 +32,7 @@ const BannerCard = ({
   return (
     <div className="relative w-full overflow-hidden rounded-lg h-80">
       <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
-        <div className="absolute w-full h-full z-[1] from-background to-transparent bg-gradient-to-tr" />
+        <div className="absolute w-full h-full z-1 from-background to-transparent bg-linear-to-tr" />
         <IGDBImage
           imageSize="720p"
           imageId={cover.image_id}

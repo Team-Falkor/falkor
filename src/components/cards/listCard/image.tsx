@@ -6,7 +6,7 @@ interface ListCardImageProps {
 }
 
 const ListCardImage: React.FC<ListCardImageProps> = ({ imageId, alt }) => (
-  <div className="relative overflow-hidden rounded-t-lg group focus:outline-none dark:ring-offset-gray-900">
+  <div className="relative overflow-hidden rounded-t-lg group focus:outline-hidden dark:ring-offset-gray-900">
     <IGDBImage
       imageId={imageId}
       alt={alt}

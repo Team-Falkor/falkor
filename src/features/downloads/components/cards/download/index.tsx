@@ -50,12 +50,12 @@ const DownloadCard = ({ stats, deleteStats }: DownloadCardProps) => {
           <IGDBImage
             imageId={game_data.image_id}
             alt={game_data.name ?? ""}
-            className="object-cover w-full h-full relative z-[1]"
+            className="object-cover w-full h-full relative z-1"
           />
         )}
         <div
           className={cn(
-            "absolute inset-0 size-full bg-background opacity-55 z-[2]",
+            "absolute inset-0 size-full bg-background opacity-55 z-2",
             {
               "opacity-90 overflow-hidden": !downloading,
             }
