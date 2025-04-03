@@ -2,7 +2,7 @@
   "name": "falkor",
   "description": "Dive into Falkor, where you'll discover a vast selection of games coupled with community-driven enhancements. Experience seamless and secure gaming within a single, universal hub.",
   "private": true,
-  "version": "0.1.0-alpha",
+  "version": "0.1.0",
   "type": "module",
   "author": {
     "name": "team-falkor",
