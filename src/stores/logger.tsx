@@ -6,27 +6,44 @@ interface LoggerState {
   logs: LogEntry[];
   loading: boolean;
   error: string | null;
+  lastUpdated: number | null;
   fetchLogs: () => Promise<void>;
   clear: () => Promise<void>;
   log: (level: LogEntry["level"], message: string) => Promise<void>;
   getLog: (timestamp: number) => Promise<LogEntry | null>;
   filter: (options: LoggerFilterOptions) => Promise<LogEntry[]>;
   getLoggedDates: (includeTime?: boolean) => Promise<string[]>;
+  clearError: () => void;
 }
 
-export const useLoggerStore = create<LoggerState>((set) => ({
+export const useLoggerStore = create<LoggerState>((set, get) => ({
   logs: [],
   loading: false,
   error: null,
+  lastUpdated: null,
+
+  clearError: () => set({ error: null }),
 
   fetchLogs: async () => {
+    const lastUpdated = get().lastUpdated;
+    const now = Date.now();
+    
+    // Only fetch if data is stale (older than 1 minute)
+    if (lastUpdated && now - lastUpdated < 60000) {
+      return;
+    }
+
     set({ loading: true, error: null });
     try {
       const logs = await window.ipcRenderer.invoke("logger:get-all");
-      set({ logs });
-    } catch (err) {
-      set({ error: String(err) });
-      console.error("Error fetching logs:", err);
+      if (!logs) {
+        throw new Error("No logs found");
+      }
+      set({ logs, lastUpdated: now });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error fetching logs:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -37,9 +54,10 @@ export const useLoggerStore = create<LoggerState>((set) => ({
     try {
       await window.ipcRenderer.invoke("logger:clear");
       set({ logs: [] });
-    } catch (err) {
-      set({ error: String(err) });
-      console.error("Error clearing logs:", err);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error clearing logs:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -52,9 +70,10 @@ export const useLoggerStore = create<LoggerState>((set) => ({
       // Re-fetch logs after deletion to keep state in sync
       const logs = await window.ipcRenderer.invoke("logger:get-all-logs");
       set({ logs });
-    } catch (err) {
-      set({ error: String(err) });
-      console.error("Error deleting log:", err);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error deleting log:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -70,9 +89,10 @@ export const useLoggerStore = create<LoggerState>((set) => ({
       set((state) => ({
         logs: [...state.logs, log],
       }));
-    } catch (err) {
-      set({ error: String(err) });
-      console.error("Error adding log:", err);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error adding log:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -82,9 +102,10 @@ export const useLoggerStore = create<LoggerState>((set) => ({
     set({ error: null });
     try {
       return await window.ipcRenderer.invoke("logger:get-log", id);
-    } catch (err) {
-      set({ error: String(err) });
-      console.error("Error fetching log:", err);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error fetching log:", error);
+      set({ error: errorMessage });
       return null;
     }
   },

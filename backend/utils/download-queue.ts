@@ -10,7 +10,7 @@ import { DownloadItem, HttpDownloader } from "../handlers/download";
 import { NotificationsHandler } from "../handlers/notifications";
 import { constants } from "./constants";
 import { settings } from "./settings/settings";
-import { client, combineTorrentData, torrents } from "./torrent";
+import { client, torrents } from "./torrent";
 import window from "./window";
 
 const THROTTLE_INTERVAL = 1000; // Send progress updates every second
@@ -29,11 +29,39 @@ export const isTorrent = (item: HttpDownloader | Torrent): item is Torrent => {
   return !!(item as Torrent).magnetURI;
 };
 
+interface RetryConfig {
+  maxRetries: number;
+  retryDelay: number; // milliseconds
+  shouldRetry: (error: Error) => boolean;
+}
+
 class AllQueue {
   private queue = new Map<string, QueueData>();
   private activeDownloads = new Map<string, HttpDownloader | Torrent>();
+  private retryAttempts = new Map<string, number>();
+  private readonly retryConfig: RetryConfig = {
+    maxRetries: 3,
+    retryDelay: 5000,
+    shouldRetry: (error: Error) => {
+      const retryableErrors = ['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED'];
+      return retryableErrors.some(code => error.message.includes(code));
+    }
+  };
 
   constructor(private maxConcurrentDownloads = 1) {}
+
+  private async cleanupDownload(id: string): Promise<void> {
+    // Check if this is a torrent before removing it
+    const downloader = this.activeDownloads.get(id);
+    if (downloader && isTorrent(downloader)) {
+      // Ensure torrent is properly destroyed and removed from torrents map
+      torrents.delete(id);
+    }
+    
+    this.activeDownloads.delete(id);
+    this.queue.delete(id);
+    this.retryAttempts.delete(id);
+  }
 
   async add(item: QueueData): Promise<void> {
     const id = getQueueItemId(item);
@@ -117,11 +145,46 @@ class AllQueue {
   }
 
   private async processTorrent(item: QueueDataTorrent): Promise<void> {
+    const id = item.data.torrentId;
+    const currentAttempt = this.retryAttempts.get(id) || 0;
+
     return new Promise((resolve, reject) => {
-      client.add(
-        item.data.torrentId,
-        { path: settings.get("downloadsPath") ?? constants.downloadsPath },
-        (torrent) => {
+      const handleTorrentError = async (error: Error) => {
+        const shouldRetry = this.retryConfig.shouldRetry(error) &&
+                           currentAttempt < this.retryConfig.maxRetries;
+
+        if (shouldRetry) {
+          this.retryAttempts.set(id, currentAttempt + 1);
+          window.emitToFrontend("torrent:retry", {
+            infoHash: id,
+            attempt: currentAttempt + 1,
+            maxRetries: this.retryConfig.maxRetries,
+            error: error.message
+          });
+
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, this.retryConfig.retryDelay));
+          await this.add(item);
+          resolve();
+        } else {
+          window.emitToFrontend("torrent:error", {
+            infoHash: id,
+            error: error.message,
+            attempts: currentAttempt + 1
+          });
+          reject(error);
+        }
+      };
+
+      // Use the proper addTorrent method from the client
+      client.addTorrent(
+        id,
+        item.data.game_data,
+        { path: settings.get("downloadsPath") ?? constants.downloadsPath }
+      )
+        .then(torrentWithData => {
+          const torrent = torrentWithData;
+          
           // Helper to generate live torrent status data
           const getTorrentStatus = (): ITorrent => ({
             infoHash: torrent.infoHash,
@@ -142,18 +205,12 @@ class AllQueue {
             game_data: item.data.game_data,
           });
 
-          torrent.on("ready", () => {
-            torrents.set(
-              torrent.infoHash,
-              combineTorrentData(torrent, item.data.game_data)
-            );
+          // Store in active downloads
+          this.activeDownloads.set(torrent.infoHash, torrent);
+          this.queue.delete(torrent.infoHash);
 
-            this.activeDownloads.set(torrent.infoHash, torrent);
-            this.queue.delete(torrent.infoHash);
-
-            // Emit initial status
-            window.emitToFrontend("torrent:status", getTorrentStatus());
-          });
+          // Emit initial status
+          window.emitToFrontend("torrent:status", getTorrentStatus());
 
           // Local throttling per torrent
           let lastUpdateTime = 0;
@@ -161,50 +218,112 @@ class AllQueue {
             const now = Date.now();
             if (now - lastUpdateTime >= THROTTLE_INTERVAL) {
               this.activeDownloads.set(torrent.infoHash, torrent);
-              torrents.set(
-                torrent.infoHash,
-                combineTorrentData(torrent, item.data.game_data)
-              );
               window.emitToFrontend("torrent:status", getTorrentStatus());
               lastUpdateTime = now;
             }
           });
 
           torrent.on("done", () => {
-            this.completeDownload(torrent.infoHash);
-            window.emitToFrontend("torrent:status", getTorrentStatus());
-            resolve();
+            try {
+              this.completeDownload(torrent.infoHash);
+              window.emitToFrontend("torrent:status", getTorrentStatus());
+              resolve();
+            } catch (error) {
+              console.error(`Error handling torrent completion for ${torrent.infoHash}:`, error);
+              reject(error);
+            }
           });
 
-          torrent.on("error", (error) => {
-            this.completeDownload(torrent.infoHash);
-            window.emitToFrontend("torrent:error", {
-              infoHash: torrent.infoHash,
-              error: (error as Error).message,
-            });
-            reject(error);
+          torrent.on("error", async (error) => {
+            try {
+              console.error(`Torrent error for ${torrent.infoHash}:`, error);
+              await this.cleanupDownload(torrent.infoHash);
+              await handleTorrentError(error as Error);
+            } catch (handlerError) {
+              console.error(`Error in torrent error handler for ${torrent.infoHash}:`, handlerError);
+              reject(handlerError);
+            }
           });
-        }
-      );
+
+          // Cleanup on process exit - use a named function to avoid memory leaks
+          const exitHandler = () => {
+            try {
+              this.stopDownloader(torrent);
+            } catch (error) {
+              console.error(`Error stopping torrent ${torrent.infoHash} on exit:`, error);
+            }
+          };
+          process.on("exit", exitHandler);
+          
+          // Remove the exit handler when torrent is done or removed
+          torrent.once("done", () => {
+            process.removeListener("exit", exitHandler);
+          });
+        })
+        .catch(async (error) => {
+          console.error(`Error adding torrent ${id}:`, error);
+          try {
+            await handleTorrentError(error as Error);
+          } catch (handlerError) {
+            console.error(`Error in torrent error handler for ${id}:`, handlerError);
+            reject(handlerError);
+          }
+        });
+
+      // Note: client error handlers should be set up once at class initialization,
+      // not for each torrent. This is handled in the TorrentClient class.
     });
   }
 
   private async processDownload(item: QueueDataDownload): Promise<void> {
-    const downloadItem = new DownloadItem(item.data);
-    const downloader = new HttpDownloader(downloadItem);
-
-    this.activeDownloads.set(item.data.id, downloader);
-    this.queue.delete(item.data.id);
+    const id = item.data.id;
+    const currentAttempt = this.retryAttempts.get(id) || 0;
 
     try {
-      await downloader.download();
+      const downloadItem = new DownloadItem(item.data);
+      const downloader = new HttpDownloader(downloadItem);
+
+      this.activeDownloads.set(id, downloader);
+      this.queue.delete(id);
+
+      try {
+        await downloader.download();
+        // Reset retry attempts on successful download
+        this.retryAttempts.delete(id);
+      } catch (error) {
+        const shouldRetry = this.retryConfig.shouldRetry(error as Error) &&
+                           currentAttempt < this.retryConfig.maxRetries;
+
+        if (shouldRetry) {
+          this.retryAttempts.set(id, currentAttempt + 1);
+          window.emitToFrontend("download:retry", {
+            id,
+            attempt: currentAttempt + 1,
+            maxRetries: this.retryConfig.maxRetries,
+            error: (error as Error).message
+          });
+
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, this.retryConfig.retryDelay));
+          await this.add(item);
+          return;
+        } else {
+          window.emitToFrontend("download:error", {
+            id,
+            error: (error as Error).message,
+            attempts: currentAttempt + 1
+          });
+        }
+      }
     } catch (error) {
+      console.error(`Critical error processing download ${id}:`, error);
       window.emitToFrontend("download:error", {
-        id: item.data.id,
-        error: (error as Error).message,
+        id,
+        error: `Critical error: ${(error as Error).message}`,
+        attempts: currentAttempt + 1
       });
     } finally {
-      await this.completeDownload(item.data.id);
+      await this.completeDownload(id);
       void this.processQueue();
     }
   }
@@ -227,27 +346,38 @@ class AllQueue {
 
     if (!isComplete) return;
 
-    // Clean up resources before notifications
-    this.activeDownloads.delete(id);
-    this.queue.delete(id);
+    try {
+      // Ensure proper cleanup of resources
+      if (isTorrent(activeDownload)) {
+        activeDownload.destroy();
+        torrents.delete(id);
+      } else {
+        activeDownload.stop();
+      }
 
-    // Emit final status update
-    const status = isTorrent(activeDownload)
-      ? { ...item, status: "completed" as const }
-      : { ...item, status: "completed" as const };
-    
-    window.emitToFrontend(
-      isTorrent(activeDownload) ? "torrent:status" : "download:status",
-      status
-    );
+      // Clean up queue resources
+      await this.cleanupDownload(id);
 
-    if (item.game_data && item.game_data.name) {
-      await this.notification(
-        item.game_data.name,
-        `https://images.igdb.com/igdb/image/upload/t_original/${
-          item.game_data.image_id ?? item.game_data.banner_id
-        }.png`
+      // Emit final status update
+      const status = isTorrent(activeDownload)
+        ? { ...item, status: "completed" as const }
+        : { ...item, status: "completed" as const };
+      
+      window.emitToFrontend(
+        isTorrent(activeDownload) ? "torrent:status" : "download:status",
+        status
       );
+
+      if (item.game_data && item.game_data.name) {
+        await this.notification(
+          item.game_data.name,
+          `https://images.igdb.com/igdb/image/upload/t_original/${
+            item.game_data.image_id ?? item.game_data.banner_id
+          }.png`
+        );
+      }
+    } catch (error) {
+      console.error(`Error completing download ${id}:`, error);
     }
   }
 
@@ -300,6 +430,9 @@ class AllQueue {
             game_data: torrentData.game_data
           };
           window.emitToFrontend("torrent:status", status);
+          
+          // Explicitly remove from torrents map
+          torrents.delete(id);
         }
       } else {
         const status = {
@@ -397,7 +530,20 @@ class AllQueue {
   }
 
   private stopDownloader(downloader: HttpDownloader | Torrent): void {
-    isTorrent(downloader) ? downloader.destroy() : downloader.stop();
+    if (isTorrent(downloader)) {
+      // Get the infoHash before destroying the torrent
+      const infoHash = downloader.infoHash;
+      
+      // Destroy the torrent
+      downloader.destroy();
+      
+      // Ensure it's removed from the torrents map
+      if (infoHash) {
+        torrents.delete(infoHash);
+      }
+    } else {
+      downloader.stop();
+    }
   }
 
   updateMaxConcurrentDownloads(maxConcurrentDownloads: number): void {

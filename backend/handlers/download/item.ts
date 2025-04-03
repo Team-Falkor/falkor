@@ -6,7 +6,7 @@ import {
 } from "@/@types";
 import { createWriteStream, WriteStream } from "node:fs";
 import path from "node:path";
-import { logger } from "../../handlers/logging";
+import logger from "../../handlers/logging";
 import { constants, sanitizeFilename } from "../../utils";
 import { settings } from "../../utils/settings/settings";
 import window from "../../utils/window";

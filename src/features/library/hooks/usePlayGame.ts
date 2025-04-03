@@ -51,7 +51,7 @@ export const usePlayGame = (
       window.ipcRenderer.removeAllListeners("game:playing");
       window.ipcRenderer.removeAllListeners("game:stopped");
     };
-  }, [game_id]);
+  }, [game_id, callback]);
 
   return {
     gameRunning,

@@ -1,4 +1,4 @@
-import { logger } from "../../logging";
+import logger from "../../logging";
 import { registerEvent } from "../utils/registerEvent";
 
 const handler = async (

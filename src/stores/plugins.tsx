@@ -4,21 +4,26 @@ import { create } from "zustand";
 interface PluginsState {
   plugins: Map<string, PluginSetupJSON>;
   needsUpdate: Map<string, PluginSetupJSON>;
-
+  loading: boolean;
+  error: string | null;
   hasDoneFirstCheck: boolean;
-  setHasDoneFirstCheck: () => void;
+  lastChecked: number | null;
 
+  setHasDoneFirstCheck: () => void;
   setPlugins: (plugins: Array<PluginSetupJSON>) => void;
   setNeedsUpdate: (needsUpdate: Array<PluginSetupJSON>) => void;
   removeNeedsUpdate: (pluginId: string) => void;
   checkForUpdates: (pluginId?: string) => Promise<Array<PluginSetupJSON>>;
+  clearError: () => void;
 }
 
-export const usePluginsStore = create<PluginsState>((set) => ({
+export const usePluginsStore = create<PluginsState>((set, get) => ({
   plugins: new Map(),
   needsUpdate: new Map(),
-
+  loading: false,
+  error: null,
   hasDoneFirstCheck: false,
+  lastChecked: null,
   setHasDoneFirstCheck: () => set({ hasDoneFirstCheck: true }),
 
   setPlugins: (plugins) => {
@@ -40,30 +45,41 @@ export const usePluginsStore = create<PluginsState>((set) => ({
     set({ needsUpdate: needsUpdateMap });
   },
 
+  clearError: () => set({ error: null }),
+
   checkForUpdates: async (pluginId) => {
-    console.log("Checking for updates...");
+    const lastChecked = get().lastChecked;
+    const now = Date.now();
+    
+    // Only check for updates if last check was more than 1 hour ago
+    if (lastChecked && now - lastChecked < 3600000) {
+      return [];
+    }
+
+    set({ loading: true, error: null });
     try {
-      // Invoke the event to check for plugin updates
       const updatedPlugins = await window.ipcRenderer.invoke(
         "plugins:check-for-updates",
         pluginId
       );
 
-      if (Array.isArray(updatedPlugins)) {
-        set(() => ({
-          needsUpdate: new Map(
-            updatedPlugins.map((plugin) => [plugin.id, plugin])
-          ),
-        }));
-        return updatedPlugins;
-      } else {
-        console.warn(
-          "No updates available or an error occurred during the check."
-        );
-        return [];
+      if (!Array.isArray(updatedPlugins)) {
+        throw new Error("Invalid response from plugin update check");
       }
+
+      set(() => ({
+        needsUpdate: new Map(
+          updatedPlugins.map((plugin) => [plugin.id, plugin])
+        ),
+        lastChecked: now,
+        loading: false
+      }));
+
+      return updatedPlugins;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Error checking for updates";
       console.error("Error checking for updates:", error);
+      set({ error: errorMessage, loading: false });
       return [];
     }
   },

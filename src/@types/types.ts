@@ -146,6 +146,7 @@ export interface Response<T = any> {
   message: string;
   error: boolean;
   data: T | null;
+  timestamp?: string;
 }
 
 export type Cracker =

@@ -1,6 +1,6 @@
 import { ISchemaForGame } from "@/@types";
 import { settings } from "../../utils/settings/settings";
-import { logger } from "../logging";
+import logger  from "../logging";
 
 class AchievementData {
   readonly api_url: string | undefined = settings.get("api_base_url");

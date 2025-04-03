@@ -56,30 +56,28 @@ class AchievementsDatabase extends BaseQuery {
    * @param {NewAchievementInputDBItem} achievement - The achievement to add.
    * @returns {Promise<void>}
    */
-  async addAchievement(achievement: NewAchievementInputDBItem): Promise<void> {
+  async addAchievement(achievement: NewAchievementInputDBItem): Promise<boolean> {
     await this.init();
 
-    // Check if the game exists
-    const gameExists = await db("library_games")
-      .where("game_id", achievement.game_id)
-      .first();
+    return await this.executeTransaction(async (trx) => {
+      // Check if the game exists
+      const gameExists = await trx("library_games")
+        .where("game_id", achievement.game_id)
+        .first();
 
-    if (!gameExists) {
-      throw new Error(`Game with ID ${achievement.game_id} does not exist.`);
-    }
+      if (!gameExists) {
+        throw new Error(`Game with ID ${achievement.game_id} does not exist.`);
+      }
 
-    try {
-      await db("achievements").insert({
+      await trx("achievements").insert({
         game_id: achievement.game_id,
         achievement_name: achievement.achievement_name,
         achievement_display_name: achievement.achievement_display_name,
         description: achievement.achievement_description ?? null,
         unlocked: achievement.achievement_unlocked ?? false,
       });
-    } catch (error) {
-      console.error("Error adding achievement:", error);
-      throw error;
-    }
+      return true;
+    }, "Error adding achievement")
   }
 
   /**
@@ -92,20 +90,22 @@ class AchievementsDatabase extends BaseQuery {
   async unlockAchievement(
     gameId: number,
     achievementName: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     await this.init();
 
-    try {
-      await db("achievements")
+    return await this.executeTransaction(async (trx) => {
+      const result = await trx("achievements")
         .where({ game_id: gameId, achievement_name: achievementName })
         .update({
           unlocked: true,
           unlocked_at: new Date(),
         });
-    } catch (error) {
-      console.error("Error unlocking achievement:", error);
-      throw error;
-    }
+      
+      if (result === 0) {
+        throw new Error(`Achievement ${achievementName} not found for game ${gameId}`);
+      }
+      return true;
+    }, "Error unlocking achievement")
   }
 
   /**
@@ -118,17 +118,15 @@ class AchievementsDatabase extends BaseQuery {
   async removeAchievement(
     gameId: number,
     achievementName: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     await this.init();
 
-    try {
-      await db("achievements")
+    return await this.executeTransaction(async (trx) => {
+      const result = await trx("achievements")
         .where({ game_id: gameId, achievement_name: achievementName })
         .del();
-    } catch (error) {
-      console.error("Error removing achievement:", error);
-      throw error;
-    }
+      return result > 0;
+    }, "Error removing achievement")
   }
 
   /**
@@ -160,17 +158,13 @@ class AchievementsDatabase extends BaseQuery {
   async getUnlockedAchievements(gameId: string): Promise<AchievementDBItem[]> {
     await this.init();
 
-    try {
+    return await this.executeOperation(async () => {
       const unlockedAchievements: AchievementDBItem[] = await db("achievements")
-        .where({ game_id: gameId })
+        .where({ game_id: gameId, unlocked: true })
         .select("*");
 
-      console.log(unlockedAchievements);
       return unlockedAchievements;
-    } catch (error) {
-      console.error("Error retrieving unlocked achievements:", error);
-      throw error;
-    }
+    }, "Error retrieving unlocked achievements") ?? []
   }
 
   /**
@@ -183,20 +177,18 @@ class AchievementsDatabase extends BaseQuery {
   async resetAchievement(
     gameId: number,
     achievementName: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     await this.init();
 
-    try {
-      await db("achievements")
+    return await this.executeTransaction(async (trx) => {
+      const result = await trx("achievements")
         .where({ game_id: gameId, achievement_name: achievementName })
         .update({
           unlocked: false,
           unlocked_at: null,
         });
-    } catch (error) {
-      console.error("Error resetting achievement:", error);
-      throw error;
-    }
+      return result > 0;
+    }, "Error resetting achievement")
   }
 }
 

@@ -7,7 +7,8 @@ import {
 import { useLanguageContext } from "@/contexts/I18N";
 import { ArrowDownAZ, ArrowUpAZ, Check, Columns2, Rows3 } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
-import { SortBy } from ".";
+
+export type SortBy = "alphabetic-asc" | "alphabetic-desc";
 
 interface PluginsSortProps {
   showRows: boolean;
@@ -30,9 +31,9 @@ const PluginsSort = ({
   const { t } = useLanguageContext();
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1 md:gap-2">
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button
             variant={showEnabledOnly ? "default" : "ghost"}
             size={"icon"}
@@ -40,8 +41,9 @@ const PluginsSort = ({
               localStorage.setItem("showEnabledOnly", String(!showEnabledOnly));
               setShowEnabledOnly(!showEnabledOnly);
             }}
+            className="h-8 w-8"
           >
-            <Check />
+            <Check className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent className="capitalize">
@@ -50,7 +52,7 @@ const PluginsSort = ({
       </Tooltip>
 
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button
             variant={"ghost"}
             size={"icon"}
@@ -62,8 +64,9 @@ const PluginsSort = ({
               localStorage.setItem("sortBy", newSortBy);
               setSortBy(newSortBy);
             }}
+            className="h-8 w-8"
           >
-            {sortBy === "alphabetic-asc" ? <ArrowUpAZ /> : <ArrowDownAZ />}
+            {sortBy === "alphabetic-asc" ? <ArrowUpAZ className="h-4 w-4" /> : <ArrowDownAZ className="h-4 w-4" />}
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -74,7 +77,7 @@ const PluginsSort = ({
       </Tooltip>
 
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button
             variant={"ghost"}
             size={"icon"}
@@ -82,8 +85,9 @@ const PluginsSort = ({
               localStorage.setItem("showRows", String(!showRows));
               setShowRows(!showRows);
             }}
+            className="h-8 w-8"
           >
-            {showRows ? <Columns2 /> : <Rows3 />}
+            {showRows ? <Columns2 className="h-4 w-4" /> : <Rows3 className="h-4 w-4" />}
           </Button>
         </TooltipTrigger>
         <TooltipContent>

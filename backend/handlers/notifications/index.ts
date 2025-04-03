@@ -6,7 +6,7 @@ import { join } from "path";
 import { constants, getSoundPath } from "../../utils";
 import { playSound } from "../../utils/playsound";
 import { settings } from "../../utils/settings/settings";
-import { logger } from "../logging";
+import logger from "../logging";
 
 class NotificationsHandler {
   public static constructNotification = (

@@ -6,62 +6,67 @@ import { create } from "zustand";
 interface AccountsState {
   realDebrid: RealDebridClient | null;
   torBox: TorBoxClient | null;
-  setRealDebrid: (access_token: string) => void;
-  setTorBox: (api_key: string) => void;
-  clearService: (type: ExternalAccountType) => void; // Optional: Adds ability to clear the client if needed
+  loading: boolean;
+  error: string | null;
+  setRealDebrid: (access_token: string) => Promise<void>;
+  setTorBox: (api_key: string) => Promise<void>;
+  clearService: (type: ExternalAccountType) => void;
+  getServiceStatus: (type: ExternalAccountType) => { isConnected: boolean; client: RealDebridClient | TorBoxClient | null };
 }
 
-export const useAccountServices = create<AccountsState>((set) => ({
+export const useAccountServices = create<AccountsState>((set): AccountsState => ({
   realDebrid: null,
   torBox: null,
-  accounts: [],
+  loading: false,
+  error: null,
 
-  setRealDebrid: (access_token: string) => {
-    set((state) => {
-      // Check if an instance already exists to avoid duplicate instantiation
-      if (state.realDebrid) {
-        console.warn("RealDebridClient is already set.");
-        return state;
-      }
-
-      try {
-        const client = RealDebridClient.getInstance(access_token);
-        return { realDebrid: client };
-      } catch (error) {
-        console.error("Failed to set RealDebridClient instance:", error);
-        return { realDebrid: null };
-      }
-    });
+  setRealDebrid: async (access_token: string) => {
+    set({ loading: true, error: null });
+    try {
+      const client = RealDebridClient.getInstance(access_token);
+      set({ realDebrid: client, loading: false });
+      localStorage.setItem('realDebridToken', access_token);
+    } catch (error) {
+      console.error("Failed to set RealDebridClient instance:", error);
+      set({ error: "Failed to connect to Real-Debrid", loading: false, realDebrid: null });
+    }
   },
 
-  setTorBox: (api_key: string) => {
-    set((state) => {
-      // Check if an instance already exists to avoid duplicate instantiation
-      if (state.torBox) {
-        console.warn("TorBoxClient is already set.");
-        return state;
-      }
-
-      try {
-        const client = TorBoxClient.getInstance(api_key);
-        return { torBox: client };
-      } catch (error) {
-        console.error("Failed to set TorBoxClient instance:", error);
-        return { torBox: null };
-      }
-    });
+  setTorBox: async (api_key: string) => {
+    set({ loading: true, error: null });
+    try {
+      const client = TorBoxClient.getInstance(api_key);
+      set({ torBox: client, loading: false });
+      localStorage.setItem('torBoxApiKey', api_key);
+    } catch (error) {
+      console.error("Failed to set TorBoxClient instance:", error);
+      set({ error: "Failed to connect to TorBox", loading: false, torBox: null });
+    }
   },
 
   clearService: (type) => {
     switch (type) {
       case "real-debrid":
-        set(() => ({ realDebrid: null }));
+        localStorage.removeItem('realDebridToken');
+        set(() => ({ realDebrid: null, error: null }));
         break;
       case "torbox":
-        set(() => ({ torBox: null }));
+        localStorage.removeItem('torBoxApiKey');
+        set(() => ({ torBox: null, error: null }));
         break;
       default:
         console.warn(`No service found for type ${type}`);
+    }
+  },
+
+  getServiceStatus: (type) => {
+    switch (type) {
+      case "real-debrid":
+        return { isConnected: !!useAccountServices.getState().realDebrid, client: useAccountServices.getState().realDebrid };
+      case "torbox":
+        return { isConnected: !!useAccountServices.getState().torBox, client: useAccountServices.getState().torBox };
+      default:
+        return { isConnected: false, client: null };
     }
   },
 }));

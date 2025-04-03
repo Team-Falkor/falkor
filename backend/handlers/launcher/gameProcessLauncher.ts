@@ -4,7 +4,7 @@ import ms from "ms";
 import { gamesDB } from "../../sql";
 import windoww from "../../utils/window";
 import { AchievementItem } from "../achievements/item";
-import { logger } from "../logging";
+import logger from "../logging";
 import { gamesLaunched } from "./games_launched";
 import { getRealPath, spawnSync } from "./utils";
 

@@ -5,7 +5,7 @@ import {
   UnlockedAchievement,
 } from "@/@types/achievements/types";
 import { achievementsDB } from "../../sql";
-import { logger } from "../logging";
+import logger  from "../logging";
 import { NotificationsHandler } from "../notifications";
 import { achievementData } from "./data";
 import { AchievementFileLocator } from "./locator";

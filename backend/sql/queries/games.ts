@@ -3,7 +3,8 @@ import {
   LibraryGameUpdate,
   NewLibraryGame,
 } from "@/@types/library/types";
-import { logger } from "../../handlers/logging";
+import { AchievementDBItem } from "@/@types";
+import logger from "../../handlers/logging";
 import { db } from "../knex";
 import { achievementsDB } from "./achievements";
 import { BaseQuery } from "./base";
@@ -131,20 +132,28 @@ class GamesDatabase extends BaseQuery {
     await this.init();
     if (!this.initialized) throw new Error("Database not initialized");
 
+    if (!game.game_name || !game.game_path || !game.game_id) {
+      throw new Error("Game name, path, and ID are required");
+    }
+
     const newData: NewLibraryGame = {
-      game_name: game.game_name || "",
-      game_path: game.game_path || "",
-      game_id: game.game_id || "",
-      game_icon: game.game_icon || undefined,
-      game_args: game.game_args || undefined,
-      game_command: game.game_command || undefined,
+      game_name: game.game_name,
+      game_path: game.game_path,
+      game_id: game.game_id,
+      game_icon: game.game_icon,
+      game_args: game.game_args,
+      game_command: game.game_command,
       igdb_id: game.igdb_id || null,
       game_steam_id: game.game_steam_id || null,
     };
 
-    const newGame = await db("library_games").insert<LibraryGame>(newData);
-
-    return newGame;
+    return await this.executeTransaction(async (trx) => {
+      const [newGame] = await trx("library_games").insert<LibraryGame>(newData).returning("*");
+      if (!newGame) {
+        throw new Error("Failed to insert game");
+      }
+      return newGame;
+    }, "Error adding game to library");
   }
 
   /**
@@ -158,8 +167,10 @@ class GamesDatabase extends BaseQuery {
     await this.init();
     if (!this.initialized) throw new Error("Database not initialized");
 
-    const game = await db("library_games").where({ game_id: gameId }).first();
-    return game;
+    return await this.executeOperation(async () => {
+      const game = await db("library_games").where({ game_id: gameId }).first();
+      return game || null;
+    }, `Error fetching game with ID ${gameId}`);
   }
 
   async getGameByIGDBId(gameId: string): Promise<LibraryGame | null> {
@@ -196,26 +207,20 @@ class GamesDatabase extends BaseQuery {
    *
    * @returns {Promise<void>}
    */
-  async updateGame(gameId: string, updates: LibraryGameUpdate): Promise<void> {
+  async updateGame(gameId: string, updates: LibraryGameUpdate): Promise<boolean> {
     await this.init();
     if (!this.initialized) throw new Error("Database not initialized");
 
-    const currentGame = await this.getGameById(gameId);
-    if (!currentGame) throw new Error("Game not found");
-
-    const newData: LibraryGameUpdate = {
-      game_name: updates.game_name || currentGame.game_name,
-      game_path: updates.game_path || currentGame.game_path,
-      game_icon: updates.game_icon || currentGame.game_icon,
-      game_args: updates.game_args || currentGame.game_args,
-      game_command: updates.game_command || currentGame.game_command,
-      igdb_id: updates.igdb_id || currentGame.igdb_id,
-      game_last_played:
-        updates.game_last_played || currentGame.game_last_played,
-      game_playtime: updates.game_playtime || currentGame.game_playtime,
-    };
-
-    await db("library_games").where({ game_id: gameId }).update(newData);
+    return await this.executeTransaction(async (trx) => {
+      const result = await trx("library_games")
+        .where({ game_id: gameId })
+        .update(updates);
+      
+      if (result === 0) {
+        throw new Error(`Game with ID ${gameId} not found`);
+      }
+      return true;
+    }, `Error updating game ${gameId}`);
   }
 
   /**
@@ -225,35 +230,17 @@ class GamesDatabase extends BaseQuery {
    *
    * @returns {Promise<void>}
    */
-  async deleteGame(gameId: string): Promise<void> {
+  async deleteGame(gameId: string): Promise<boolean> {
     await this.init();
+    if (!this.initialized) throw new Error("Database not initialized");
+    if (!gameId) throw new Error("Game ID is required for deletion");
 
-    if (!this.initialized) {
-      console.error("Database not initialized");
-      throw new Error("Database not initialized");
-    }
-
-    // Ensure gameId is defined and log the deletion attempt
-    if (!gameId) {
-      throw new Error("Game ID is required for deletion");
-    }
-
-    console.log(`Attempting to delete game with ID: ${gameId}`);
-
-    try {
-      const deletedRows = await db("library_games")
+    return await this.executeTransaction(async (trx) => {
+      const deletedRows = await trx("library_games")
         .where({ game_id: gameId })
         .del();
-
-      if (deletedRows === 0) {
-        console.warn(`No game found with ID: ${gameId}`);
-      } else {
-        console.log(`Game with ID: ${gameId} deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting game:", error);
-      throw error;
-    }
+      return deletedRows > 0;
+    }, `Error deleting game ${gameId}`);
   }
 
   /**
@@ -279,7 +266,7 @@ class GamesDatabase extends BaseQuery {
    * @param {number} playtime - The amount of playtime to add (in minutes).
    * @returns {Promise<void>}
    */
-  async updateGamePlaytime(gameId: string, playtime: number): Promise<void> {
+  async updateGamePlaytime(gameId: string, playtime: number): Promise<boolean> {
     await this.init();
     if (!this.initialized) throw new Error("Database not initialized");
 
@@ -288,9 +275,13 @@ class GamesDatabase extends BaseQuery {
 
     const updatedPlaytime = (currentGame.game_playtime || 0) + playtime;
 
-    await db("library_games")
-      .where({ game_id: gameId })
-      .update({ game_playtime: updatedPlaytime });
+    return await this.executeTransaction(async (trx) => {
+      const result = await trx("library_games")
+        .where({ game_id: gameId })
+        .update({ game_playtime: updatedPlaytime });
+      return result > 0;
+    }, `Error updating playtime for game ${gameId}`);
+
   }
 
   /**
@@ -341,8 +332,9 @@ class GamesDatabase extends BaseQuery {
   /**
    * Retrieves a game along with its achievements.
    * @param {number} gameId - The ID of the game.
+   * @returns {Promise<LibraryGame & { achievements: AchievementDBItem[] }>} - The game with its achievements.
    */
-  async getGameWithAchievements(gameId: number): Promise<any> {
+  async getGameWithAchievements(gameId: number): Promise<LibraryGame & { achievements: AchievementDBItem[] }> {
     await this.init();
     const game = await this.getGameById(gameId.toString());
     if (!game) throw new Error("Game not found");

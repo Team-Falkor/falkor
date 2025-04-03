@@ -8,10 +8,11 @@ type ListId = number;
 
 interface ListsState {
   lists: List[];
-  gamesInList: Record<ListId, ListGame[]>; // Store games for each list by listId
+  gamesInList: Record<ListId, ListGame[]>;
   loading: boolean;
   error: string | null;
   hasDoneFirstFetch: boolean;
+  lastUpdated: number | null;
   fetchLists: () => Promise<Array<List>>;
   createList: (name: string, description?: string) => Promise<void>;
   addGameToList: (listId: ListId, game: ListGame) => Promise<void>;
@@ -19,29 +20,46 @@ interface ListsState {
   fetchGamesInList: (listId: ListId) => Promise<Array<ListGame>>;
   deleteList: (listId: ListId) => Promise<void>;
   setHasDoneFirstFetch: () => void;
+  clearError: () => void;
 }
 
 // Zustand store to handle lists and games globally
-export const useListsStore = create<ListsState>((set) => ({
+export const useListsStore = create<ListsState>((set, get) => ({
   lists: [],
   gamesInList: {},
   loading: false,
   error: null,
   hasDoneFirstFetch: false,
+  lastUpdated: null,
+
+  clearError: () => set({ error: null }),
 
   setHasDoneFirstFetch: () => {
     set({ hasDoneFirstFetch: true });
   },
 
   fetchLists: async () => {
+    const lastUpdated = get().lastUpdated;
+    const now = Date.now();
+    
+    // Only fetch if data is stale (older than 5 minutes)
+    if (lastUpdated && now - lastUpdated < 300000) {
+      return get().lists;
+    }
+
     set({ loading: true, error: null });
     try {
       const fetchedLists = await listsDB("get-all-lists");
-      set({ lists: fetchedLists });
+      if (!fetchedLists) {
+        throw new Error("No lists found");
+      }
+      set({ lists: fetchedLists, lastUpdated: now });
 
       return fetchedLists;
-    } catch {
-      set({ error: "Failed to load lists" });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to load lists";
+      console.error("Error loading lists:", error);
+      set({ error: errorMessage });
 
       return [];
     } finally {
@@ -54,8 +72,10 @@ export const useListsStore = create<ListsState>((set) => ({
     try {
       await listsDB("create-list", name, description);
       await useListsStore.getState().fetchLists(); // Refresh lists after creating a new one
-    } catch {
-      set({ error: "Failed to create list" });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to create list";
+      console.error("Error creating list:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -66,8 +86,10 @@ export const useListsStore = create<ListsState>((set) => ({
     try {
       await listsDB("add-game-to-list", listId, game);
       await useListsStore.getState().fetchGamesInList(listId); // Refresh games after adding a new one
-    } catch {
-      set({ error: "Failed to add game to list" });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to add game to list";
+      console.error("Error adding game to list:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -78,8 +100,10 @@ export const useListsStore = create<ListsState>((set) => ({
     try {
       await listsDB("remove-game-from-list", listId, gameId);
       await useListsStore.getState().fetchGamesInList(listId); // Refresh games after removing a game
-    } catch {
-      set({ error: "Failed to remove game from list" });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to remove game from list";
+      console.error("Error removing game from list:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }

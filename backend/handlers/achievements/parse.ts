@@ -1,7 +1,7 @@
 import { Cracker, UnlockedAchievement } from "@/@types";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { logger } from "../logging";
+import logger from "../logging";
 
 class AchievementParser {
   public parseAchievements(

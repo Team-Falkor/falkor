@@ -6,7 +6,7 @@ import UsePlugins from "@/hooks/usePlugins";
 import { cn } from "@/lib";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { SortBy } from ".";
+import { SortBy } from "./sort";
 
 interface Props {
   showRows: boolean;

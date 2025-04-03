@@ -30,7 +30,7 @@ const UseDownloads = ({
     };
 
     void fetchData();
-  }, [fetch, forceFetch, store.queue?.length, store.downloads?.length, store.fetchQueue, store.fetchDownloads]);
+  }, [store, fetch, forceFetch, store.queue?.length, store.downloads?.length, store.fetchQueue, store.fetchDownloads]);
 
   return {
     addDownload: store.addToQueue,

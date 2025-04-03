@@ -6,10 +6,12 @@ interface Props extends InputHTMLAttributes<HTMLInputElement> {
   startIcon?: React.ReactElement;
   endIcon?: React.ReactElement;
   divClassName?: string;
+  onFocus?: React.FocusEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
 export const InputWithIcon = forwardRef<HTMLInputElement, Props>(
-  ({ className, type, startIcon, endIcon, divClassName, ...props }, ref) => {
+  ({ className, type, startIcon, endIcon, divClassName, onFocus, onBlur, ...props }, ref) => {
     const StartIcon = startIcon;
     const EndIcon = endIcon;
 
@@ -26,8 +28,10 @@ export const InputWithIcon = forwardRef<HTMLInputElement, Props>(
           className={cn({
             "pl-8": startIcon,
             "pr-8": endIcon,
-          })}
+          }, className)}
           ref={ref}
+          onFocus={onFocus}
+          onBlur={onBlur}
           {...props}
         />
 
@@ -40,3 +44,5 @@ export const InputWithIcon = forwardRef<HTMLInputElement, Props>(
     );
   }
 );
+
+InputWithIcon.displayName = "InputWithIcon";

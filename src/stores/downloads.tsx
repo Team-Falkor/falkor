@@ -1,6 +1,7 @@
 import { DownloadData, QueueData } from "@/@types";
 import { ITorrent } from "@/@types/torrent";
 import { create } from "zustand";
+import { shallow } from "zustand/shallow";
 
 interface QueueStoreState {
   queue: QueueData[];
@@ -14,6 +15,8 @@ interface QueueStoreState {
   resumeDownload: (id: string) => Promise<boolean>;
   stopDownload: (id: string) => Promise<boolean>;
   updateMaxConcurrentDownloads: (max: number) => Promise<void>;
+  getDownloadById: (id: string) => DownloadData | ITorrent | QueueData | undefined;
+  getActiveDownloadsCount: () => number;
 }
 
 export const useDownloadStore = create<QueueStoreState>()((set, get) => {
@@ -25,10 +28,13 @@ export const useDownloadStore = create<QueueStoreState>()((set, get) => {
     key: T,
     value: QueueStoreState[T]
   ) => {
-    set((state) => ({
-      ...state,
-      [key]: value,
-    }));
+    set((state) => {
+      if (shallow(state[key], value)) return state;
+      return {
+        ...state,
+        [key]: value,
+      };
+    });
   };
 
   // Setup event listeners
@@ -68,6 +74,24 @@ export const useDownloadStore = create<QueueStoreState>()((set, get) => {
     queue: [],
     downloads: [],
     maxConcurrentDownloads: 1,
+    cleanup,
+    
+    getDownloadById: (id: string) => {
+      const { downloads, queue } = get();
+      return [...downloads, ...queue].find(item => {
+        if ('type' in item) {
+          return item.type === 'torrent' ? item.data.torrentId === id : item.data.id === id;
+        }
+        return 'infoHash' in item ? item.infoHash === id : item.id === id;
+      });
+    },
+    
+    getActiveDownloadsCount: () => {
+      const { downloads } = get();
+      return downloads.filter(d => 
+        d.status !== 'completed' && d.status !== 'failed' && d.status !== 'stopped'
+      ).length;
+    },
 
     fetchQueue: async () => {
       try {

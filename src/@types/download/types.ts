@@ -17,7 +17,8 @@ export type DownloadStatus =
   | "completed"
   | "error"
   | "paused"
-  | "stopped";
+  | "stopped"
+  | "failed";
 
 export interface AddDownloadData {
   id: string;

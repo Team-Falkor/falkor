@@ -4,7 +4,7 @@ import {
   ExternalRefreshTokenFunction,
   ExternalTokenUpdateInput,
 } from "@/@types/accounts";
-import { logger } from "../../handlers/logging";
+import logger from "../../handlers/logging";
 import { db } from "../knex";
 import { BaseQuery } from "./base";
 
@@ -20,42 +20,40 @@ class AccountsDB extends BaseQuery {
   async init(): Promise<void> {
     if (this.initialized) return;
 
-    try {
-      const exists = await db.schema.hasTable("accounts");
-      if (!exists) {
-        await db.schema.createTable("accounts", (table) => {
-          table.increments("id").primary().notNullable();
-          table.string("username");
-          table.string("email");
-          table.string("avatar");
-          table.string("client_id");
-          table.string("client_secret");
-          table.string("access_token").notNullable();
-          table.string("refresh_token").notNullable();
-          table.integer("expires_in").notNullable();
-          table.string("type").unique().notNullable();
-        });
-      }
-      this.initialized = true;
-    } catch (error) {
-      console.error("Error initializing database accounts:", error);
-      logger.log("error", `Error initializing database accounts: ${error}`);
+    const success = await this.ensureTable("accounts", (table) => {
+      table.increments("id").primary().notNullable();
+      table.string("username");
+      table.string("email");
+      table.string("avatar");
+      table.string("client_id");
+      table.string("client_secret");
+      table.string("access_token").notNullable();
+      table.string("refresh_token").notNullable();
+      table.integer("expires_in").notNullable();
+      table.string("type").unique().notNullable();
+    });
+    
+    if (!success) {
+      throw new Error("Failed to initialize accounts table");
     }
+    
+    this.initialized = true;
   }
 
   /**
    * Adds a new account to the database
    * @param input The new account data
    */
-  async addAccount(input: ExternalNewAccountInput): Promise<void> {
+  async addAccount(input: ExternalNewAccountInput): Promise<boolean> {
     await this.init();
 
     if (!input.access_token || !input.refresh_token) {
+      logger.log("error", "Access token and refresh token are required");
       throw new Error("Access token and refresh token are required");
     }
 
-    try {
-      await db("accounts").insert({
+    return await this.executeTransaction(async (trx) => {
+      await trx("accounts").insert({
         username: input.username,
         email: input.email,
         avatar: input.avatar,
@@ -66,10 +64,8 @@ class AccountsDB extends BaseQuery {
         expires_in: input.expires_in,
         type: input.type,
       });
-    } catch (error) {
-      console.error("Error adding account:", error);
-      logger.log("error", `Error adding account: ${error}`);
-    }
+      return true;
+    }, "Error adding account") ?? false;
   }
 
   /**
@@ -83,27 +79,25 @@ class AccountsDB extends BaseQuery {
   ): Promise<ExternalAccount | null> {
     await this.init();
 
-    try {
-      const query = db("accounts").where(function () {
-        this.where("email", identifier).orWhere("username", identifier);
+    return await this.executeOperation(async () => {
+      const query = db("accounts").where((builder) => {
+        builder.where("email", identifier).orWhere("username", identifier);
       });
 
       if (type) {
         query.andWhere("type", type);
       }
 
-      return await query.first();
-    } catch (error) {
-      console.error("Error fetching account:", error);
-      logger.log("error", `Error fetching account: ${error}`);
-      return null;
-    }
+      const result = await query.first();
+      return result || null;
+    }, "Error fetching account");
   }
+  
 
-  async getAccounts(type?: string): Promise<Array<ExternalAccount>> {
+  async getAccounts(type?: string): Promise<ExternalAccount[]> {
     await this.init();
 
-    try {
+    return await this.executeOperation(async () => {
       const query = db("accounts");
 
       if (type) {
@@ -111,11 +105,7 @@ class AccountsDB extends BaseQuery {
       }
 
       return await query.select("*");
-    } catch (error) {
-      console.error("Error fetching accounts:", error);
-      logger.log("error", `Error fetching accounts: ${error}`);
-      return [];
-    }
+    }, "Error fetching accounts");
   }
 
   /**
@@ -128,27 +118,26 @@ class AccountsDB extends BaseQuery {
     identifier: string,
     input: ExternalTokenUpdateInput,
     type?: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     await this.init();
 
-    try {
-      const query = db("accounts").where(function () {
-        this.where("email", identifier).orWhere("username", identifier);
+    return await this.executeTransaction(async (trx) => {
+      const query = trx("accounts").where((builder) => {
+        builder.where("email", identifier).orWhere("username", identifier);
       });
 
       if (type) {
         query.andWhere("type", type);
       }
 
-      await query.update({
+      const result = await query.update({
         access_token: input.access_token,
         refresh_token: input.refresh_token,
         expires_in: input.expires_in,
       });
-    } catch (error) {
-      console.error("Error updating tokens:", error);
-      logger.log("error", `Error updating tokens: ${error}`);
-    }
+      
+      return result > 0;
+    }, "Error updating tokens") ?? false;
   }
 
   /**
@@ -156,12 +145,12 @@ class AccountsDB extends BaseQuery {
    * @param identifier The email, username, or type of the account to delete
    * @param type The type of account to delete, if specified
    */
-  async deleteAccount(identifier: string, type?: string): Promise<void> {
+  async deleteAccount(identifier: string, type?: string): Promise<boolean> {
     await this.init();
 
-    try {
-      const query = db("accounts").where(function () {
-        this.where("email", identifier).orWhere("username", identifier);
+    return await this.executeOperation(async () => {
+      const query = db("accounts").where((builder) => {
+        builder.where("email", identifier).orWhere("username", identifier);
       });
 
       if (type) {
@@ -169,10 +158,8 @@ class AccountsDB extends BaseQuery {
       }
 
       await query.del();
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      logger.log("error", `Error deleting account: ${error}`);
-    }
+      return true;
+    }, "Error deleting account");
   }
 
   /**
@@ -185,20 +172,20 @@ class AccountsDB extends BaseQuery {
     identifier: string,
     refreshTokenFunction: ExternalRefreshTokenFunction,
     type?: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     await this.init();
 
     const account = await this.getAccount(identifier, type);
     if (!account) {
-      console.error("Account not found for token refresh");
-      return;
+      logger.log("error", "Account not found for token refresh");
+      return false;
     }
 
     const now = new Date();
     const expiresAt = new Date(account.expires_in);
 
     if (expiresAt <= now) {
-      try {
+      return await this.executeOperation(async () => {
         const {
           accessToken,
           refreshToken,
@@ -214,11 +201,11 @@ class AccountsDB extends BaseQuery {
           },
           type
         );
-      } catch (error) {
-        console.error("Error refreshing tokens:", error);
-        logger.log("error", `Error refreshing tokens: ${error}`);
-      }
+        return true;
+      }, "Error refreshing tokens");
     }
+    
+    return true;
   }
 }
 

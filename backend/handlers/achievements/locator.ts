@@ -2,8 +2,8 @@ import { Cracker } from "@/@types";
 import { AchievementFile } from "@/@types/achievements/types";
 import { app } from "electron";
 import { existsSync, readdirSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { logger } from "../logging";
+import { join } from "node:path";
+import logger from "../logging";
 
 type PathType =
   | "appData"
@@ -263,50 +263,47 @@ class AchievementFileLocator {
     });
 
   private static getSystemPath(type: PathType): string {
-    const basePaths = {
-      appData: this.isWindows
-        ? app.getPath("appData")
-        : join(
-            this.winePrefix,
-            "drive_c",
-            "users",
-            this.user || "unknown",
-            "AppData",
-            "Roaming"
-          ),
-      documents: this.isWindows
-        ? app.getPath("documents")
-        : join(
-            this.winePrefix,
-            "drive_c",
-            "users",
-            this.user || "unknown",
-            "Documents"
-          ),
-      publicDocuments: this.isWindows
-        ? join("C:", "Users", "Public", "Documents")
-        : join(this.winePrefix, "drive_c", "users", "Public", "Documents"),
-      localAppData: this.isWindows
-        ? join(app.getPath("appData"), "..", "Local")
-        : join(
-            this.winePrefix,
-            "drive_c",
-            "users",
-            this.user || "unknown",
-            "AppData",
-            "Local"
-          ),
-      programData: this.isWindows
-        ? join("C:", "ProgramData")
-        : join(this.winePrefix, "drive_c", "ProgramData"),
-      winePrefix: this.winePrefix,
-    };
-
-    const path = basePaths[type];
-    if (!path) {
-      throw new Error(`Unknown path type: ${type}`);
+    if (this.isWindows) {
+      switch (type) {
+        case "documents":
+          return app.getPath("documents");
+        case "publicDocuments":
+          return join("C:", "Users", "Public", "Documents");
+        case "localAppData":
+          return join(app.getPath("appData"), "..", "Local");
+        case "programData":
+          return join("C:", "ProgramData");
+        case "appData":
+          return app.getPath("appData");
+        case "winePrefix":
+          return "";
+        default:
+          throw new Error(`Invalid path type: ${type}`);
+      }
+    } else {
+      // Linux path handling
+      const homeDir = app.getPath("home");
+      // Use XDG base directory for Linux systems
+      const xdgData = process.env.XDG_DATA_HOME || join(homeDir, ".local", "share");
+      const wineDataPath = join(xdgData, "wine");
+      
+      switch (type) {
+        case "documents":
+          return join(homeDir, "Documents");
+        case "publicDocuments":
+          return join(wineDataPath, "drive_c", "users", "Public", "Documents");
+        case "localAppData":
+          return join(wineDataPath, "drive_c", "users", this.user || "unknown", "AppData", "Local");
+        case "programData":
+          return join(wineDataPath, "drive_c", "ProgramData");
+        case "appData":
+          return join(wineDataPath, "drive_c", "users", this.user || "unknown", "AppData", "Roaming");
+        case "winePrefix":
+          return wineDataPath;
+        default:
+          throw new Error(`Invalid path type: ${type}`);
+      }
     }
-    return resolve(path);
   }
 
   static setWinePrefix(newPrefix: string): void {

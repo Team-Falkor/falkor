@@ -1,10 +1,19 @@
 import { FSWatcher, statSync, watch, WatchListener } from "node:fs";
 import { platform } from "node:os";
+import { setTimeout } from "node:timers/promises";
 
 class AchievementWatcher {
   private filePath: string;
   private watcher: FSWatcher | null = null;
   private isLinux: boolean = platform() === "linux";
+  private retryCount: number = 0;
+  private maxRetries: number = 3;
+  private retryDelay: number = 1000; // 1 second
+  private watchOptions = {
+    persistent: true,
+    recursive: false,
+    encoding: 'utf8' as BufferEncoding
+  };
 
   constructor(filePath: string) {
     if (!filePath) {
@@ -24,20 +33,42 @@ class AchievementWatcher {
   }
 
   /** Initializes the watcher if not already started */
-  start(callback?: WatchListener<string>): void {
+  async start(callback?: WatchListener<string>): Promise<void> {
     if (this.watcher) {
       console.warn("Watcher already running. Restarting...");
-      this.restart(callback);
+      await this.restart(callback);
       return;
     }
 
-    console.log(`Watching file: ${this.filePath}`);
-    if (this.isLinux) {
-      console.log("Using Linux-compatible watcher settings.");
-      this.watcher = watch(this.filePath, { persistent: true }, callback);
-    } else {
-      console.log("Using default watcher settings.");
-      this.watcher = watch(this.filePath, callback);
+    await this.initializeWatcher(callback);
+  }
+
+  private async initializeWatcher(callback?: WatchListener<string>): Promise<void> {
+    try {
+      console.log(`Watching file: ${this.filePath}`);
+      
+      const options = this.isLinux
+        ? { ...this.watchOptions, interval: 100 } // Add polling interval for Linux
+        : this.watchOptions;
+
+      this.watcher = watch(this.filePath, options, async (eventType, filename) => {
+        try {
+          if (callback) await callback(eventType, filename);
+        } catch (error) {
+          console.error(`Error in watch callback: ${error}`);
+          await this.handleWatchError(callback);
+        }
+      });
+
+      this.watcher.on('error', async (error) => {
+        console.error(`Watch error: ${error}`);
+        await this.handleWatchError(callback);
+      });
+
+      this.retryCount = 0; // Reset retry count on successful initialization
+    } catch (error) {
+      console.error(`Failed to initialize watcher: ${error}`);
+      await this.handleWatchError(callback);
     }
   }
 
@@ -52,9 +83,9 @@ class AchievementWatcher {
   }
 
   /** Restarts the watcher */
-  restart(callback?: WatchListener<string>): void {
+  async restart(callback?: WatchListener<string>): Promise<void> {
     this.destroy();
-    this.start(callback);
+    await this.start(callback);
   }
 
   /** Attaches an event listener to the watcher */
@@ -92,6 +123,20 @@ class AchievementWatcher {
     console.log(`File Path: ${this.filePath}`);
     console.log(`Running: ${this.isRunning()}`);
     console.log(`Platform: ${this.isLinux ? "Linux" : "Other (Windows/Mac)"}`);
+  }
+
+  /** Handles watch errors and implements retry logic */
+  private async handleWatchError(callback?: WatchListener<string>): Promise<void> {
+    if (this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      console.log(`Retrying watcher initialization (attempt ${this.retryCount}/${this.maxRetries})...`);
+      this.destroy();
+      await setTimeout(this.retryDelay);
+      await this.initializeWatcher(callback);
+    } else {
+      console.error('Max retry attempts reached. Watcher initialization failed.');
+      this.destroy();
+    }
   }
 
   /** Ensures that the watcher is initialized before performing operations */
