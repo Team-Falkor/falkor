@@ -21,7 +21,9 @@ const PluginAddButton = ({ open, setOpen }: PluginAddButtonProps) => {
         <DialogTrigger asChild>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button className="hidden md:flex md:gap-2">
+              <Button className="hidden md:flex md:gap-2" onClick={() => {
+                setOpen(true);
+              }}>
                 <Plus className="h-4 w-4" />
                 <span>{t("install_plugin")}</span>
               </Button>

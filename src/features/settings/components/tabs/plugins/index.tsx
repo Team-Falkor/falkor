@@ -22,10 +22,6 @@ const PluginSettings = () => {
     setShowRows(localStorage?.getItem("showRows") === "true");
     setSortBy((localStorage?.getItem("sortBy") as SortBy) || "alphabetic-asc");
     setShowEnabledOnly(localStorage?.getItem("showEnabledOnly") === "true");
-    
- 
-    
-
   }, []);
 
   return (
