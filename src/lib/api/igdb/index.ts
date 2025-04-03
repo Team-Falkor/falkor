@@ -2,6 +2,7 @@ import { getSteamIdFromWebsites } from "@/lib/helpers";
 import { BaseApi } from "../base";
 import { defaultFields } from "./constants";
 import { ApiResponse, IGDBReturnDataType, InfoReturn } from "./types";
+import { genreAPI } from "./genre";
 
 const { VITE_TWITCH_CLIENT_ID, VITE_TWITCH_CLIENT_SECRET } = import.meta.env;
 
@@ -163,8 +164,8 @@ class IGDB extends BaseApi {
     });
   }
 
-  private async request<T = unknown>(
-    reqUrl: "games",
+  async request<T = unknown>(
+    reqUrl: "games" | "genres" | "themes",
     options: {
       fields?: string[];
       where?: string;
@@ -172,7 +173,8 @@ class IGDB extends BaseApi {
       sort?: string;
       limit?: string;
       offset?: string;
-    }
+    },
+    includeDefaultFields: boolean = true
   ): Promise<T> {
     while (this.gettingAccessToken) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -184,8 +186,12 @@ class IGDB extends BaseApi {
       // Construct the request body
       let requestBody = "";
       const fields = options.fields || [];
-      requestBody += `fields ${[...fields, ...defaultFields].join(",")};`;
-
+      if (includeDefaultFields) {
+        requestBody += `fields ${[...fields,...defaultFields].join(",")};`;
+      } else {
+        requestBody += `fields ${fields.join(",")};`;
+      }
+      
       if (options.sort) {
         requestBody += ` sort ${options.sort};`;
       }
@@ -233,4 +239,4 @@ class IGDB extends BaseApi {
 }
 
 const igdb = new IGDB();
-export { igdb };
+export { igdb, genreAPI };

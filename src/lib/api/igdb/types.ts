@@ -86,6 +86,12 @@ export interface Genre {
   checksum: string;
 }
 
+export interface Theme {
+  id: number;
+  created_at: number;
+  name: string;
+}
+
 export interface InvolvedCompany {
   id: number;
   company: Company;

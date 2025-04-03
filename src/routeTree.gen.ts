@@ -15,7 +15,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as SettingsImport } from './routes/settings'
 import { Route as IndexImport } from './routes/index'
+import { Route as ThemeThemeIdImport } from './routes/theme/$themeId'
 import { Route as SectionsTopRatedImport } from './routes/sections/topRated'
+import { Route as GenreGenreIdImport } from './routes/genre/$genreId'
 
 // Create Virtual Routes
 
@@ -76,9 +78,21 @@ const InfoIdLazyRoute = InfoIdLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/info/$id.lazy').then((d) => d.Route))
 
+const ThemeThemeIdRoute = ThemeThemeIdImport.update({
+  id: '/theme/$themeId',
+  path: '/theme/$themeId',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const SectionsTopRatedRoute = SectionsTopRatedImport.update({
   id: '/sections/topRated',
   path: '/sections/topRated',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const GenreGenreIdRoute = GenreGenreIdImport.update({
+  id: '/genre/$genreId',
+  path: '/genre/$genreId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -114,11 +128,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryLazyImport
       parentRoute: typeof rootRoute
     }
+    '/genre/$genreId': {
+      id: '/genre/$genreId'
+      path: '/genre/$genreId'
+      fullPath: '/genre/$genreId'
+      preLoaderRoute: typeof GenreGenreIdImport
+      parentRoute: typeof rootRoute
+    }
     '/sections/topRated': {
       id: '/sections/topRated'
       path: '/sections/topRated'
       fullPath: '/sections/topRated'
       preLoaderRoute: typeof SectionsTopRatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/theme/$themeId': {
+      id: '/theme/$themeId'
+      path: '/theme/$themeId'
+      fullPath: '/theme/$themeId'
+      preLoaderRoute: typeof ThemeThemeIdImport
       parentRoute: typeof rootRoute
     }
     '/info/$id': {
@@ -152,7 +180,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
+  '/genre/$genreId': typeof GenreGenreIdRoute
   '/sections/topRated': typeof SectionsTopRatedRoute
+  '/theme/$themeId': typeof ThemeThemeIdRoute
   '/info/$id': typeof InfoIdLazyRoute
   '/sections/mostAnticipated': typeof SectionsMostAnticipatedLazyRoute
   '/sections/newReleases': typeof SectionsNewReleasesLazyRoute
@@ -163,7 +193,9 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
+  '/genre/$genreId': typeof GenreGenreIdRoute
   '/sections/topRated': typeof SectionsTopRatedRoute
+  '/theme/$themeId': typeof ThemeThemeIdRoute
   '/info/$id': typeof InfoIdLazyRoute
   '/sections/mostAnticipated': typeof SectionsMostAnticipatedLazyRoute
   '/sections/newReleases': typeof SectionsNewReleasesLazyRoute
@@ -175,7 +207,9 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
+  '/genre/$genreId': typeof GenreGenreIdRoute
   '/sections/topRated': typeof SectionsTopRatedRoute
+  '/theme/$themeId': typeof ThemeThemeIdRoute
   '/info/$id': typeof InfoIdLazyRoute
   '/sections/mostAnticipated': typeof SectionsMostAnticipatedLazyRoute
   '/sections/newReleases': typeof SectionsNewReleasesLazyRoute
@@ -188,7 +222,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/downloads'
     | '/library'
+    | '/genre/$genreId'
     | '/sections/topRated'
+    | '/theme/$themeId'
     | '/info/$id'
     | '/sections/mostAnticipated'
     | '/sections/newReleases'
@@ -198,7 +234,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/downloads'
     | '/library'
+    | '/genre/$genreId'
     | '/sections/topRated'
+    | '/theme/$themeId'
     | '/info/$id'
     | '/sections/mostAnticipated'
     | '/sections/newReleases'
@@ -208,7 +246,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/downloads'
     | '/library'
+    | '/genre/$genreId'
     | '/sections/topRated'
+    | '/theme/$themeId'
     | '/info/$id'
     | '/sections/mostAnticipated'
     | '/sections/newReleases'
@@ -220,7 +260,9 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   DownloadsLazyRoute: typeof DownloadsLazyRoute
   LibraryLazyRoute: typeof LibraryLazyRoute
+  GenreGenreIdRoute: typeof GenreGenreIdRoute
   SectionsTopRatedRoute: typeof SectionsTopRatedRoute
+  ThemeThemeIdRoute: typeof ThemeThemeIdRoute
   InfoIdLazyRoute: typeof InfoIdLazyRoute
   SectionsMostAnticipatedLazyRoute: typeof SectionsMostAnticipatedLazyRoute
   SectionsNewReleasesLazyRoute: typeof SectionsNewReleasesLazyRoute
@@ -231,7 +273,9 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   DownloadsLazyRoute: DownloadsLazyRoute,
   LibraryLazyRoute: LibraryLazyRoute,
+  GenreGenreIdRoute: GenreGenreIdRoute,
   SectionsTopRatedRoute: SectionsTopRatedRoute,
+  ThemeThemeIdRoute: ThemeThemeIdRoute,
   InfoIdLazyRoute: InfoIdLazyRoute,
   SectionsMostAnticipatedLazyRoute: SectionsMostAnticipatedLazyRoute,
   SectionsNewReleasesLazyRoute: SectionsNewReleasesLazyRoute,
@@ -251,7 +295,9 @@ export const routeTree = rootRoute
         "/settings",
         "/downloads",
         "/library",
+        "/genre/$genreId",
         "/sections/topRated",
+        "/theme/$themeId",
         "/info/$id",
         "/sections/mostAnticipated",
         "/sections/newReleases"
@@ -269,8 +315,14 @@ export const routeTree = rootRoute
     "/library": {
       "filePath": "library.lazy.tsx"
     },
+    "/genre/$genreId": {
+      "filePath": "genre/$genreId.tsx"
+    },
     "/sections/topRated": {
       "filePath": "sections/topRated.tsx"
+    },
+    "/theme/$themeId": {
+      "filePath": "theme/$themeId.tsx"
     },
     "/info/$id": {
       "filePath": "info/$id.lazy.tsx"

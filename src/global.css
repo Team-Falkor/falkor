@@ -66,6 +66,10 @@
   body {
     @apply bg-background text-foreground font-nunito;
   }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+  }
 
   ::-webkit-scrollbar {
     @apply w-2.5 h-2.5;
