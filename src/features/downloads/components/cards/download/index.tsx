@@ -43,6 +43,10 @@ const DownloadCard = ({ stats, deleteStats }: DownloadCardProps) => {
     downloading ? "h-60" : "h-48"
   );
 
+  useEffect(() => {
+    console.log({ game_data });
+  }, [game_data]);
+
   return (
     <div className={containerClass}>
       <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">

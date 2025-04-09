@@ -5,3 +5,4 @@ export * from "./plugins";
 export * from "./settings";
 export * from "./themes";
 export * from "./types";
+export * from "./torrent";

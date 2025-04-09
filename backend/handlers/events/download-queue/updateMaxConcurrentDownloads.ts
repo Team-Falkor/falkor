@@ -1,21 +1,18 @@
 import { IpcMainInvokeEvent } from "electron";
-import { downloadQueue } from "../../../utils/download-queue";
+import { downloadQueue } from "../../../handlers/download-queue";
 import { registerEvent } from "../utils";
 
 const updateMaxConcurrentDownloads = async (
   _event: IpcMainInvokeEvent,
   max: number
-) => {
+): Promise<{ success: boolean; error?: string }> => {
   try {
     downloadQueue.updateMaxConcurrentDownloads(max);
-    return { success: true, data: max };
+    return { success: true };
   } catch (error) {
-    console.error("Error updating max concurrent downloads:", error);
-    return { success: false, error: (error as Error).message };
+    console.error("[Queue:UpdateMaxConcurrentDownloads] Error updating max concurrent downloads:", error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 };
 
-registerEvent(
-  "queue:updateMaxConcurrentDownloads",
-  updateMaxConcurrentDownloads
-);
+registerEvent("queue:updateMaxConcurrentDownloads", updateMaxConcurrentDownloads);

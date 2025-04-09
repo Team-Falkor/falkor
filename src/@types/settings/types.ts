@@ -16,6 +16,7 @@ export interface SettingsConfig {
   notifications: boolean;
   api_base_url: string;
   preferredDebridService?: ExternalAccountType;
+  maxConcurrentDownloads?: number;
 }
 
 export type SettingsTheme = "system" | "light" | "dark";

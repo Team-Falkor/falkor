@@ -1,7 +1,7 @@
 import { DownloadData } from "@/@types";
 import { ITorrent } from "@/@types/torrent";
 import { IpcMainInvokeEvent } from "electron";
-import { downloadQueue } from "../../../utils/download-queue";
+import { downloadQueue } from "../../../handlers/download-queue";
 import { registerEvent } from "../utils";
 
 const getActiveDownloads = async (
@@ -12,12 +12,11 @@ const getActiveDownloads = async (
   error?: string;
 }> => {
   try {
-    const downloads = downloadQueue.getDownloads();
-
+    const downloads = await downloadQueue.getDownloads();
     return { success: true, data: downloads };
   } catch (error) {
-    console.error("Error fetching downloads:", error);
-    return { success: false, error: (error as Error).message };
+    console.error("[Queue:GetDownloads] Error getting active downloads:", error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 };
 

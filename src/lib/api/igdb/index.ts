@@ -26,27 +26,40 @@ class IGDB extends BaseApi {
     };
   }
 
-  private async getNewToken(): Promise<TokenType> {
-    try {
-      const response = await fetch(
-        `https://id.twitch.tv/oauth2/token?client_id=${this.clientId}&client_secret=${this.clientSecret}&grant_type=client_credentials`,
-        { method: "POST" }
-      );
-      const data = await response.json();
+  private async getNewToken(maxRetries = 3): Promise<TokenType> {
+    let retries = 0;
+    
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(
+          `https://id.twitch.tv/oauth2/token?client_id=${this.clientId}&client_secret=${this.clientSecret}&grant_type=client_credentials`,
+          { method: "POST" }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const token = data.access_token;
+        const expiration = Date.now() + data.expires_in;
 
-      const token = data.access_token;
-      const expiration = Date.now() + data.expires_in;
+        localStorage.setItem("igdb_access_token", token);
+        localStorage.setItem("igdb_token_expiration", expiration.toString());
+        this.clientAccessToken = token;
 
-      localStorage.setItem("igdb_access_token", token);
-      localStorage.setItem("igdb_token_expiration", expiration.toString());
-
-      this.clientAccessToken = token;
-
-      return { accessToken: token, expiresIn: expiration };
-    } catch (error) {
-      console.error("Error fetching new token:", error);
-      return { accessToken: null, expiresIn: 0 };
+        return { accessToken: token, expiresIn: expiration };
+      } catch (error) {
+        retries++;
+        console.error(`Error fetching new token (attempt ${retries}/${maxRetries}):`, error);
+        if (retries >= maxRetries) {
+          return { accessToken: null, expiresIn: 0 };
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+      }
     }
+    
+    return { accessToken: null, expiresIn: 0 };
   }
 
   private hasTokenExpired(expiration: number): boolean {
@@ -64,27 +77,44 @@ class IGDB extends BaseApi {
 
     const fetchToken = async (): Promise<TokenType | void> => {
       const cachedToken = this.getCachedToken();
-
       const hasExpired = this.hasTokenExpired(cachedToken.expiresIn);
 
-      if (cachedToken.accessToken && !hasExpired) {
+      // Refresh token if it's about to expire (within 5 minutes)
+      const shouldRefresh = cachedToken.accessToken && 
+        (hasExpired || cachedToken.expiresIn < Date.now() + 300000);
+
+      if (cachedToken.accessToken && !shouldRefresh) {
         console.log("[IGDB] Using cached token");
         this.clientAccessToken = cachedToken.accessToken;
         return cachedToken;
       }
 
       console.log("[IGDB] Fetching new token");
-      const newToken = cachedToken.accessToken
-        ? await this.renewToken()
-        : await this.getNewToken();
+      try {
+        const newToken = cachedToken.accessToken
+          ? await this.renewToken()
+          : await this.getNewToken();
+        
+        if (!newToken.accessToken) {
+          console.error("[IGDB] Failed to get a new token");
+          return;
+        }
 
-      this.gettingAccessToken = false;
-      return newToken;
+        this.clientAccessToken = newToken.accessToken;
+        return newToken;
+      } catch (error) {
+        console.error("[IGDB] Failed to refresh token:", error);
+        throw error;
+      } finally {
+        this.gettingAccessToken = false;
+      }
     };
 
     try {
-      await fetchToken();
-      return;
+      return await fetchToken();
+    } catch (error) {
+      console.error("[IGDB] Critical token refresh failure:", error);
+      throw error;
     } finally {
       this.gettingAccessToken = false;
     }

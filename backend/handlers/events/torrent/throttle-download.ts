@@ -1,5 +1,5 @@
 import type { IpcMainInvokeEvent } from "electron";
-import { client } from "../../../utils";
+import { torrentClient } from "../../../handlers/torrent";
 import { settings } from "../../../utils/settings/settings";
 import { registerEvent } from "../utils";
 
@@ -10,7 +10,7 @@ const throttleDownload = async (
   updateSettings: boolean = false
 ) => {
   try {
-    client.throttleDownload(rate);
+    torrentClient.throttleDownload(rate);
 
     if (updateSettings) settings.update("maxDownloadSpeed", rate);
 

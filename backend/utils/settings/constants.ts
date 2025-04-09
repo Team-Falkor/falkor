@@ -16,4 +16,5 @@ export const defaultSettings: SettingsConfig = {
   maxUploadSpeed: -1,
   notifications: true,
   api_base_url: constants.apiUrl ?? "https://api.falkor.moe",
+  maxConcurrentDownloads: 1,
 };

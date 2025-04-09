@@ -1,15 +1,17 @@
 import { IpcMainInvokeEvent } from "electron";
+import { downloadQueue } from "../../../handlers/download-queue";
 import { registerEvent } from "../utils";
 
-import { downloadQueue } from "../../../utils/download-queue";
-
-const stopDownload = async (_event: IpcMainInvokeEvent, id: string) => {
+const stopDownload = async (
+  _event: IpcMainInvokeEvent,
+  id: string
+): Promise<{ success: boolean; error?: string }> => {
   try {
-    await downloadQueue.stop(id);
-    return { success: true };
+    const result = await downloadQueue.stop(id);
+    return { success: result };
   } catch (error) {
-    console.error(`Error stopping download with ID ${id}:`, error);
-    return { success: false, error: (error as Error).message };
+    console.error(`[Queue:Stop] Error stopping download ${id}:`, error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 };
 

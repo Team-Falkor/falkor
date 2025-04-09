@@ -1,9 +1,8 @@
-import { downloadQueue } from "../../../handlers/download";
+import { downloadQueue } from "../../../handlers/download-queue";
 import { gamesLaunched } from "../../../handlers/launcher/games_launched";
 import { settings } from "../../../utils/settings/settings";
 import window from "../../../utils/window";
 import { registerEvent } from "../utils/registerEvent";
-
 
 const close = async (
   _event: Electron.IpcMainInvokeEvent,

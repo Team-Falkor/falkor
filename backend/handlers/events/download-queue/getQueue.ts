@@ -1,21 +1,21 @@
 import { QueueData } from "@/@types";
 import { IpcMainInvokeEvent } from "electron";
-import { downloadQueue } from "../../../utils/download-queue";
+import { downloadQueue } from "../../../handlers/download-queue";
 import { registerEvent } from "../utils";
 
-const getQueueItems = (
+const getQueueItems = async (
   _event: IpcMainInvokeEvent
-): {
+): Promise<{
   success: boolean;
   data?: QueueData[];
   error?: string;
-} => {
+}> => {
   try {
-    const items = downloadQueue.getQueueItems();
-    return { success: true, data: items };
+    const queue = await downloadQueue.getQueue();
+    return { success: true, data: queue };
   } catch (error) {
-    console.error("Error fetching queue items:", error);
-    return { success: false, error: (error as Error).message };
+    console.error("[Queue:GetQueue] Error getting queue items:", error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 };
 

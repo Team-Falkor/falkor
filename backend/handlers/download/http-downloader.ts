@@ -20,9 +20,30 @@ class HttpDownloader {
   private previousDownloadedSize: number = 0; // Tracks the previously downloaded size for speed calculation.
   private previousProgress: number = 0; // Tracks previous progress percentage.
   private fileStream?: fs.WriteStream; // Writable stream for saving the file.
+  private progressCallback?: (progress: {
+    percent: number;
+    speed: number;
+    eta: number;
+    total: number;
+  }) => void; // Callback for progress updates
 
   constructor(item: item) {
     this.item = item; // Initialize the download item.
+  }
+
+  /**
+   * Sets a callback function to be called when download progress updates
+   * @param callback Function to call with progress information
+   */
+  public setProgressCallback(
+    callback: (progress: {
+      percent: number;
+      speed: number;
+      eta: number;
+      total: number;
+    }) => void
+  ): void {
+    this.progressCallback = callback;
   }
 
   /**
@@ -193,6 +214,7 @@ class HttpDownloader {
    * Handles successful download completion.
    */
   private finishDownload(resolve: () => void) {
+    this.cleanupStreams(); // Ensure all streams are properly closed
     this.item.updateStatus("completed");
     this.clearTracking();
     this.handleComplete();
@@ -285,6 +307,41 @@ class HttpDownloader {
       ...this.item.getReturnData(),
       status: "completed",
     });
+  }
+
+  /**
+   * Registers a callback function to be called when download progress updates.
+   * @param callback Function to call with progress information
+   */
+  public onProgress(
+    callback: (progress: {
+      percent: number;
+      speed: number;
+      eta: number;
+      total: number;
+    }) => void
+  ): void {
+    this.progressCallback = callback;
+
+    // Update the progress tracking to use the callback
+    this.progressInterval = setInterval(() => {
+      if (!this.progressCallback) return;
+
+      let progress = (this.downloadedSize / this.item.totalSize) * 100;
+      progress = Math.min(Math.max(progress, 0), 100);
+
+      if (Math.abs(progress - this.previousProgress) >= 0.002) {
+        this.previousProgress = progress;
+        const roundedProgress = Math.round(progress * 100) / 100;
+
+        this.progressCallback({
+          percent: roundedProgress,
+          speed: this.item.downloadSpeed,
+          eta: this.item.timeRemaining as number,
+          total: this.item.totalSize,
+        });
+      }
+    }, 1000);
   }
 }
 

@@ -185,6 +185,7 @@ class Logger {
         this.flushLogs();
       }
 
+      console.log(`[${level}] ${message}`);
       return log;
     } catch (error) {
       console.error("Error logging:", error);

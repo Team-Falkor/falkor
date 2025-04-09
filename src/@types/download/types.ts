@@ -13,6 +13,7 @@ export interface DownloadData {
 
 export type DownloadStatus =
   | "pending"
+  | "queued"
   | "downloading"
   | "completed"
   | "error"
