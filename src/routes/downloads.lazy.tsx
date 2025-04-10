@@ -1,7 +1,7 @@
 import { DownloadData, QueueData } from "@/@types";
 import { ITorrent } from "@/@types/torrent";
 import FolderButton from "@/components/folderButton";
-import { H4 } from "@/components/typography/h4";
+import { H4 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import DownloadCard from "@/features/downloads/components/cards/download";
 import { DownloadCardLoading } from "@/features/downloads/components/cards/loading";

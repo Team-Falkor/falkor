@@ -1,11 +1,10 @@
 import CarouselButton from "@/components/carouselButton";
-import { H2 } from "@/components/typography/h2";
-import { TypographyMuted } from "@/components/typography/muted";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import { H2, TypographyMuted } from "@/components/ui/typography";
 import { t } from "i18next";
 import { useEffect } from "react";
 import { useGetAchievementsData } from "../hooks/useGetAchievementsData";

@@ -1,9 +1,9 @@
-import { H5 } from "@/components/typography/h5";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLogger } from "@/hooks";
 import { cn } from "@/lib";
 import { useQuery } from "@tanstack/react-query";
 import LogSwitch from "./logSwitch";
+import { H5 } from "@/components/ui/typography";
 
 interface LogWindowProps {
   enabled: boolean;

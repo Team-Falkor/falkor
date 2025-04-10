@@ -4,14 +4,13 @@ import {
   ItemDownload,
   SourceProvider,
 } from "@/@types";
-import { P } from "@/components/typography/p";
-import { TypographySmall } from "@/components/typography/small";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import { P, TypographySmall } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import UsePlugins from "@/hooks/usePlugins";
 import { formatName } from "@/lib";

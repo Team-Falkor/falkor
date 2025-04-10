@@ -1,11 +1,11 @@
 import DefaultCard from "@/components/cards/defaultCard";
 import CarouselButton from "@/components/carouselButton";
-import { H2 } from "@/components/typography/h2";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import { H2 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import { useMemo } from "react";

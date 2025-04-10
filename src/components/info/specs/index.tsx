@@ -1,5 +1,5 @@
 import RequirementsRow from "@/components/info/specs/row";
-import { H5 } from "@/components/typography/h5";
+import { H5 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { PcRequirements } from "@/lib/api/igdb/types";
 import { useMemo } from "react";

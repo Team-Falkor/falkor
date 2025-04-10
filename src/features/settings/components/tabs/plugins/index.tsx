@@ -1,5 +1,3 @@
-import { H1 } from "@/components/typography/h1";
-import { TypographyMuted } from "@/components/typography/muted";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguageContext } from "@/contexts/I18N";
 import { CommunityProviders } from "@/features/plugins/providers/components/community-providers";
@@ -12,6 +10,7 @@ import PluginAddButton from "./addButton";
 import PluginDisplay from "./display";
 import PluginSearch from "./search";
 import PluginsSort, { SortBy } from "./sort";
+import { H1, TypographyMuted } from "@/components/ui/typography";
 
 const PluginSettings = () => {
   const { t } = useLanguageContext();

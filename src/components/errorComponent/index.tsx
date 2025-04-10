@@ -1,11 +1,9 @@
-import { H3 } from "@/components/typography/h3";
-import { H4 } from "@/components/typography/h4";
 import { useSettings } from "@/hooks";
 import { cn, shouldHideTitleBar } from "@/lib";
 import { ErrorComponentProps, Link } from "@tanstack/react-router";
-import { H1 } from "../typography/h1";
 import { Button, buttonVariants } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import { H1, H3, H4 } from "../ui/typography";
 
 const ErrorComponent = (props: ErrorComponentProps) => {
   const { settings } = useSettings();

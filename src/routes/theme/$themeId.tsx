@@ -1,16 +1,15 @@
+import DefaultCard from "@/components/cards/defaultCard";
+import MainContainer from "@/components/containers/mainContainer";
+import Spinner from "@/components/spinner";
+import { Button } from "@/components/ui/button";
+import { H1, TypographyMuted } from "@/components/ui/typography";
 import { themeAPI } from "@/lib/api/igdb/theme";
 import { IGDBReturnDataType, Theme } from "@/lib/api/igdb/types";
-import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import MainContainer from "@/components/containers/mainContainer";
-import { H1 } from "@/components/typography/h1";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { goBack } from "@/lib/history";
-import DefaultCard from "@/components/cards/defaultCard";
-import Spinner from "@/components/spinner";
-import { TypographyMuted } from "@/components/typography/muted";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, useParams } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 // Combined data type for theme page
 interface ThemePageData {
@@ -18,7 +17,7 @@ interface ThemePageData {
   games: IGDBReturnDataType[];
 }
 
-export const Route = createFileRoute("/theme/$themeId")({ 
+export const Route = createFileRoute("/theme/$themeId")({
   component: ThemeRoute,
 });
 
@@ -33,24 +32,28 @@ function ThemeRoute() {
     try {
       // Fetch theme details
       const themeData = await themeAPI.getThemeById(themeId);
-      
+
       // Fetch games for this theme
-      const gamesData = await themeAPI.getGamesByThemeId(themeId, limit, offset);
-      
+      const gamesData = await themeAPI.getGamesByThemeId(
+        themeId,
+        limit,
+        offset
+      );
+
       console.log({
         themeData,
-        gamesData
-      })
+        gamesData,
+      });
 
       return {
         theme: themeData,
-        games: gamesData
+        games: gamesData,
       };
     } catch (error) {
       console.error("Error fetching theme page data:", error);
       return {
         theme: null,
-        games: []
+        games: [],
       };
     }
   };
@@ -85,8 +88,8 @@ function ThemeRoute() {
     <MainContainer
       id={`theme-${themeId}-section`}
       className="flex flex-col gap-8"
-      >
-        <div className="flex items-center gap-4">
+    >
+      <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"

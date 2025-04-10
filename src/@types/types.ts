@@ -1,4 +1,5 @@
 import { ITADPrice } from "@/lib/api/itad/types";
+import { UpdateInfo } from "electron-updater";
 import { JSX, ReactElement } from "react";
 import { PluginConfig, PluginSearchResponse } from "./plugins";
 
@@ -165,3 +166,7 @@ export type Cracker =
   | "_3dm";
 
 export type NotificationType = "download_completed" | "achievement_unlocked";
+
+export type UpdateInfoWithReleaseNotes = UpdateInfo & {
+  releaseNotes: string;
+};

@@ -1,6 +1,5 @@
 import { ISchemaForGameAchievement } from "@/@types";
-import { TypographyMuted } from "@/components/typography/muted";
-import { TypographySmall } from "@/components/typography/small";
+import { TypographySmall, TypographyMuted } from "@/components/ui/typography";
 import { cn } from "@/lib";
 
 interface Props extends ISchemaForGameAchievement {

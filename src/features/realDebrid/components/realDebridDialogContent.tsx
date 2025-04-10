@@ -1,12 +1,11 @@
 import { ExternalNewAccountInput } from "@/@types/accounts";
-import { TypographyMuted } from "@/components/typography/muted";
-import { P } from "@/components/typography/p";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { invoke } from "@/lib";
 import { User } from "@/lib/api/realdebrid/user";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import * as auth from "../utils/auth";
+import { P, TypographyMuted } from "@/components/ui/typography";
 
 interface RealDebridDialogContentProps {
   open: boolean;

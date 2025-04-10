@@ -1,4 +1,4 @@
-import { H4 } from "@/components/typography/h4";
+import { H4 } from "@/components/ui/typography";
 
 interface Props {
   title: string;

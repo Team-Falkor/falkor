@@ -1,17 +1,15 @@
-import {  genreAPI } from "@/lib";
-import { IGDBReturnDataType, Genre } from "@/lib/api/igdb/types";
-import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import MainContainer from "@/components/containers/mainContainer";
-import { H1 } from "@/components/typography/h1";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
-import { goBack } from "@/lib/history";
 import DefaultCard from "@/components/cards/defaultCard";
+import MainContainer from "@/components/containers/mainContainer";
 import Spinner from "@/components/spinner";
-import { TypographyMuted } from "@/components/typography/muted";
-import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { H1, TypographyMuted } from "@/components/ui/typography";
+import { genreAPI } from "@/lib";
+import { Genre, IGDBReturnDataType } from "@/lib/api/igdb/types";
+import { goBack } from "@/lib/history";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, useParams } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 // Combined data type for genre page
 interface GenrePageData {
@@ -35,21 +33,25 @@ function GenreRoute() {
     try {
       // Fetch genre details
       const genreData = await genreAPI.getGenreById(genreId);
-      
+
       // Fetch games for this genre
-      const gamesData = await genreAPI.getGamesByGenreId(genreId, limit, offset);
-      
+      const gamesData = await genreAPI.getGamesByGenreId(
+        genreId,
+        limit,
+        offset
+      );
+
       console.log({ genre: genreData, gamesCount: gamesData.length });
-      
+
       return {
         genre: genreData,
-        games: gamesData
+        games: gamesData,
       };
     } catch (error) {
       console.error("Error fetching genre page data:", error);
       return {
         genre: null,
-        games: []
+        games: [],
       };
     }
   };

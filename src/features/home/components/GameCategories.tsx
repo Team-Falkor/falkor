@@ -19,7 +19,11 @@ const GameCategories = () => {
         >
           <CardContent className="p-0">
             <Link
-              to={category.type === "theme" ? "/theme/$themeId" : "/genre/$genreId"}
+              to={
+                category.type === "theme"
+                  ? "/theme/$themeId"
+                  : "/genre/$genreId"
+              }
               params={
                 category.type === "theme"
                   ? { themeId: category.id }

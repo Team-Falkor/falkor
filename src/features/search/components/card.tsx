@@ -1,5 +1,4 @@
-import { TypographyMuted } from "@/components/typography/muted";
-import { P } from "@/components/typography/p";
+import { P, TypographyMuted } from "@/components/ui/typography";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import { Link } from "@tanstack/react-router";
 

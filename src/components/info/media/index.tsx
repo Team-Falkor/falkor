@@ -2,7 +2,7 @@ import { useLanguageContext } from "@/contexts/I18N";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import MediaScreenshots from "./screenshots";
 import MediaTrailer from "./trailer";
-import { H1 } from "@/components/typography/h1";
+import { H1 } from "@/components/ui/typography";
 
 const GameMedia = (props: IGDBReturnDataType) => {
   const { t } = useLanguageContext();

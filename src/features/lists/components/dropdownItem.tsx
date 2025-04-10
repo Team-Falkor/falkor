@@ -1,5 +1,4 @@
 import Confirmation from "@/components/confirmation";
-import { P } from "@/components/typography/p";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
@@ -7,6 +6,7 @@ import { TrashIcon } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { useLists } from "../hooks/useLists";
+import { P } from "@/components/ui/typography";
 
 interface CollectionDropdownItemProps extends PropsWithChildren {
   list_id: number;

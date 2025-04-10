@@ -2,7 +2,7 @@ import { LogEntry } from "@/@types/logs";
 import { Ban } from "lucide-react";
 import { JSX } from "react";
 import { BaseLog } from "./base";
-import { TypographyMuted } from "@/components/typography/muted";
+import { TypographyMuted } from "@/components/ui/typography";
 
 interface ConsoleErrorDisplayProps {
   customIcon?: JSX.Element;

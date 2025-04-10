@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useGames } from "../../hooks/useGames";
 import ContinuePlayingCard from "../cards/continuePlaying";
-import { H5 } from "@/components/typography/h5";
+import { H5 } from "@/components/ui/typography";
 
 const ActiveLibraryGame = () => {
   const { fetchGames, deleteGame, updateGame, games } = useGames(true);

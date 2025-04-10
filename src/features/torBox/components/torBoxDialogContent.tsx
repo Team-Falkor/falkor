@@ -1,5 +1,4 @@
 import { ExternalNewAccountInput } from "@/@types/accounts";
-import { H3 } from "@/components/typography/h3";
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { invoke } from "@/lib";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import * as auth from "../utils/auth";
+import { H3 } from "@/components/ui/typography";
 
 interface TorBoxDialogContentProps {
   open: boolean;

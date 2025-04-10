@@ -1,8 +1,9 @@
 import { ListGame } from "@/@types";
 import { Card, CardContent } from "@/components/ui/card";
+import { H5 } from "@/components/ui/typography";
+import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import ListCardImage from "./image";
-import ListCardOverlay from "./overlay";
 
 type ListCardProps = ListGame;
 
@@ -12,11 +13,24 @@ const ListCard: React.FC<ListCardProps> = ({ game_id, title, image }) => {
     : "";
 
   return (
-    <Card className="group relative m-0 w-[200px] rounded-t-lg p-0 overflow-hidden">
+    <Card
+      className={cn(
+        "group relative m-0 w-[200px] rounded-lg p-0 overflow-hidden flex flex-col",
+        "transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+      )}
+    >
       <CardContent className="p-0 m-0">
         <Link to={`/info/$id`} params={{ id: game_id.toString() }}>
-          <ListCardImage imageId={imageId} alt={title} />
-          <ListCardOverlay title={title} />
+          <div className="relative">
+            <ListCardImage imageId={imageId} alt={title} />
+          </div>
+
+          {/* Card info section that's always visible */}
+          <div className="p-2">
+            <H5 className="text-center line-clamp-2 h-12 flex items-center justify-center">
+              {title}
+            </H5>
+          </div>
         </Link>
       </CardContent>
     </Card>

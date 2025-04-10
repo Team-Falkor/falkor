@@ -11,10 +11,11 @@ autoUpdater.setFeedURL({
   repo: "app",
 });
 
-autoUpdater.allowDowngrade = false;
+autoUpdater.allowDowngrade = true;
 autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.autoDownload = false;
 autoUpdater.forceDevUpdateConfig = true;
+autoUpdater.fullChangelog = false;
 
 class Updater {
   private settings = settings;
@@ -26,7 +27,13 @@ class Updater {
 
       if (info.version <= app.getVersion()) return;
 
-      window.emitToFrontend("updater:update-available", info);
+      // Extract release notes from GitHub release info
+      const updateInfo = {
+        ...info,
+        releaseNotes: info.releaseNotes || "No changelog available",
+      };
+
+      window.emitToFrontend("updater:update-available", updateInfo);
     });
     autoUpdater.on("update-not-available", () => {
       this.updateAvailable = false;

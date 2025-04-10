@@ -1,8 +1,7 @@
 import Banner from "@/components/banner";
 import CarouselButton from "@/components/carouselButton";
-import { H3 } from "@/components/typography/h3";
-import { TypographySmall } from "@/components/typography/small";
 import { Carousel } from "@/components/ui/carousel";
+import { H2, TypographySmall } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { Link } from "@tanstack/react-router";
 import Autoplay from "embla-carousel-autoplay";
@@ -23,7 +22,7 @@ const FeaturedGames = () => {
       >
         <div className="flex items-center justify-between w-full gap-2 p-4">
           <div className="flex items-end gap-3">
-            <H3>{t("sections.top_rated")}</H3>
+            <H2>{t("sections.top_rated")}</H2>
 
             <Link
               to={`/sections/topRated`}

@@ -1,7 +1,6 @@
-import { H2 } from "@/components/typography/h2";
-import { P } from "@/components/typography/p";
 import { Book, Play } from "lucide-react";
 import LibraryListActions from "./listActions";
+import { H2, P } from "@/components/ui/typography";
 
 interface GameProps {
   type: "game";

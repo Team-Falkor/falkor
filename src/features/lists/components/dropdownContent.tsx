@@ -1,4 +1,3 @@
-import { P } from "@/components/typography/p";
 import { DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { useLists } from "../hooks/useLists";
 import ListsDropdownItem from "./dropdownItem";
+import { P } from "@/components/ui/typography";
 
 type Props = IGDBReturnDataType & {
   align?: "start" | "end" | "center" | undefined;

@@ -1,5 +1,4 @@
-import { H5 } from "@/components/typography/h5";
-import { TypographyMuted } from "@/components/typography/muted";
+import { H5, TypographyMuted } from "@/components/ui/typography";
 
 interface Props {
   title: string;

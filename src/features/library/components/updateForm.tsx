@@ -1,4 +1,3 @@
-import { P } from "@/components/typography/p";
 import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useGames } from "../hooks/useGames";
 import GameFormInput from "./gameFormInput";
+import { P } from "@/components/ui/typography";
 
 const formSchema = z.object({
   gameName: z.string().min(1, { message: "Required" }),

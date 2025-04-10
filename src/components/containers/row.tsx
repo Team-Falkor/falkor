@@ -4,9 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { HTMLAttributes } from "react";
 import CarouselButton from "../carouselButton";
 import GenericRow from "../genericRow";
-import { H2 } from "../typography/h2";
-import { TypographySmall } from "../typography/small";
 import { Carousel } from "../ui/carousel";
+import { H2, TypographySmall } from "../ui/typography";
 
 interface RowContainerProps extends HTMLAttributes<HTMLDivElement> {
   title: string;

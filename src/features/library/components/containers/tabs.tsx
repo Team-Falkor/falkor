@@ -1,5 +1,4 @@
 import { Tab } from "@/@types";
-import { H5 } from "@/components/typography/h5";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -7,6 +6,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { H5 } from "@/components/ui/typography";
 import NewListDialogContent from "@/features/lists/components/newListDialogContent";
 import useGamepadButton from "@/hooks/useGamepadButton";
 import { cn } from "@/lib";

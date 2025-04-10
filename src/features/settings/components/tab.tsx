@@ -1,4 +1,4 @@
-import { P } from "@/components/typography/p";
+import { P } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { JSX } from "react";
 

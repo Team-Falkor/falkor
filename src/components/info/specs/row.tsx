@@ -1,7 +1,10 @@
 import { Data } from "@/components/info/specs";
-import { H4 } from "@/components/typography/h4";
-import { TypographyMuted } from "@/components/typography/muted";
-import { TypographySmall } from "@/components/typography/small";
+import {
+  H4,
+  TypographyMuted,
+  TypographySmall,
+} from "@/components/ui/typography";
+
 import { useLanguageContext } from "@/contexts/I18N";
 import { scrapeOptions } from "@/lib";
 import { useMemo } from "react";

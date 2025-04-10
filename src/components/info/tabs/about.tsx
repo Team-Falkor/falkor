@@ -1,13 +1,12 @@
 import { InfoItadProps, InfoProps } from "@/@types";
 import Stars from "@/components/starts";
-import { TypographyMuted } from "@/components/typography/muted";
-import { TypographySmall } from "@/components/typography/small";
 import { useLanguageContext } from "@/contexts/I18N";
 import { IGDBReturnDataType, ReleaseDate } from "@/lib/api/igdb/types";
 import { format } from "date-fns";
 import { Lightbulb } from "lucide-react";
 import { useMemo } from "react";
 import Sources from "../sources";
+import { TypographySmall, TypographyMuted } from "@/components/ui/typography";
 
 interface InfoAboutTabProps extends InfoProps {
   data: IGDBReturnDataType | undefined;

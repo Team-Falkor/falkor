@@ -1,8 +1,8 @@
 import { useLanguageContext } from "@/contexts/I18N";
 import { useSettings } from "@/hooks";
-import { H4 } from "../typography/h4";
 import TitleBarIcons from "./icons";
 import TitleBarTrafficLights from "./traffic-lights";
+import { H4 } from "../ui/typography";
 
 const TitleBar = () => {
   const { t } = useLanguageContext();

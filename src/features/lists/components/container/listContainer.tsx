@@ -1,5 +1,4 @@
 import ListCard from "@/components/cards/listCard";
-import { P } from "@/components/typography/p";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -14,6 +13,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Pen, TrashIcon } from "lucide-react";
 import { useLists } from "../../hooks/useLists";
+import { P } from "@/components/ui/typography";
 
 interface ListContainerProps {
   list_id: number;

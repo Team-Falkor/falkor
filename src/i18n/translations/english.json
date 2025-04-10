@@ -136,5 +136,10 @@
   "wine_prefix_folder": "Wine Prefix Folder",
   "the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
   "import_from_igdb": "Import From IGDB",
-  "install_plugin": "Install Plugin"
+  "install_plugin": "Install Plugin",
+  "update_available": "Update Available",
+  "update_description": "A new update is available for Falkor. Do you want to update now?",
+  "update_now": "Update Now",
+  "later": "Later",
+  "changelog": "Changelog"
 }

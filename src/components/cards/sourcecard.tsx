@@ -8,10 +8,9 @@ import { useAccountServices } from "@/stores/account-services";
 import { CloudDownload, ShoppingCart } from "lucide-react";
 import { useCallback } from "react";
 import { sanitizeFilename } from "../../lib/utils";
-import { H3 } from "../typography/h3";
-import { P } from "../typography/p";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
+import { H3, P } from "../ui/typography";
 
 type SourceCardProps = {
   source: PluginSearchResponse | Deal;

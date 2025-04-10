@@ -1,4 +1,4 @@
-import { TypographyMuted } from "@/components/typography/muted";
+import { TypographyMuted } from "@/components/ui/typography";
 import useDownloadTime from "@/features/downloads/hooks/useDownloadTime";
 import { useMemo } from "react";
 

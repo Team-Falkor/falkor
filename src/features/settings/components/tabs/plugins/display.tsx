@@ -1,12 +1,12 @@
 import { PluginSetupJSONDisabled } from "@/@types";
 import UnifiedPluginCard from "@/components/cards/unified-plugin-card";
-import { H5 } from "@/components/typography/h5";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import UsePlugins from "@/hooks/usePlugins";
 import { cn } from "@/lib";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { SortBy } from "./sort";
+import { H5 } from "@/components/ui/typography";
 
 interface Props {
   showRows: boolean;

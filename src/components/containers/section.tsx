@@ -5,10 +5,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import DefaultCard from "../cards/defaultCard";
 import Spinner from "../spinner";
-import { H1 } from "../typography/h1";
-import { TypographyMuted } from "../typography/muted";
 import { Button } from "../ui/button";
 import MainContainer from "./mainContainer";
+import { H1, TypographyMuted } from "../ui/typography";
 
 type Props = {
   title: string;

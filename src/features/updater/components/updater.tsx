@@ -1,6 +1,4 @@
 import { AppInfo } from "@/@types";
-import { H5 } from "@/components/typography/h5";
-import { TypographyMuted } from "@/components/typography/muted";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,9 +10,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { H5, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { useUpdater } from "@/hooks/useUpdater";
-import { invoke } from "@/lib";
+import { invoke, parseHtmlString } from "@/lib";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -56,7 +56,10 @@ const Updater = () => {
   });
 
   useEffect(() => {
-    if (updateAvailable === true) setOpen(true);
+    if (updateAvailable === true) {
+      setOpen(true);
+      return;
+    }
     setOpen(false);
   }, [updateAvailable]);
 
@@ -71,6 +74,10 @@ const Updater = () => {
       window.ipcRenderer.removeAllListeners("updater:error");
     };
   }, []);
+
+  useEffect(() => {
+    console.log(updateInfo);
+  }, [updateInfo]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -109,8 +116,21 @@ const Updater = () => {
             </div>
           )}
 
+          {updateInfo?.releaseNotes && (
+            <div className="flex flex-col gap-2 mt-4">
+              <TypographyMuted className="min-w-28">
+                {t("changelog")}:
+              </TypographyMuted>
+              <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+                <div className="prose prose-sm dark:prose-invert">
+                  {parseHtmlString(updateInfo.releaseNotes)}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
           {progress !== undefined && progress > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-4">
               <Progress value={progress} />
             </div>
           )}

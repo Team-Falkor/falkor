@@ -1,77 +1,51 @@
 import { IGDBReturnDataType, SimilarGame } from "@/lib/api/igdb/types";
 import { Link } from "@tanstack/react-router";
-import { format } from "date-fns";
-import { useMemo } from "react";
+import { Star } from "lucide-react";
 import IGDBImage from "../IGDBImage";
-import { H5 } from "../typography/h5";
-import { TypographyMuted } from "../typography/muted";
-import { Card, CardContent } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { H5 } from "../ui/typography";
 
 type DefaultCardProps = (IGDBReturnDataType | SimilarGame) & {
   wantCountdown?: boolean;
+  playtime?: number;
 };
 
 const DefaultCard = ({
   cover,
   name,
   id,
-  genres,
-  release_dates,
+  total_rating,
+  aggregated_rating,
 }: DefaultCardProps) => {
-  // Memoize the release date for a specific platform (e.g., platform ID 6 for PC)
-  const findReleaseDate = useMemo(() => {
-    return release_dates?.find((item) => item.platform === 6);
-  }, [release_dates]);
+  // Format rating to show only one decimal place if available
+  const rating = total_rating ?? aggregated_rating ?? null;
+  const formattedRating = rating ? Math.round(rating) / 10 : null;
 
   return (
-    <Card className="group relative m-0 w-[200px] rounded-t-lg p-0 overflow-hidden">
-      <CardContent className="p-0 m-0">
-        <Link to={`/info/$id`} params={{ id: id.toString() }}>
-          <div className="relative overflow-hidden rounded-t-lg group focus:outline-hidden dark:ring-offset-gray-900">
-            <IGDBImage
-              imageId={cover?.image_id ?? ""}
-              imageSize="cover_med"
-              alt={name}
-              className="object-cover w-full transition duration-300 ease-out h-72 group-focus-within:scale-105 group-hover:scale-105 group-focus:scale-105"
-            />
-          </div>
+    <Link to={`/info/$id`} params={{ id: id.toString() }}>
+      <div className="w-[200px] relative h-[325px] flex flex-col rounded-lg overflow-hidden bg-card group hover:border-border">
+        {formattedRating && (
+          <Badge className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-sm px-2.5 py-1 text-sm shadow-lg z-10">
+            <Star size={14} className="fill-yellow-400 text-yellow-400" />
+            <span className="font-medium">{formattedRating}</span>
+          </Badge>
+        )}
 
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center transition duration-300 ease-out translate-y-full rounded opacity-0 cursor-pointer bg-slate-700 bg-opacity-80 group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:translate-y-0 group-hover:opacity-100">
-            <div className="flex flex-col items-center justify-center w-full gap-4 p-2">
-              <div className="flex flex-col w-full gap-1">
-                <H5 className="text-center text-white whitespace-pre-line break-before-avoid text-balance">
-                  {name}
-                </H5>
+        {/* IMAGE */}
+        <div className="w-full h-[260px] shrink-0 grow-0 group-hover:scale-[1.02] relative z-0 transition-all overflow-hidden">
+          <IGDBImage
+            alt={name}
+            imageId={cover?.image_id}
+            className="w-full h-full object-cover"
+          />
+        </div>
 
-                {!!findReleaseDate && !!findReleaseDate?.date && (
-                  <div className="flex items-center justify-center">
-                    <TypographyMuted>
-                      {format(
-                        new Date(findReleaseDate?.date * 1000),
-                        "MMMM d, yyyy"
-                      )}
-                    </TypographyMuted>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-center w-full gap-1 px-2 line-clamp-1 text-ellipsis">
-                  {!!genres?.length &&
-                    genres.slice(0, 2).map((genre, i) => (
-                      <TypographyMuted
-                        className="whitespace-nowrap line-clamp-1"
-                        key={i}
-                      >
-                        {genre.name}
-                        {i !== genres.slice(0, 2).length - 1 ? "," : ""}
-                      </TypographyMuted>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Link>
-      </CardContent>
-    </Card>
+        {/* CONTENT */}
+        <div className="size-full p-2 px-3 flex flex-col">
+          <H5 className="text-pretty line-clamp-2">{name}</H5>
+        </div>
+      </div>
+    </Link>
   );
 };
 

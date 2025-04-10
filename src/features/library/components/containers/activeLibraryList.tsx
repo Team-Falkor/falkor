@@ -1,6 +1,5 @@
 import ListCard from "@/components/cards/listCard";
-import { H5 } from "@/components/typography/h5";
-import { P } from "@/components/typography/p";
+import { H5, P } from "@/components/ui/typography";
 import { useLists } from "@/features/lists/hooks/useLists";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";

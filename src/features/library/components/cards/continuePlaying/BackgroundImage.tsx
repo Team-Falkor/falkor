@@ -12,9 +12,11 @@ const BackgroundImage: React.FC<BackgroundImageProps> = ({
 
   return (
     <div
-      className={`${className} bg-cover bg-center`}
+      className={`${className} bg-cover bg-center bg-no-repeat`}
       style={{
         backgroundImage: `url(${realImagePath})`,
+        backgroundPosition: "center",
+        objectFit: "cover",
       }}
     />
   );

@@ -4,9 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import IGDBImage from "../IGDBImage";
 import TrailerButton from "../trailer";
-import { H2 } from "../typography/h2";
-import { TypographySmall } from "../typography/small";
 import { buttonVariants } from "../ui/button";
+import { H2, TypographySmall } from "../ui/typography";
 
 const BannerCard = ({
   screenshots: ss,
@@ -63,7 +62,7 @@ const BannerCard = ({
             <div className="flex flex-row gap-4">
               <TrailerButton name={name} videos={videos} />
               <Link
-                className={buttonVariants({  })}
+                className={buttonVariants({})}
                 to="/info/$id"
                 params={{ id: id.toString() }}
               >

@@ -1,4 +1,4 @@
-import { H5 } from "@/components/typography/h5";
+import { H5 } from "@/components/ui/typography";
 
 interface ListCardOverlayProps {
   title: string;

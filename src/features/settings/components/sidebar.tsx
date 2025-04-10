@@ -1,7 +1,4 @@
 import { AppInfo, LinkItemType } from "@/@types";
-import { H3 } from "@/components/typography/h3";
-import { TypographyMuted } from "@/components/typography/muted";
-import { P } from "@/components/typography/p";
 import { Button } from "@/components/ui/button";
 import { useLanguageContext } from "@/contexts/I18N";
 import { useSettings } from "@/hooks";
@@ -13,6 +10,7 @@ import { ReactElement, useEffect } from "react";
 import { FaDiscord, FaGithub } from "react-icons/fa6";
 import { SiKofi } from "react-icons/si";
 import SettingsLinkGroup from "./linkGroup";
+import { H3, P, TypographyMuted } from "@/components/ui/typography";
 
 const LINKS: Array<LinkItemType> = [
   {

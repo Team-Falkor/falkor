@@ -1,5 +1,4 @@
-import { H3 } from "@/components/typography/h3";
-import { TypographyMuted } from "@/components/typography/muted";
+import { H3, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { cn } from "@/lib";
 import { HTMLAttributes, PropsWithChildren } from "react";

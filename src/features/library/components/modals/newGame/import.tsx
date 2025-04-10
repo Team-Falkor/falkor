@@ -1,6 +1,4 @@
 import { InputWithIcon } from "@/components/inputWithIcon";
-import { TypographyMuted } from "@/components/typography/muted";
-import { TypographySmall } from "@/components/typography/small";
 import { PopoverContent } from "@/components/ui/popover";
 import useSearch from "@/features/search/hooks/useSearch";
 import { cn, getSteamIdFromWebsites } from "@/lib";
@@ -10,6 +8,7 @@ import { SearchIcon, ShipWheel } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { NewGameFormSchema } from "./schema";
+import { TypographySmall, TypographyMuted } from "@/components/ui/typography";
 
 interface NewGameImportProps {
   form: UseFormReturn<NewGameFormSchema>;

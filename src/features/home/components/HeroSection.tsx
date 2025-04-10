@@ -1,6 +1,5 @@
-import { H1 } from "@/components/typography/h1";
-import { TypographyMuted } from "@/components/typography/muted";
 import { buttonVariants } from "@/components/ui/button";
+import { H1, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { Link } from "@tanstack/react-router";
 
