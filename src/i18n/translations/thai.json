@@ -5,7 +5,8 @@
     "most_anticipated": "ที่รอคอยมากที่สุด",
     "continue_playing": "เล่นต่อ",
     "settings": "การตั้งค่า",
-    "downloads": "การดาวน์โหลด"
+    "downloads": "การดาวน์โหลด",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "การตั้งค่าผู้พัฒนา",
       "miscellaneous": "การตั้งค่าอื่นๆ"
     },
+    "plugins": {
+      "community_title": "Community Plugins",
+      "community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "รีเซ็ตแคช IGDB",
       "downloads_path": "เส้นทางการดาวน์โหลด",
@@ -25,6 +30,7 @@
       "check-for-app-updates-on-startup": "ตรวจสอบการอัปเดตแอปขณะเริ่มต้น",
       "update_settings": "อัปเดตการตั้งค่า",
       "enable_developer_console": "เปิดใช้งานคอนโซลนักพัฒนา",
+      "show_dev_console": "Show Developer Console",
       "change-title-bar-style": "เปลี่ยนสไตล์แถบชื่อเรื่อง",
       "change_title_bar_style_description": "บางตัวเลือกอาจต้องรีสตาร์ทเพื่อให้มีผล",
       "launch-on-startup": "เปิด Falkor เมื่อเริ่มต้นระบบ",
@@ -97,6 +103,7 @@
   "open_downloads_folder": "เปิดโฟลเดอร์ดาวน์โหลด",
   "star_us_on_github": "ให้ดาวบน GitHub",
   "join_the_discord": "เข้าร่วม Discord",
+  "start_download_message": "เริ่มดาวน์โหลดเกมหรือเพิ่มทอร์เรนต์เพื่อเริ่มต้น",
   "update_game": "อัปเดตเกม",
   "update": "อัปเดต",
   "updating": "กำลังอัปเดต",
@@ -108,7 +115,7 @@
   "stop_playing": "หยุดเล่น",
   "continue_playing": "เล่นต่อ",
   "igdb_id": "IGDB ID",
-  "support_me_on_kofi": "สนับสนุนฉันบน Ko-fi",
+  "support_me_on_kofi": "สนับสนุนฉันบน Ko‑fi",
   "create_new_list": "สร้างรายการใหม่",
   "fill_in_the_information_below_to_create_a_new_list": "กรอกข้อมูลด้านล่างเพื่อสร้างรายการใหม่",
   "enter_list_name": "ป้อนชื่อรายการ",
@@ -125,5 +132,15 @@
   "torrent": "ทอร์เรนต์",
   "max_download_speed": "ความเร็วการดาวน์โหลดสูงสุด",
   "max_upload_speed": "ความเร็วการอัปโหลดสูงสุด",
-  "add-to-list": "เพิ่มในรายการ"
+  "add-to-list": "เพิ่มในรายการ",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "โฟลเดอร์ Wine Prefix",
+  "the_path_to_your_wine_prefix_folder": "เส้นทางไปยังโฟลเดอร์ Wine Prefix ของคุณ",
+  "import_from_igdb": "นำเข้าจาก IGDB",
+  "install_plugin": "ติดตั้งปลั๊กอิน",
+  "update_available": "มีการอัปเดตใหม่",
+  "update_description": "มีการอัปเดตใหม่สำหรับ Falkor คุณต้องการอัปเดตเดี๋ยวนี้หรือไม่?",
+  "update_now": "อัปเดตเดี๋ยวนี้",
+  "later": "ภายหลัง",
+  "changelog": "บันทึกการเปลี่ยนแปลง"
 }

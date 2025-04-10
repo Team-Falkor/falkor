@@ -5,7 +5,8 @@
     "most_anticipated": "가장 기대되는",
     "continue_playing": "계속 플레이하기",
     "settings": "설정",
-    "downloads": "다운로드"
+    "downloads": "다운로드",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -15,6 +16,10 @@
       "plugins": "플러그인 설정",
       "developer": "개발자 설정",
       "miscellaneous": "기타 설정"
+    },
+    "plugins": {
+      "community_title": "Community Plugins",
+      "community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
     },
     "settings": {
       "reset-igdb-cache": "IGDB 캐시 재설정",
@@ -97,6 +102,7 @@
   "open_downloads_folder": "다운로드 폴더 열기",
   "star_us_on_github": "GitHub에서 별표를 눌러주세요",
   "join_the_discord": "디스코드에 참여하세요",
+  "start_download_message": "Start downloading a game or add a torrent to begin.",
   "update_game": "게임 업데이트",
   "update": "업데이트",
   "updating": "업데이트 중",
@@ -108,7 +114,7 @@
   "stop_playing": "플레이 중지",
   "continue_playing": "계속 플레이",
   "igdb_id": "IGDB ID",
-  "support_me_on_kofi": "Ko-fi에서 지원하기",
+  "support_me_on_kofi": "Ko‑fi에서 지원하기",
   "create_new_list": "새 목록 만들기",
   "fill_in_the_information_below_to_create_a_new_list": "새 목록을 만들기 위해 아래 정보를 입력하세요",
   "enter_list_name": "목록 이름 입력",
@@ -125,5 +131,15 @@
   "torrent": "토렌트",
   "max_download_speed": "최대 다운로드 속도",
   "max_upload_speed": "최대 업로드 속도",
-  "add-to-list": "목록에 추가"
+  "add-to-list": "목록에 추가",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Wine Prefix Folder",
+  "the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
+  "import_from_igdb": "Import From IGDB",
+  "install_plugin": "Install Plugin",
+  "update_available": "Update Available",
+  "update_description": "A new update is available for Falkor. Do you want to update now?",
+  "update_now": "Update Now",
+  "later": "Later",
+  "changelog": "Changelog"
 }

@@ -5,7 +5,8 @@
     "most_anticipated": "最も期待される",
     "continue_playing": "プレイを続ける",
     "settings": "設定",
-    "downloads": "ダウンロード"
+    "downloads": "ダウンロード",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "開発者設定",
       "miscellaneous": "その他の設定"
     },
+    "plugins": {
+      "community_title": "Community Plugins",
+      "community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "IGDBキャッシュをリセット",
       "downloads_path": "ダウンロードパス",
@@ -24,7 +29,7 @@
       "check-for-plugin-updates-on-startup": "起動時にプラグインの更新を確認",
       "check-for-app-updates-on-startup": "起動時にアプリの更新を確認",
       "update_settings": "設定を更新",
-      "enable_developer_console": "開発者コンソールを有効化",
+      "show_dev_console": "開発者コンソールを有効化",
       "change-title-bar-style": "タイトルバーのスタイルを変更",
       "change_title_bar_style_description": "一部のオプションは適用するために再起動が必要です",
       "launch-on-startup": "システム起動時にFalkorを起動",
@@ -97,6 +102,7 @@
   "open_downloads_folder": "ダウンロードフォルダを開く",
   "star_us_on_github": "GitHubでスターを付ける",
   "join_the_discord": "Discordに参加",
+  "start_download_message": "Start downloading a game or add a torrent to begin.",
   "update_game": "ゲームを更新",
   "update": "更新",
   "updating": "更新中",
@@ -108,7 +114,7 @@
   "stop_playing": "プレイを中止",
   "continue_playing": "プレイを続ける",
   "igdb_id": "IGDB ID",
-  "support_me_on_kofi": "Ko-fiでサポート",
+  "support_me_on_kofi": "Ko‑fiでサポート",
   "create_new_list": "新しいリストを作成",
   "fill_in_the_information_below_to_create_a_new_list": "以下の情報を入力して新しいリストを作成してください",
   "enter_list_name": "リスト名を入力",
@@ -125,5 +131,15 @@
   "torrent": "トレント",
   "max_download_speed": "最大ダウンロード速度",
   "max_upload_speed": "最大アップロード速度",
-  "add-to-list": "リストに追加"
+  "add-to-list": "リストに追加",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Wine Prefix Folder",
+  "the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
+  "import_from_igdb": "Import From IGDB",
+  "install_plugin": "Install Plugin",
+  "update_available": "Update Available",
+  "update_description": "A new update is available for Falkor. Do you want to update now?",
+  "update_now": "Update Now",
+  "later": "Later",
+  "changelog": "Changelog"
 }

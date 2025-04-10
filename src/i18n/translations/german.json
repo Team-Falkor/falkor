@@ -5,7 +5,8 @@
     "most_anticipated": "Am meisten erwartet",
     "continue_playing": "Weiterspielen",
     "settings": "Einstellungen",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "metadata": "Metadaten"
   },
   "settings": {
     "titles": {
@@ -129,5 +130,15 @@
   "torrent": "Torrent",
   "max_download_speed": "Maximale Download-Geschwindigkeit",
   "max_upload_speed": "Maximale Upload-Geschwindigkeit",
-  "add-to-list": "Zur Liste hinzufügen"
+  "add-to-list": "Zur Liste hinzufügen",
+  "steam_id": "Steam-ID",
+  "wine_prefix_folder": "Wine-Präfix-Ordner",
+  "the_path_to_your_wine_prefix_folder": "Der Pfad zu Ihrem Wine-Präfix-Ordner",
+  "import_from_igdb": "Von IGDB importieren",
+  "install_plugin": "Plugin installieren",
+  "update_available": "Update verfügbar",
+  "update_description": "Ein neues Update ist für Falkor verfügbar. Möchten Sie jetzt aktualisieren?",
+  "update_now": "Jetzt aktualisieren",
+  "later": "Später",
+  "changelog": "Änderungsprotokoll"
 }

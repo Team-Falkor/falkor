@@ -5,7 +5,8 @@
     "most_anticipated": "Paling Ditunggu",
     "continue_playing": "Lanjutkan Bermain",
     "settings": "Pengaturan",
-    "downloads": "Unduhan"
+    "downloads": "Unduhan",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "Pengaturan Pengembang",
       "miscellaneous": "Pengaturan Lainnya"
     },
+    "plugins": {
+      "community_title": "Plugin Komunitas",
+      "community_disclaimer": "Plugin ini dibuat dan dikelola oleh anggota komunitas dan tidak secara resmi berafiliasi dengan atau dikendalikan oleh Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "Reset Cache IGDB",
       "downloads_path": "Jalur Unduhan",
@@ -24,7 +29,7 @@
       "check-for-plugin-updates-on-startup": "Periksa Pembaruan Plugin Saat Startup",
       "check-for-app-updates-on-startup": "Periksa Pembaruan Aplikasi Saat Startup",
       "update_settings": "Perbarui Pengaturan",
-      "enable_developer_console": "Aktifkan Konsol Pengembang",
+      "show_dev_console": "Aktifkan Konsol Pengembang",
       "change-title-bar-style": "Ubah Gaya Bilah Judul",
       "change_title_bar_style_description": "Beberapa opsi memerlukan restart",
       "launch-on-startup": "Jalankan Falkor Saat Startup",
@@ -97,6 +102,7 @@
   "open_downloads_folder": "Buka Folder Unduhan",
   "star_us_on_github": "Berikan Bintang di GitHub",
   "join_the_discord": "Bergabung dengan Discord",
+  "start_download_message": "Mulai mengunduh permainan atau tambahkan torrent untuk memulai.",
   "update_game": "Perbarui Game",
   "update": "Perbarui",
   "updating": "Memperbarui",
@@ -125,5 +131,15 @@
   "torrent": "Torrent",
   "max_download_speed": "Kecepatan Unduh Maksimum",
   "max_upload_speed": "Kecepatan Unggah Maksimum",
-  "add-to-list": "Tambahkan ke Daftar"
+  "add-to-list": "Tambahkan ke Daftar",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Folder Prefix Wine",
+  "the_path_to_your_wine_prefix_folder": "Jalur ke folder prefix wine Anda",
+  "import_from_igdb": "Impor dari IGDB",
+  "install_plugin": "Pasang Plugin",
+  "update_available": "Pembaruan Tersedia",
+  "update_description": "Pembaruan baru tersedia untuk Falkor. Apakah Anda ingin memperbarui sekarang?",
+  "update_now": "Perbarui Sekarang",
+  "later": "Nanti",
+  "changelog": "Catatan Perubahan"
 }

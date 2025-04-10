@@ -5,7 +5,8 @@
     "most_anticipated": "Più attesi",
     "continue_playing": "Continua a giocare",
     "settings": "Impostazioni",
-    "downloads": "Download"
+    "downloads": "Download",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "Impostazioni sviluppatore",
       "miscellaneous": "Impostazioni varie"
     },
+    "plugins": {
+      "community_title": "Community Plugins",
+      "community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "Reimposta cache IGDB",
       "downloads_path": "Percorso download",
@@ -24,7 +29,7 @@
       "check-for-plugin-updates-on-startup": "Controlla aggiornamenti plugin all'avvio",
       "check-for-app-updates-on-startup": "Controlla aggiornamenti app all'avvio",
       "update_settings": "Aggiorna impostazioni",
-      "enable_developer_console": "Abilita console sviluppatore",
+      "show_dev_console": "Abilita console sviluppatore",
       "change-title-bar-style": "Modifica stile della barra del titolo",
       "change_title_bar_style_description": "Alcune opzioni richiedono un riavvio per essere applicate",
       "launch-on-startup": "Avvia Falkor all'avvio del sistema",
@@ -97,6 +102,7 @@
   "open_downloads_folder": "Apri cartella download",
   "star_us_on_github": "Dacci una stella su GitHub",
   "join_the_discord": "Unisciti al nostro Discord",
+  "start_download_message": "Start downloading a game or add a torrent to begin.",
   "update_game": "Aggiorna gioco",
   "update": "Aggiorna",
   "updating": "Aggiornamento",
@@ -125,5 +131,15 @@
   "torrent": "Torrent",
   "max_download_speed": "Velocità massima di download",
   "max_upload_speed": "Velocità massima di upload",
-  "add-to-list": "Aggiungi alla lista"
+  "add-to-list": "Aggiungi alla lista",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Wine Prefix Folder",
+  "the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
+  "import_from_igdb": "Import From IGDB",
+  "install_plugin": "Install Plugin",
+  "update_available": "Update Available",
+  "update_description": "A new update is available for Falkor. Do you want to update now?",
+  "update_now": "Update Now",
+  "later": "Later",
+  "changelog": "Changelog"
 }

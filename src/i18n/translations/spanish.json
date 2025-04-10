@@ -5,7 +5,8 @@
     "most_anticipated": "Más esperados",
     "continue_playing": "Continuar jugando",
     "settings": "Configuraciones",
-    "downloads": "Descargas"
+    "downloads": "Descargas",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -29,6 +30,7 @@
       "check-for-app-updates-on-startup": "Buscar actualizaciones de la aplicación al iniciar",
       "update_settings": "Actualizar configuraciones",
       "enable_developer_console": "Habilitar consola de desarrollador",
+      "show_dev_console": "Show Developer Console",
       "change-title-bar-style": "Cambiar estilo de la barra de título",
       "change_title_bar_style_description": "Algunas opciones requieren reiniciar para aplicarse",
       "launch-on-startup": "Iniciar Falkor al encender el sistema",
@@ -101,6 +103,7 @@
   "open_downloads_folder": "Abrir carpeta de descargas",
   "star_us_on_github": "Danos una estrella en GitHub",
   "join_the_discord": "Únete a Discord",
+  "start_download_message": "Start downloading a game or add a torrent to begin.",
   "update_game": "Actualizar juego",
   "update": "Actualizar",
   "updating": "Actualizando",
@@ -112,7 +115,7 @@
   "stop_playing": "Dejar de jugar",
   "continue_playing": "Continuar jugando",
   "igdb_id": "ID de IGDB",
-  "support_me_on_kofi": "Apóyame en Ko-fi",
+  "support_me_on_kofi": "Apóyame en Ko‑fi",
   "create_new_list": "Crear una nueva lista",
   "fill_in_the_information_below_to_create_a_new_list": "Llena la información a continuación para crear una nueva lista",
   "enter_list_name": "Ingresa un nombre para la lista",
@@ -129,5 +132,15 @@
   "torrent": "Torrent",
   "max_download_speed": "Velocidad máxima de descarga",
   "max_upload_speed": "Velocidad máxima de subida",
-  "add-to-list": "Agregar a la lista"
+  "add-to-list": "Agregar a la lista",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Wine Prefix Folder",
+  "the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
+  "import_from_igdb": "Import From IGDB",
+  "install_plugin": "Install Plugin",
+  "update_available": "Update Available",
+  "update_description": "A new update is available for Falkor. Do you want to update now?",
+  "update_now": "Update Now",
+  "later": "Later",
+  "changelog": "Changelog"
 }

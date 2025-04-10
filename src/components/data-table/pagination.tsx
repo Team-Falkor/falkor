@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TypographySmall } from "../typography/small";
+import { TypographySmall } from "../ui/typography";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;

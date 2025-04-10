@@ -7,7 +7,7 @@ export interface APIResponse<T = unknown> {
   error: boolean;
 }
 
-export interface Provider {
+export interface PluginProvider {
   id: string;
   setupUrl: string;
   setupJSON: string;
@@ -18,4 +18,4 @@ export interface Provider {
   approved: boolean;
 }
 
-export type ProvidersResponse = APIResponse<Array<Provider>>;
+export type PluginProviderResponse = APIResponse<Array<PluginProvider>>;

@@ -5,7 +5,8 @@
     "most_anticipated": "最受期待",
     "continue_playing": "继续玩",
     "settings": "设置",
-    "downloads": "下载"
+    "downloads": "下载",
+    "metadata": "元数据"
   },
   "settings": {
     "titles": {
@@ -15,6 +16,10 @@
       "plugins": "插件设置",
       "developer": "开发者设置",
       "miscellaneous": "杂项设置"
+    },
+    "plugins": {
+      "community_title": "社区插件",
+      "community_disclaimer": "这些插件由社区成员创建和维护，与 Falkor 没有官方关联或控制。"
     },
     "settings": {
       "reset-igdb-cache": "重置 IGDB 缓存",
@@ -126,5 +131,15 @@
   "torrent": "种子",
   "max_download_speed": "最大下载速度",
   "max_upload_speed": "最大上传速度",
-  "add-to-list": "添加到列表"
+  "add-to-list": "添加到列表",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Wine 前缀文件夹",
+  "the_path_to_your_wine_prefix_folder": "Wine 前缀文件夹的路径",
+  "import_from_igdb": "从 IGDB 导入",
+  "install_plugin": "安装插件",
+  "update_available": "有可用更新",
+  "update_description": "Falkor 有新的更新可用。您想现在更新吗？",
+  "update_now": "现在更新",
+  "later": "稍后",
+  "changelog": "更新日志"
 }

@@ -5,7 +5,8 @@
     "most_anticipated": "सबसे अधिक प्रत्याशित",
     "continue_playing": "खेलना जारी रखें",
     "settings": "सेटिंग्स",
-    "downloads": "डाउनलोड"
+    "downloads": "डाउनलोड",
+    "metadata": "मेटाडेटा"
   },
   "settings": {
     "titles": {
@@ -15,6 +16,10 @@
       "plugins": "प्लगइन सेटिंग्स",
       "developer": "डेवलपर सेटिंग्स",
       "miscellaneous": "विविध सेटिंग्स"
+    },
+    "plugins": {
+      "community_title": "समुदाय प्लगइन्स",
+      "community_disclaimer": "ये प्लगइन्स समुदाय के सदस्यों द्वारा बनाए और बनाए रखे गए हैं और Falkor से आधिकारिक तौर पर संबद्ध या नियंत्रित नहीं हैं।"
     },
     "settings": {
       "reset-igdb-cache": "IGDB कैश रीसेट करें",
@@ -125,5 +130,15 @@
   "torrent": "टोरेंट",
   "max_download_speed": "अधिकतम डाउनलोड गति",
   "max_upload_speed": "अधिकतम अपलोड गति",
-  "add-to-list": "सूची में जोड़ें"
+  "add-to-list": "सूची में जोड़ें",
+  "steam_id": "Steam आईडी",
+  "wine_prefix_folder": "Wine प्रीफिक्स फ़ोल्डर",
+  "the_path_to_your_wine_prefix_folder": "आपके Wine प्रीफिक्स फ़ोल्डर का पथ",
+  "import_from_igdb": "IGDB से आयात करें",
+  "install_plugin": "प्लगइन स्थापित करें",
+  "update_available": "अपडेट उपलब्ध",
+  "update_description": "Falkor के लिए एक नया अपडेट उपलब्ध है। क्या आप अभी अपडेट करना चाहते हैं?",
+  "update_now": "अभी अपडेट करें",
+  "later": "बाद में",
+  "changelog": "परिवर्तन लॉग"
 }

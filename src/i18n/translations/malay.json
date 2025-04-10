@@ -5,7 +5,8 @@
     "most_anticipated": "Paling Dinantikan",
     "continue_playing": "Terus Bermain",
     "settings": "Tetapan",
-    "downloads": "Muat Turun"
+    "downloads": "Muat Turun",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "Tetapan Pembangun",
       "miscellaneous": "Tetapan Lain-lain"
     },
+    "plugins": {
+      "community_title": "Community Plugins",
+      "community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "Tetapkan Semula Cache IGDB",
       "downloads_path": "Laluan Muat Turun",
@@ -24,7 +29,7 @@
       "check-for-plugin-updates-on-startup": "Semak Kemas Kini Plugin Semasa Permulaan",
       "check-for-app-updates-on-startup": "Semak Kemas Kini Aplikasi Semasa Permulaan",
       "update_settings": "Kemas Kini Tetapan",
-      "enable_developer_console": "Aktifkan Konsol Pembangun",
+      "show_dev_console": "Show Developer Console",
       "change-title-bar-style": "Tukar Gaya Bar Tajuk",
       "change_title_bar_style_description": "Beberapa pilihan memerlukan but semula",
       "launch-on-startup": "Lancarkan Falkor Semasa Permulaan Sistem",
@@ -97,6 +102,7 @@
   "open_downloads_folder": "Buka Folder Muat Turun",
   "star_us_on_github": "Berikan Bintang di GitHub",
   "join_the_discord": "Sertai Discord",
+  "start_download_message": "Mula memuat turun permainan atau tambah torrent untuk bermula.",
   "update_game": "Kemas Kini Permainan",
   "update": "Kemas Kini",
   "updating": "Mengemas Kini",
@@ -108,7 +114,7 @@
   "stop_playing": "Berhenti Bermain",
   "continue_playing": "Terus Bermain",
   "igdb_id": "IGDB ID",
-  "support_me_on_kofi": "Sokong Saya di Ko-fi",
+  "support_me_on_kofi": "Sokong Saya di Ko‑fi",
   "create_new_list": "Buat Senarai Baru",
   "fill_in_the_information_below_to_create_a_new_list": "Isi maklumat di bawah untuk membuat senarai baru",
   "enter_list_name": "Masukkan Nama Senarai",
@@ -125,5 +131,15 @@
   "torrent": "Torrent",
   "max_download_speed": "Kelajuan Muat Turun Maksimum",
   "max_upload_speed": "Kelajuan Muat Naik Maksimum",
-  "add-to-list": "Tambah ke Senarai"
+  "add-to-list": "Tambah ke Senarai",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Folder Prefix Wine",
+  "the_path_to_your_wine_prefix_folder": "Laluan ke folder prefix wine anda",
+  "import_from_igdb": "Import Dari IGDB",
+  "install_plugin": "Pasang Plugin",
+  "update_available": "Kemas Kini Tersedia",
+  "update_description": "Kemas kini baru tersedia untuk Falkor. Adakah anda mahu kemas kini sekarang?",
+  "update_now": "Kemas Kini Sekarang",
+  "later": "Kemudian",
+  "changelog": "Log Perubahan"
 }

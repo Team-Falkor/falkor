@@ -1,4 +1,4 @@
-import { APIResponse, PluginSetupJSON, Provider } from "@/@types";
+import { APIResponse, PluginProvider, PluginSetupJSON } from "@/@types";
 
 type GetProvidersParams = {
   limit?: number;
@@ -9,7 +9,7 @@ type GetProvidersParams = {
 export const providersApi = {
   getProviders: async (
     params?: GetProvidersParams
-  ): Promise<APIResponse<Array<Provider>>> => {
+  ): Promise<APIResponse<Array<PluginProvider>>> => {
     const searchParams = new URLSearchParams();
     if (params?.limit) searchParams.append("limit", params.limit.toString());
     if (params?.offset) searchParams.append("offset", params.offset.toString());

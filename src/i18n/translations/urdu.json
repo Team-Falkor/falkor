@@ -5,7 +5,8 @@
     "most_anticipated": "سب سے زیادہ منتظر",
     "continue_playing": "کھیلنا جاری رکھیں",
     "settings": "سیٹنگز",
-    "downloads": "ڈاؤن لوڈز"
+    "downloads": "ڈاؤن لوڈز",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "ڈویلپر کی سیٹنگز",
       "miscellaneous": "مختلف سیٹنگز"
     },
+    "plugins": {
+      "community_title": "Community Plugins",
+      "community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "IGDB کیش کو دوبارہ ترتیب دیں",
       "downloads_path": "ڈاؤن لوڈز کا راستہ",
@@ -25,6 +30,7 @@
       "check-for-app-updates-on-startup": "اسٹارٹ اپ پر ایپ کی اپ ڈیٹس چیک کریں",
       "update_settings": "سیٹنگز کو اپ ڈیٹ کریں",
       "enable_developer_console": "ڈویلپر کنسول کو فعال کریں",
+      "show_dev_console": "Show Developer Console",
       "change-title-bar-style": "عنوان بار کا انداز تبدیل کریں",
       "change_title_bar_style_description": "کچھ اختیارات کے لیے دوبارہ شروع کی ضرورت ہو سکتی ہے",
       "launch-on-startup": "اسٹارٹ اپ پر Falkor لانچ کریں",
@@ -97,6 +103,7 @@
   "open_downloads_folder": "ڈاؤن لوڈز کے فولڈر کو کھولیں",
   "star_us_on_github": "ہمیں GitHub پر اسٹار دیں",
   "join_the_discord": "Discord میں شامل ہوں",
+  "start_download_message": "کھیل ڈاؤن لوڈ کرنا شروع کریں یا شروع کرنے کے لیے ٹورینٹ شامل کریں۔",
   "update_game": "کھیل کو اپ ڈیٹ کریں",
   "update": "اپ ڈیٹ کریں",
   "updating": "اپ ڈیٹ ہو رہا ہے",
@@ -108,7 +115,7 @@
   "stop_playing": "کھیلنا بند کریں",
   "continue_playing": "کھیلنا جاری رکھیں",
   "igdb_id": "IGDB کی شناخت",
-  "support_me_on_kofi": "مجھے Ko-fi پر سپورٹ کریں",
+  "support_me_on_kofi": "مجھے Ko‑fi پر سپورٹ کریں",
   "create_new_list": "نئی فہرست بنائیں",
   "fill_in_the_information_below_to_create_a_new_list": "نئی فہرست بنانے کے لیے نیچے کی معلومات بھریں",
   "enter_list_name": "فہرست کا نام درج کریں",
@@ -125,5 +132,15 @@
   "torrent": "ٹورینٹ",
   "max_download_speed": "زیادہ سے زیادہ ڈاؤن لوڈ کی رفتار",
   "max_upload_speed": "زیادہ سے زیادہ اپ لوڈ کی رفتار",
-  "add-to-list": "فہرست میں شامل کریں"
+  "add-to-list": "فہرست میں شامل کریں",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "وائن پریفکس فولڈر",
+  "the_path_to_your_wine_prefix_folder": "آپ کے وائن پریفکس فولڈر کا راستہ",
+  "import_from_igdb": "IGDB سے درآمد کریں",
+  "install_plugin": "پلگ ان انسٹال کریں",
+  "update_available": "اپ ڈیٹ دستیاب ہے",
+  "update_description": "Falkor کے لیے ایک نئی اپ ڈیٹ دستیاب ہے۔ کیا آپ ابھی اپ ڈیٹ کرنا چاہتے ہیں؟",
+  "update_now": "ابھی اپ ڈیٹ کریں",
+  "later": "بعد میں",
+  "changelog": "تبدیلیوں کی فہرست"
 }

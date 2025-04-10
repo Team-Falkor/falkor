@@ -5,7 +5,8 @@
     "most_anticipated": "Được mong đợi nhất",
     "continue_playing": "Tiếp tục chơi",
     "settings": "Cài đặt",
-    "downloads": "Tải xuống"
+    "downloads": "Tải xuống",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "Cài đặt nhà phát triển",
       "miscellaneous": "Cài đặt khác"
     },
+    "plugins": {
+      "community_title": "Plugin cộng đồng",
+      "community_disclaimer": "Những plugin này được tạo và duy trì bởi các thành viên cộng đồng và không chính thức thuộc hoặc được kiểm soát bởi Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "Đặt lại bộ nhớ đệm IGDB",
       "downloads_path": "Đường dẫn tải xuống",
@@ -25,6 +30,7 @@
       "check-for-app-updates-on-startup": "Kiểm tra cập nhật ứng dụng khi khởi động",
       "update_settings": "Cập nhật cài đặt",
       "enable_developer_console": "Kích hoạt bảng điều khiển nhà phát triển",
+      "show_dev_console": "Hiển thị bảng điều khiển nhà phát triển",
       "change-title-bar-style": "Thay đổi phong cách thanh tiêu đề",
       "change_title_bar_style_description": "Một số tùy chọn yêu cầu khởi động lại để có hiệu lực",
       "launch-on-startup": "Khởi chạy Falkor khi hệ thống khởi động",
@@ -97,6 +103,7 @@
   "open_downloads_folder": "Mở thư mục tải xuống",
   "star_us_on_github": "Đánh giá chúng tôi trên GitHub",
   "join_the_discord": "Tham gia Discord",
+  "start_download_message": "Bắt đầu tải xuống một trò chơi hoặc thêm một torrent để bắt đầu.",
   "update_game": "Cập nhật trò chơi",
   "update": "Cập nhật",
   "updating": "Đang cập nhật",
@@ -108,7 +115,7 @@
   "stop_playing": "Dừng chơi",
   "continue_playing": "Tiếp tục chơi",
   "igdb_id": "IGDB ID",
-  "support_me_on_kofi": "Ủng hộ tôi trên Ko-fi",
+  "support_me_on_kofi": "Ủng hộ tôi trên Ko‑fi",
   "create_new_list": "Tạo danh sách mới",
   "fill_in_the_information_below_to_create_a_new_list": "Điền thông tin dưới đây để tạo danh sách mới",
   "enter_list_name": "Nhập tên danh sách",
@@ -125,5 +132,15 @@
   "torrent": "Torrent",
   "max_download_speed": "Tốc độ tải xuống tối đa",
   "max_upload_speed": "Tốc độ tải lên tối đa",
-  "add-to-list": "Thêm vào danh sách"
+  "add-to-list": "Thêm vào danh sách",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Thư mục Wine Prefix",
+  "the_path_to_your_wine_prefix_folder": "Đường dẫn đến thư mục wine prefix của bạn",
+  "import_from_igdb": "Nhập từ IGDB",
+  "install_plugin": "Cài đặt plugin",
+  "update_available": "Có bản cập nhật mới",
+  "update_description": "Có một bản cập nhật mới cho Falkor. Bạn có muốn cập nhật ngay không?",
+  "update_now": "Cập nhật ngay",
+  "later": "Để sau",
+  "changelog": "Nhật ký thay đổi"
 }
