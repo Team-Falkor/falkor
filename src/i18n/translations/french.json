@@ -16,6 +16,10 @@
       "developer": "Paramètres développeur",
       "miscellaneous": "Paramètres divers"
     },
+    "plugins": {
+      "community_title": "Plugins communautaires",
+      "community_disclaimer": "Ces plugins sont créés et maintenus par des membres de la communauté et ne sont pas officiellement affiliés ou contrôlés par Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "Réinitialiser le cache IGDB",
       "downloads_path": "Chemin des téléchargements",

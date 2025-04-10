@@ -16,6 +16,10 @@
       "developer": "Configuración para desarrolladores",
       "miscellaneous": "Configuración miscelánea"
     },
+    "plugins": {
+      "community_title": "Complementos de la comunidad",
+      "community_disclaimer": "Estos complementos son creados y mantenidos por miembros de la comunidad y no están oficialmente afiliados ni controlados por Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "Restablecer caché de IGDB",
       "downloads_path": "Ruta de descargas",

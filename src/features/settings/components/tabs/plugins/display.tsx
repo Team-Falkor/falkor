@@ -1,5 +1,5 @@
 import { PluginSetupJSONDisabled } from "@/@types";
-import PluginCard from "@/components/cards/pluginCard";
+import UnifiedPluginCard from "@/components/cards/unified-plugin-card";
 import { H5 } from "@/components/typography/h5";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import UsePlugins from "@/hooks/usePlugins";
@@ -83,7 +83,7 @@ const PluginDisplay = ({
       >
         {sortedPlugins?.length ? (
           sortedPlugins?.map((plugin: PluginSetupJSONDisabled) => (
-            <PluginCard
+            <UnifiedPluginCard
               key={plugin.id}
               id={plugin.id}
               name={plugin.name}
@@ -91,7 +91,7 @@ const PluginDisplay = ({
               version={plugin.version}
               image={plugin.logo}
               banner={plugin.banner}
-              installed={true}
+              isInstalled={true}
               disabled={plugin.disabled}
               author={plugin.author}
               needsUpdate={!!needsUpdate?.get(plugin.id)}

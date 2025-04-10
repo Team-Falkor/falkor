@@ -16,6 +16,10 @@
       "developer": "Entwickler-Einstellungen",
       "miscellaneous": "Sonstige Einstellungen"
     },
+    "plugins": {
+      "community_title": "Community-Plugins",
+      "community_disclaimer": "Diese Plugins werden von Community-Mitgliedern erstellt und gewartet und sind nicht offiziell mit Falkor verbunden oder von Falkor kontrolliert."
+    },
     "settings": {
       "reset-igdb-cache": "IGDB-Cache zurücksetzen",
       "downloads_path": "Download-Pfad",
