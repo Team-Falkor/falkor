@@ -23,26 +23,32 @@ const DefaultCard = ({
 
   return (
     <Link to={`/info/$id`} params={{ id: id.toString() }}>
-      <div className="w-[200px] relative h-[325px] flex flex-col rounded-lg overflow-hidden bg-card group hover:border-border">
-        {formattedRating && (
-          <Badge className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-sm px-2.5 py-1 text-sm shadow-lg z-10">
-            <Star size={14} className="fill-yellow-400 text-yellow-400" />
-            <span className="font-medium">{formattedRating}</span>
-          </Badge>
-        )}
-
+      <div className="w-[200px] h-[300px] relative flex flex-col rounded-lg overflow-hidden border transition-shadow duration-300 group hover:shadow-xl hover:border-border">
         {/* IMAGE */}
-        <div className="w-full h-[260px] shrink-0 grow-0 group-hover:scale-[1.02] relative z-0 transition-all overflow-hidden">
+        <div className="absolute inset-0 z-0 overflow-hidden transition-transform duration-300 group-hover:scale-105">
           <IGDBImage
             alt={name}
             imageId={cover?.image_id}
             className="w-full h-full object-cover"
           />
+
+          <span className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
         </div>
 
         {/* CONTENT */}
-        <div className="size-full p-2 px-3 flex flex-col">
-          <H5 className="text-pretty line-clamp-2">{name}</H5>
+        <div className="relative z-10 flex flex-col justify-between h-full p-3 px-4">
+          <div className="flex w-full justify-end items-end">
+            {formattedRating && (
+              <Badge className="flex items-center gap-1.5 bg-black/80 backdrop-blur-sm px-2.5 py-1 text-sm shadow-lg">
+                <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{formattedRating}</span>
+              </Badge>
+            )}
+          </div>
+
+          <H5 className="text-pretty transition-all duration-300 transform group-hover:-translate-y-1 group-hover:opacity-100 line-clamp-2">
+            {name}
+          </H5>
         </div>
       </div>
     </Link>

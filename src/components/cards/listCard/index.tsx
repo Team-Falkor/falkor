@@ -1,7 +1,5 @@
 import { ListGame } from "@/@types";
-import { Card, CardContent } from "@/components/ui/card";
 import { H5 } from "@/components/ui/typography";
-import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import ListCardImage from "./image";
 
@@ -13,27 +11,24 @@ const ListCard: React.FC<ListCardProps> = ({ game_id, title, image }) => {
     : "";
 
   return (
-    <Card
-      className={cn(
-        "group relative m-0 w-[200px] rounded-lg p-0 overflow-hidden flex flex-col",
-        "transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
-      )}
-    >
-      <CardContent className="p-0 m-0">
-        <Link to={`/info/$id`} params={{ id: game_id.toString() }}>
-          <div className="relative">
-            <ListCardImage imageId={imageId} alt={title} />
-          </div>
+    <Link to={`/info/$id`} params={{ id: game_id.toString() }}>
+      <div className="w-[200px] h-[300px] relative flex flex-col rounded-lg overflow-hidden border transition-shadow duration-300 group hover:shadow-xl hover:border-border">
+        {/* IMAGE */}
+        <div className="absolute inset-0 z-0 overflow-hidden transition-transform duration-300 group-hover:scale-105">
+          <ListCardImage imageId={imageId} alt={title} />
 
-          {/* Card info section that's always visible */}
-          <div className="p-2">
-            <H5 className="text-center line-clamp-2 h-12 flex items-center justify-center">
-              {title}
-            </H5>
-          </div>
-        </Link>
-      </CardContent>
-    </Card>
+          <span className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
+        </div>
+
+        {/* CONTENT */}
+        <div className="relative z-10 flex flex-col justify-between h-full p-3 px-4">
+          <div />
+          <H5 className="text-pretty transition-all duration-300 transform group-hover:-translate-y-1 group-hover:opacity-100 line-clamp-2">
+            {title}
+          </H5>
+        </div>
+      </div>
+    </Link>
   );
 };
 
