@@ -54,6 +54,7 @@
     "@tanstack/react-router": "^1.115.2",
     "@tanstack/react-table": "^8.21.2",
     "@tanstack/zod-adapter": "^1.115.2",
+    "@team-falkor/shared-types": "^1.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.2",
     "auto-launch": "^5.0.6",

@@ -1,8 +1,5 @@
-import {
-  PluginSearchResponse,
-  SearchPlugiData,
-  SearchPluginResponse,
-} from "@/@types";
+import { SearchPluginData, SearchPluginResponse } from "@/@types";
+import { PluginSearchResponse } from "@team-falkor/shared-types";
 import pluginHandler from "../../../handlers/plugins/plugin";
 import { getOS } from "../../../utils";
 import { registerEvent } from "../utils/registerEvent";
@@ -23,7 +20,7 @@ const searchPlugins = async (
     }
 
     const searchResults = plugins.map(
-      async (plugin): Promise<SearchPlugiData> => {
+      async (plugin): Promise<SearchPluginData> => {
         try {
           const config_url_params = plugin?.config
             ? plugin.config?.search?.join("/")

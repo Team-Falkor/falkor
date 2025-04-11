@@ -1,7 +1,8 @@
-import { DownloadgameData, ItemDownload, PluginSearchResponse } from "@/@types";
+import { DownloadgameData, ItemDownload } from "@/@types";
 import { SourceCard } from "@/components/cards/sourcecard";
 import { CarouselItem } from "@/components/ui/carousel";
 import { ITADPrice } from "@/lib/api/itad/types";
+import { PluginSearchResponse } from "@team-falkor/shared-types";
 import { useMemo } from "react";
 
 interface SourceShowcaseProps {

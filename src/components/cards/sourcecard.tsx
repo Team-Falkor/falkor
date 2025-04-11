@@ -1,4 +1,4 @@
-import { DownloadgameData, PluginSearchResponse } from "@/@types";
+import { DownloadgameData } from "@/@types";
 import { useLanguageContext } from "@/contexts/I18N";
 import UseDownloads from "@/features/downloads/hooks/useDownloads";
 import { useSettings } from "@/hooks";
@@ -11,6 +11,7 @@ import { sanitizeFilename } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { H3, P } from "../ui/typography";
+import { PluginSearchResponse } from "@team-falkor/shared-types";
 
 type SourceCardProps = {
   source: PluginSearchResponse | Deal;

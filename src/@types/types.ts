@@ -1,7 +1,7 @@
 import { ITADPrice } from "@/lib/api/itad/types";
+import { PluginConfig, PluginSearchResponse } from "@team-falkor/shared-types";
 import { UpdateInfo } from "electron-updater";
 import { JSX, ReactElement } from "react";
-import { PluginConfig, PluginSearchResponse } from "./plugins";
 
 export type IGDBImageSize =
   | "original"
@@ -101,11 +101,11 @@ export type SearchPluginResponse =
       success: false;
     }
   | {
-      data: Array<SearchPlugiData>;
+      data: Array<SearchPluginData>;
       success: true;
     };
 
-export type SearchPlugiData = {
+export type SearchPluginData = {
   id: string;
   name: string;
   sources: PluginSearchResponse[];

@@ -1,4 +1,8 @@
-import { APIResponse, PluginProvider, PluginSetupJSON } from "@/@types";
+import {
+  APIResponse,
+  PluginProvider,
+  PluginSetupJSON,
+} from "@team-falkor/shared-types";
 
 type GetProvidersParams = {
   limit?: number;

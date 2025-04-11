@@ -1,4 +1,3 @@
-import { PluginSetupJSONAuthor } from "@/@types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +10,7 @@ import {
 import { useLanguageContext } from "@/contexts/I18N";
 import { usePluginActions } from "@/hooks";
 import { cn, invoke, openLink } from "@/lib";
+import { PluginSetupJSONAuthor } from "@team-falkor/shared-types";
 import { Download, Power, PowerOff, Trash2, UserIcon } from "lucide-react";
 import { SyntheticEvent, useMemo, useState } from "react";
 import { toast } from "sonner";

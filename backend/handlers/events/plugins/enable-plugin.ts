@@ -1,4 +1,4 @@
-import { PluginId } from "@/@types";
+import { PluginId } from "@team-falkor/shared-types";
 import pluginHandler from "../../../handlers/plugins/plugin";
 import { registerEvent } from "../utils/registerEvent";
 

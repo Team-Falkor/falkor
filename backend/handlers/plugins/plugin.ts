@@ -1,14 +1,21 @@
-import { PluginId, PluginSetupJSON, PluginSetupJSONDisabled } from "@/@types";
 import fs from "node:fs";
 import { join } from "node:path";
 import { constants } from "../../utils";
 import logger from "../logging";
+import {
+  PluginSetupJSON,
+  PluginId,
+  PluginSetupJSONDisabled,
+} from "@team-falkor/shared-types";
 
 /**
  * Custom error class for plugin-related errors
  */
 class PluginError extends Error {
-  constructor(message: string, public readonly pluginId?: string) {
+  constructor(
+    message: string,
+    public readonly pluginId?: string
+  ) {
     super(message);
     this.name = "PluginError";
   }
@@ -20,12 +27,12 @@ class PluginError extends Error {
 function joinUrlPath(apiUrl: string, setupPath: string): string {
   if (!apiUrl) return "";
   if (!setupPath) return apiUrl;
-  
+
   // Remove trailing slash from API URL if present
   const baseUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
   // Ensure setup path starts with a slash
   const path = setupPath.startsWith("/") ? setupPath : `/${setupPath}`;
-  
+
   return `${baseUrl}${path}`;
 }
 
@@ -71,32 +78,40 @@ export class PluginHandler {
    */
   private async fetchWithRetry<T>(url: string): Promise<T> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const response = await fetch(url);
-        
+
         if (!response.ok) {
-          throw new PluginError(`HTTP error ${response.status}: ${response.statusText}`);
+          throw new PluginError(
+            `HTTP error ${response.status}: ${response.statusText}`
+          );
         }
-        
-        return await response.json() as T;
+
+        return (await response.json()) as T;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         // Only retry on network errors, not on parsing errors
         if (error instanceof SyntaxError) {
-          throw new PluginError(`Invalid JSON response from ${url}: ${error.message}`);
+          throw new PluginError(
+            `Invalid JSON response from ${url}: ${error.message}`
+          );
         }
-        
+
         // Wait before retrying (exponential backoff)
         if (attempt < this.maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, attempt) * 100)
+          );
         }
       }
     }
-    
-    throw new PluginError(`Failed to fetch data from ${url} after ${this.maxRetries} attempts: ${lastError?.message}`);
+
+    throw new PluginError(
+      `Failed to fetch data from ${url} after ${this.maxRetries} attempts: ${lastError?.message}`
+    );
   }
 
   /**
@@ -108,13 +123,16 @@ export class PluginHandler {
     if (!data) {
       throw new PluginError("Plugin data is empty");
     }
-    
+
     if (!data.id) {
       throw new PluginError("Invalid plugin format: 'id' field is missing");
     }
-    
+
     if (!data.version) {
-      throw new PluginError("Invalid plugin format: 'version' field is missing", data.id);
+      throw new PluginError(
+        "Invalid plugin format: 'version' field is missing",
+        data.id
+      );
     }
   }
 
@@ -169,7 +187,7 @@ export class PluginHandler {
 
       const filePath = join(this.path, `${pluginId}.json`);
       const disabledFilePath = join(this.path, `${pluginId}.disabled`);
-      
+
       // Check if the plugin exists in either enabled or disabled state
       if (fs.existsSync(filePath)) {
         await fs.promises.unlink(filePath);
@@ -178,7 +196,7 @@ export class PluginHandler {
         await fs.promises.unlink(disabledFilePath);
         return true;
       }
-      
+
       // Plugin not found
       return false;
     } catch (error) {
@@ -256,7 +274,10 @@ export class PluginHandler {
         const pluginData = JSON.parse(data) as PluginSetupJSON;
         return pluginData;
       } catch (parseError) {
-        throw new PluginError(`Invalid JSON format in plugin file: ${parseError instanceof Error ? parseError.message : parseError}`, pluginId);
+        throw new PluginError(
+          `Invalid JSON format in plugin file: ${parseError instanceof Error ? parseError.message : parseError}`,
+          pluginId
+        );
       }
     } catch (error) {
       const errorMessage = `Failed to fetch plugin with ID (${pluginId}): ${error instanceof Error ? error.message : error}`;
@@ -268,7 +289,7 @@ export class PluginHandler {
 
   /**
    * Lists all plugins, optionally including disabled plugins
-   * 
+   *
    * @param wantDisabled Whether to include disabled plugins in the list
    * @returns Array of plugin data with disabled status
    */
@@ -294,12 +315,15 @@ export class PluginHandler {
                 ...pluginData,
               });
             } catch (parseError) {
-              logger.log("error", `Failed to parse plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`);
+              logger.log(
+                "error",
+                `Failed to parse plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`
+              );
               // Continue to next file if parsing fails
               continue;
             }
           }
-          
+
           // Process disabled plugins if requested
           if (file.endsWith(".disabled") && wantDisabled) {
             const data = await fs.promises.readFile(filePath, "utf-8");
@@ -310,14 +334,20 @@ export class PluginHandler {
                 ...pluginData,
               });
             } catch (parseError) {
-              logger.log("error", `Failed to parse disabled plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`);
+              logger.log(
+                "error",
+                `Failed to parse disabled plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`
+              );
               // Continue to next file if parsing fails
               continue;
             }
           }
         } catch (fileError) {
           // Log error but continue processing other files
-          logger.log("error", `Error processing plugin file ${file}: ${fileError instanceof Error ? fileError.message : fileError}`);
+          logger.log(
+            "error",
+            `Error processing plugin file ${file}: ${fileError instanceof Error ? fileError.message : fileError}`
+          );
           continue;
         }
       }
@@ -333,7 +363,7 @@ export class PluginHandler {
 
   /**
    * Checks if a plugin has an update available
-   * 
+   *
    * @param pluginId The ID of the plugin to check
    * @returns true if an update is available, false otherwise
    */
@@ -346,18 +376,21 @@ export class PluginHandler {
 
       const data = await fs.promises.readFile(filePath, "utf-8");
       let json: PluginSetupJSON;
-      
+
       try {
         json = JSON.parse(data) as PluginSetupJSON;
       } catch (parseError) {
-        throw new PluginError(`Invalid JSON format in plugin file: ${parseError instanceof Error ? parseError.message : parseError}`, pluginId);
+        throw new PluginError(
+          `Invalid JSON format in plugin file: ${parseError instanceof Error ? parseError.message : parseError}`,
+          pluginId
+        );
       }
 
       if (!json.api_url || !json.setup_path) return false;
 
       const url = joinUrlPath(json.api_url, json.setup_path);
       const latest = await this.fetchWithRetry<PluginSetupJSON>(url);
-      
+
       // Compare versions to determine if an update is available
       if (!latest.version) return false;
       if (latest.version === json.version) return false;
@@ -373,7 +406,7 @@ export class PluginHandler {
 
   /**
    * Checks all plugins for available updates
-   * 
+   *
    * @param checkForDisabled Whether to check disabled plugins for updates
    * @returns Array of plugins that have updates available
    */
@@ -385,46 +418,52 @@ export class PluginHandler {
 
       const plugins: Array<PluginSetupJSONDisabled> = [];
       const files = await fs.promises.readdir(this.path);
-      
+
       for await (const file of files) {
         try {
           const filePath = join(this.path, file);
           const isDisabled = file.endsWith(".disabled");
           const isEnabled = file.endsWith(".json");
-          
+
           // Skip disabled plugins if not requested
           if (isDisabled && !checkForDisabled) continue;
           // Skip files that are not plugins
           if (!isEnabled && !isDisabled) continue;
-          
+
           // Read and parse plugin data
           const data = await fs.promises.readFile(filePath, "utf-8");
           let json: PluginSetupJSON;
-          
+
           try {
             json = JSON.parse(data) as PluginSetupJSON;
           } catch (parseError) {
-            logger.log("error", `Failed to parse plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`);
+            logger.log(
+              "error",
+              `Failed to parse plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`
+            );
             continue;
           }
-          
+
           // Skip plugins without update information
           if (!json.api_url || !json.setup_path) continue;
-          
+
           // Fetch latest version
           const url = joinUrlPath(json.api_url, json.setup_path);
           let latest: PluginSetupJSON;
-          
+
           try {
             latest = await this.fetchWithRetry<PluginSetupJSON>(url);
           } catch (fetchError) {
-            logger.log("error", `Failed to fetch updates for plugin ${json.id}: ${fetchError instanceof Error ? fetchError.message : fetchError}`);
+            logger.log(
+              "error",
+              `Failed to fetch updates for plugin ${json.id}: ${fetchError instanceof Error ? fetchError.message : fetchError}`
+            );
             continue;
           }
-          
+
           // Skip if no update is available
           if (!latest.version || latest.version === json.version) continue;
-          
+
           // Add plugin to the list of plugins with updates
           plugins.push({
             disabled: isDisabled,
@@ -432,11 +471,14 @@ export class PluginHandler {
           });
         } catch (fileError) {
           // Log error but continue processing other files
-          logger.log("error", `Error processing plugin file: ${fileError instanceof Error ? fileError.message : fileError}`);
+          logger.log(
+            "error",
+            `Error processing plugin file: ${fileError instanceof Error ? fileError.message : fileError}`
+          );
           continue;
         }
       }
-      
+
       return plugins;
     } catch (error) {
       const errorMessage = `Failed to check for updates: ${error instanceof Error ? error.message : error}`;
@@ -459,9 +501,9 @@ export class PluginHandler {
       // Check if the plugin exists in enabled or disabled state
       const enabledPath = join(this.path, `${pluginId}.json`);
       const disabledPath = join(this.path, `${pluginId}.disabled`);
-      
+
       let filePath: string;
-      
+
       if (fs.existsSync(enabledPath)) {
         filePath = enabledPath;
       } else if (fs.existsSync(disabledPath)) {
@@ -473,11 +515,14 @@ export class PluginHandler {
       // Read and parse the existing plugin data
       const data = await fs.promises.readFile(filePath, "utf-8");
       let json: PluginSetupJSON;
-      
+
       try {
         json = JSON.parse(data) as PluginSetupJSON;
       } catch (parseError) {
-        throw new PluginError(`Invalid JSON format in plugin file: ${parseError instanceof Error ? parseError.message : parseError}`, pluginId);
+        throw new PluginError(
+          `Invalid JSON format in plugin file: ${parseError instanceof Error ? parseError.message : parseError}`,
+          pluginId
+        );
       }
 
       if (!json.api_url || !json.setup_path) {
@@ -513,7 +558,7 @@ export class PluginHandler {
    * Updates all plugins if a new version is available.
    * If a plugin is disabled, it will be updated and remain disabled.
    * If a plugin is enabled, it will be updated and remain enabled.
-   * 
+   *
    * @returns An array of JSON objects containing the updated plugins.
    * The objects have the same structure as the original JSON data,
    * but with the added "disabled" field, which is true if the plugin
@@ -525,44 +570,50 @@ export class PluginHandler {
 
       const plugins: Array<PluginSetupJSONDisabled> = [];
       const files = await fs.promises.readdir(this.path);
-      
+
       for await (const file of files) {
         try {
           const filePath = join(this.path, file);
           const isDisabled = file.endsWith(".disabled");
           const isEnabled = file.endsWith(".json");
-          
+
           // Skip files that are not plugins
           if (!isEnabled && !isDisabled) continue;
-          
+
           // Read and parse plugin data
           const data = await fs.promises.readFile(filePath, "utf-8");
           let json: PluginSetupJSON;
-          
+
           try {
             json = JSON.parse(data) as PluginSetupJSON;
           } catch (parseError) {
-            logger.log("error", `Failed to parse plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`);
+            logger.log(
+              "error",
+              `Failed to parse plugin file ${file}: ${parseError instanceof Error ? parseError.message : parseError}`
+            );
             continue;
           }
-          
+
           // Skip plugins without update information
           if (!json.api_url || !json.setup_path) continue;
-          
+
           // Fetch latest version
           const url = joinUrlPath(json.api_url, json.setup_path);
           let latest: PluginSetupJSON;
-          
+
           try {
             latest = await this.fetchWithRetry<PluginSetupJSON>(url);
           } catch (fetchError) {
-            logger.log("error", `Failed to fetch updates for plugin ${json.id}: ${fetchError instanceof Error ? fetchError.message : fetchError}`);
+            logger.log(
+              "error",
+              `Failed to fetch updates for plugin ${json.id}: ${fetchError instanceof Error ? fetchError.message : fetchError}`
+            );
             continue;
           }
-          
+
           // Skip if no update is available
           if (!latest.version || latest.version === json.version) continue;
-          
+
           // Update the plugin
           await fs.promises.unlink(filePath);
           await fs.promises.writeFile(
@@ -570,7 +621,7 @@ export class PluginHandler {
             JSON.stringify(latest, null, 2),
             "utf-8"
           );
-          
+
           // Add the plugin to the list of updated plugins
           plugins.push({
             disabled: isDisabled,
@@ -578,11 +629,14 @@ export class PluginHandler {
           });
         } catch (fileError) {
           // Log error but continue processing other files
-          logger.log("error", `Error processing plugin file: ${fileError instanceof Error ? fileError.message : fileError}`);
+          logger.log(
+            "error",
+            `Error processing plugin file: ${fileError instanceof Error ? fileError.message : fileError}`
+          );
           continue;
         }
       }
-      
+
       return plugins;
     } catch (error) {
       const errorMessage = `Failed to update plugins: ${error instanceof Error ? error.message : error}`;

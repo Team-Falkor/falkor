@@ -1,4 +1,4 @@
-import { PluginSetupJSON } from "@/@types";
+import { PluginSetupJSON } from "@team-falkor/shared-types";
 import { create } from "zustand";
 
 interface PluginsState {
@@ -50,7 +50,7 @@ export const usePluginsStore = create<PluginsState>((set, get) => ({
   checkForUpdates: async (pluginId) => {
     const lastChecked = get().lastChecked;
     const now = Date.now();
-    
+
     // Only check for updates if last check was more than 1 hour ago
     if (lastChecked && now - lastChecked < 3600000) {
       return [];
@@ -72,12 +72,13 @@ export const usePluginsStore = create<PluginsState>((set, get) => ({
           updatedPlugins.map((plugin) => [plugin.id, plugin])
         ),
         lastChecked: now,
-        loading: false
+        loading: false,
       }));
 
       return updatedPlugins;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Error checking for updates";
+      const errorMessage =
+        error instanceof Error ? error.message : "Error checking for updates";
       console.error("Error checking for updates:", error);
       set({ error: errorMessage, loading: false });
       return [];
