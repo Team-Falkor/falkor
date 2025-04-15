@@ -2,7 +2,6 @@ import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from "electron";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { torrentClient } from "../handlers/torrent";
 import { settings } from "../utils/settings/settings";
 
 // Resolve directory paths
@@ -106,9 +105,6 @@ class Window {
 
       // Set up window event handlers
       this.setupWindowEvents(win);
-
-      // Apply settings
-      this.setupSettings();
 
       // Initialize tray if needed
       if (options.createTray ?? true) {
@@ -308,34 +304,6 @@ class Window {
         error instanceof Error ? error.message : String(error);
       console.log("error", `Error destroying window: ${errorMessage}`);
       throw error;
-    }
-  }
-
-  /**
-   * Applies settings to the application
-   * @private
-   */
-  private setupSettings() {
-    try {
-      // Apply torrent speed limits
-      const maxDownloadSpeed = settings.get("maxDownloadSpeed");
-      const maxUploadSpeed = settings.get("maxUploadSpeed");
-
-      if (maxDownloadSpeed > 0) {
-        torrentClient.throttleDownload(maxDownloadSpeed);
-        console.log("info", `Set download speed limit to ${maxDownloadSpeed}`);
-      }
-
-      if (maxUploadSpeed > 0) {
-        torrentClient.throttleUpload(maxUploadSpeed);
-        console.log("info", `Set upload speed limit to ${maxUploadSpeed}`);
-      }
-
-      // Apply other settings as needed
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.log("error", `Failed to apply settings: ${errorMessage}`);
     }
   }
 

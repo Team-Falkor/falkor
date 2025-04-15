@@ -1,2 +1,2 @@
-import "./throttle-download";
-import "./throttle-upload";
+import "./throttleDownload";
+import "./throttleUpload";

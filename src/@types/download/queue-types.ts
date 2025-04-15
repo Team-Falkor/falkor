@@ -1,83 +1,97 @@
-import { DownloadgameData, DownloadStatus } from './types';
+import { DownloadgameData } from "./types";
 
 /**
- * Common interface for download manager resources
+ * Enum representing the possible states of a download
  */
-export interface DownloadResource {
-  id: string;
-  status: DownloadStatus;
-  progress: number;
-  downloadSpeed: number;
-  timeRemaining?: number | 'completed';
-  totalSize?: number;
-  path?: string;
-  game_data?: DownloadgameData;
+export enum DownloadStatus {
+  QUEUED = "queued",
+  DOWNLOADING = "downloading",
+  PAUSED = "paused",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  CANCELLED = "canceled",
+  NONE = "none",
 }
 
 /**
- * Enhanced download state with additional properties for tracking
+ * Interface representing a download item in the queue
+ * This is used for both HTTP and torrent downloads
  */
-export interface DownloadState {
-  id: string;
-  url?: string;
-  filename?: string;
-  game_data?: DownloadgameData;
-  path?: string;
-  downloadSpeed: number;
-  progress: number;
-  totalSize?: number;
-  status: DownloadStatus;
-  timeRemaining?: number | 'completed';
-  uploadSpeed?: number;
-  numPeers?: number;
-  error?: string;
-  retryCount?: number;
-  lastUpdated?: number;
+export interface DownloadItem {
+  id: string; // Unique identifier
+  url: string; // Source URL or magnet link
+  type: "http" | "torrent"; // Download type
+  name: string; // File/torrent name
+  path: string; // Destination path
+  status: DownloadStatus; // Current status
+  progress: number; // Progress percentage (0-100)
+  speed: number; // Download speed in bytes/sec
+  size: number; // Total size in bytes
+  timeRemaining: number; // Estimated time remaining
+  paused: boolean; // Whether download is paused
+  error?: string; // Error message if failed
+  game_data?: DownloadgameData; // Game metadata if applicable
+  created: Date; // When download was added
+  started?: Date; // When download started
+  completed?: Date; // When download completed
 }
 
 /**
- * Configuration for download retry behavior
+ * Type for download priority levels
  */
-export interface RetryConfig {
+export type DownloadPriority = "high" | "normal" | "low";
+
+/**
+ * Interface for download queue configuration
+ */
+export interface DownloadQueueConfig {
+  maxConcurrentDownloads: number;
   maxRetries: number;
-  retryDelay: number;
-  shouldRetry: (error: Error) => boolean;
+  retryDelay: number; // in milliseconds
+  persistQueue: boolean;
 }
 
 /**
- * Events emitted by the download queue
+ * Interface for adding a new download to the queue
  */
-export enum DownloadQueueEvent {
-  DOWNLOAD_ADDED = 'download:added',
-  DOWNLOAD_REMOVED = 'download:removed',
-  DOWNLOAD_STARTED = 'download:started',
-  DOWNLOAD_COMPLETED = 'download:completed',
-  DOWNLOAD_FAILED = 'download:failed',
-  DOWNLOAD_PAUSED = 'download:paused',
-  DOWNLOAD_RESUMED = 'download:resumed',
-  DOWNLOAD_STOPPED = 'download:stopped',
-  DOWNLOAD_PROGRESS = 'download:progress',
-  DOWNLOAD_ERROR = 'download:error',
-  DOWNLOAD_RETRY = 'download:retry',
-  TORRENT_ADDED = 'torrent:added',
-  TORRENT_REMOVED = 'torrent:removed',
-  TORRENT_STARTED = 'torrent:started',
-  TORRENT_COMPLETED = 'torrent:completed',
-  TORRENT_FAILED = 'torrent:failed',
-  TORRENT_PAUSED = 'torrent:paused',
-  TORRENT_RESUMED = 'torrent:resumed',
-  TORRENT_STOPPED = 'torrent:stopped',
-  TORRENT_PROGRESS = 'torrent:progress',
-  TORRENT_ERROR = 'torrent:error',
-  TORRENT_RETRY = 'torrent:retry',
-  QUEUE_CLEARED = 'queue:cleared'
+export interface AddDownloadOptions {
+  url: string;
+  type: "http" | "torrent";
+  name?: string;
+  path?: string;
+  priority?: DownloadPriority;
+  game_data?: DownloadgameData;
+  autoStart?: boolean;
 }
 
 /**
- * Options for the download queue
+ * Interface for download progress updates
  */
-export interface DownloadQueueOptions {
-  maxConcurrentDownloads?: number;
-  throttleInterval?: number;
-  retryConfig?: Partial<RetryConfig>;
+export interface DownloadProgress {
+  id: string;
+  progress: number;
+  speed: number;
+  timeRemaining: number;
+  status: DownloadStatus;
+  error?: string; // Optional error message if download failed
+}
+
+/**
+ * Interface for download state change events
+ */
+export interface DownloadStateChange {
+  id: string;
+  previousStatus: DownloadStatus;
+  currentStatus: DownloadStatus;
+  timestamp: Date;
+}
+
+/**
+ * Interface for download error information
+ */
+export interface DownloadError {
+  id: string;
+  error: string;
+  status: DownloadStatus;
+  timestamp: Date;
 }

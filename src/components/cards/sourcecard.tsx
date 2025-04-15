@@ -1,17 +1,17 @@
 import { DownloadgameData } from "@/@types";
 import { useLanguageContext } from "@/contexts/I18N";
-import UseDownloads from "@/features/downloads/hooks/useDownloads";
+import { useDownloadActions } from "@/features/downloads/hooks";
 import { useSettings } from "@/hooks";
-import { createSlug, invoke, openLink } from "@/lib";
+import { invoke, openLink } from "@/lib";
 import { Deal } from "@/lib/api/itad/types";
 import { useAccountServices } from "@/stores/account-services";
+import { PluginSearchResponse } from "@team-falkor/shared-types";
 import { CloudDownload, ShoppingCart } from "lucide-react";
 import { useCallback } from "react";
 import { sanitizeFilename } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { H3, P } from "../ui/typography";
-import { PluginSearchResponse } from "@team-falkor/shared-types";
 
 type SourceCardProps = {
   source: PluginSearchResponse | Deal;
@@ -23,7 +23,7 @@ type SourceCardProps = {
 
 export const SourceCard = ({ source, ...props }: SourceCardProps) => {
   const { t } = useLanguageContext();
-  const { addDownload } = UseDownloads();
+  const { addDownload } = useDownloadActions();
   const { realDebrid, torBox } = useAccountServices();
   const { settings } = useSettings();
 
@@ -63,13 +63,10 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 
           if (props.game_data) {
             addDownload({
-              type: "download",
-              data: {
-                id: props.slug ?? createSlug(props.game_data.name),
-                url,
-                game_data: props.game_data,
-                file_name: props.game_data.name,
-              },
+              type: "http",
+              url,
+              name: props.game_data.name,
+              path: settings.downloadsPath,
             });
           }
         } else if (torBox) {
@@ -78,16 +75,12 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
               ? await torBox.downloadFromFileHost(url, password)
               : await torBox.downloadTorrentFromMagnet(url);
           if (props.game_data) {
+            const fileName = await torBox.getDownloadName(returned_url, type);
             addDownload({
-              type: "download",
-              data: {
-                id: props.slug ?? createSlug(props.game_data.name),
-                url,
-                game_data: props.game_data,
-                file_name: await torBox.getDownloadName(returned_url, type),
-                file_path: `${settings.downloadsPath}/${sanitizeFilename(props.game_data.name)}`,
-                file_extension: "zip",
-              },
+              type: "http",
+              url,
+              name: fileName,
+              path: `${settings.downloadsPath}/${sanitizeFilename(props.game_data.name)}`,
             });
           }
         }
@@ -96,13 +89,10 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 
       if (type === "ddl" && props.game_data) {
         addDownload({
-          type: "download",
-          data: {
-            id: props.slug ?? createSlug(props.game_data.name),
-            url,
-            game_data: props.game_data,
-            file_name: props.game_data.name,
-          },
+          type: "http",
+          url,
+          name: props.game_data.name,
+          path: settings.downloadsPath,
         });
         return;
       }
@@ -110,10 +100,9 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
       if (props.game_data) {
         addDownload({
           type: "torrent",
-          data: {
-            torrentId: url,
-            game_data: props.game_data,
-          },
+          url,
+          name: props.game_data.name,
+          path: settings.downloadsPath,
         });
       }
     } catch (error) {

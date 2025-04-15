@@ -1,4 +1,3 @@
-import { downloadQueue } from "../../../handlers/download-queue";
 import { gamesLaunched } from "../../../handlers/launcher/games_launched";
 import { settings } from "../../../utils/settings/settings";
 import window from "../../../utils/window";
@@ -20,13 +19,6 @@ const close = async (
 
     if (gamesLaunched.size > 0 && !confirmed) {
       window.emitToFrontend("close-confirm", { message: "game's running" });
-      return;
-    }
-
-    if ((await downloadQueue.getDownloads())?.length > 0 && !confirmed) {
-      window.emitToFrontend("close-confirm", {
-        message: "download's not finished",
-      });
       return;
     }
 

@@ -1,214 +1,267 @@
-import { DownloadData, QueueData } from "@/@types";
-import { ITorrent } from "@/@types/torrent";
+import { DownloadItem, DownloadPriority, DownloadStatus } from "@/@types";
+import { invoke } from "@/lib";
 import { create } from "zustand";
-import { shallow } from "zustand/shallow";
 
-interface QueueStoreState {
-  queue: QueueData[];
-  downloads: Array<DownloadData | ITorrent>;
-  maxConcurrentDownloads: number;
-  addToQueue: (item: QueueData) => Promise<boolean>;
-  removeFromQueue: (id: string) => Promise<void>;
-  fetchQueue: () => Promise<void>;
+type DownloadsState = {
+  downloads: DownloadItem[];
+  isLoading: boolean;
+  error: string | null;
+  // Actions
   fetchDownloads: () => Promise<void>;
+  addDownload: (options: {
+    url: string;
+    type: "http" | "torrent";
+    path: string;
+    name?: string;
+  }) => Promise<DownloadItem | null>;
   pauseDownload: (id: string) => Promise<boolean>;
   resumeDownload: (id: string) => Promise<boolean>;
-  stopDownload: (id: string) => Promise<boolean>;
-  updateMaxConcurrentDownloads: (max: number) => Promise<void>;
-  getDownloadById: (id: string) => DownloadData | ITorrent | QueueData | undefined;
-  getActiveDownloadsCount: () => number;
+  cancelDownload: (id: string) => Promise<boolean>;
+  removeDownload: (id: string) => Promise<boolean>;
+  clearCompletedDownloads: () => Promise<boolean>;
+  setPriority: (id: string, priority: DownloadPriority) => Promise<boolean>;
+  throttleDownload: (speed: number) => Promise<boolean>;
+  throttleUpload: (speed: number) => Promise<boolean>;
+};
+
+export const useDownloadsStore = create<DownloadsState>((set) => ({
+  downloads: [],
+  isLoading: false,
+  error: null,
+
+  fetchDownloads: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const downloads = await window.ipcRenderer.invoke(
+        "download-queue:get-all"
+      );
+      set({ downloads, isLoading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+
+  addDownload: async (options) => {
+    try {
+      set({ error: null });
+      // Ensure autoStart is explicitly set to true to fix the download not starting bug
+      // The backend returns a string ID, not a DownloadItem
+      const downloadId = await invoke<string>("download-queue:add", {
+        ...options,
+        autoStart: true,
+      });
+      if (downloadId) {
+        // Create a temporary download item with the ID and basic info
+        // The full details will be updated via the event listeners
+        const newDownload: DownloadItem = {
+          id: downloadId,
+          url: options.url,
+          type: options.type,
+          name: options.name || `Download-${downloadId.substring(0, 8)}`,
+          path: options.path || "",
+          status: DownloadStatus.QUEUED,
+          progress: 0,
+          speed: 0,
+          size: 0,
+          timeRemaining: 0,
+          paused: false,
+          created: new Date(),
+        };
+        set((state) => ({
+          downloads: [...state.downloads, newDownload],
+        }));
+        return newDownload;
+      }
+      return null;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return null;
+    }
+  },
+
+  pauseDownload: async (id) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:pause",
+        id
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.map((download) =>
+            download.id === id
+              ? { ...download, status: DownloadStatus.PAUSED, paused: true }
+              : download
+          ),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  resumeDownload: async (id) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:resume",
+        id
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.map((download) =>
+            download.id === id
+              ? {
+                  ...download,
+                  status: DownloadStatus.DOWNLOADING,
+                  paused: false,
+                }
+              : download
+          ),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  cancelDownload: async (id) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:cancel",
+        id
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.map((download) =>
+            download.id === id
+              ? { ...download, status: DownloadStatus.CANCELLED }
+              : download
+          ),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  removeDownload: async (id) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:remove",
+        id
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.filter((download) => download.id !== id),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  clearCompletedDownloads: async () => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:clear-completed"
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.filter(
+            (download) => download.status !== DownloadStatus.COMPLETED
+          ),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  setPriority: async (id, priority) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:set-priority",
+        id,
+        priority
+      );
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  throttleDownload: async (speed) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "torrent:throttle-download",
+        speed
+      );
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  throttleUpload: async (speed) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "torrent:throttle-upload",
+        speed
+      );
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+}));
+
+// Setup event listeners for real-time updates
+if (typeof window !== "undefined") {
+  window.ipcRenderer?.on("download-queue:progress", (_, progress) => {
+    useDownloadsStore.setState((state) => ({
+      downloads: state.downloads.map((download) =>
+        download.id === progress.id ? { ...download, ...progress } : download
+      ),
+    }));
+  });
+
+  window.ipcRenderer?.on("download-queue:state-change", (_, stateChange) => {
+    useDownloadsStore.setState((state) => ({
+      downloads: state.downloads.map((download) =>
+        download.id === stateChange.id
+          ? { ...download, ...stateChange }
+          : download
+      ),
+    }));
+  });
+
+  window.ipcRenderer?.on("download-queue:error", (_, error) => {
+    useDownloadsStore.setState((state) => ({
+      downloads: state.downloads.map((download) =>
+        download.id === error.id
+          ? { ...download, status: DownloadStatus.FAILED, error: error.message }
+          : download
+      ),
+    }));
+  });
 }
-
-export const useDownloadStore = create<QueueStoreState>()((set, get) => {
-  const logError = (action: string, error: unknown) => {
-    console.error(`[DownloadStore] ${action} failed:`, error);
-  };
-
-  const safeSetState = <T extends keyof QueueStoreState>(
-    key: T,
-    value: QueueStoreState[T]
-  ) => {
-    set((state) => {
-      if (shallow(state[key], value)) return state;
-      return {
-        ...state,
-        [key]: value,
-      };
-    });
-  };
-
-  // Setup event listeners
-  const setupEventListeners = () => {
-    const listeners = [
-      { event: "download:start", handler: async () => {
-        await Promise.all([get().fetchDownloads(), get().fetchQueue()]);
-      }},
-      { event: "queue:remove", handler: async () => {
-        await get().fetchQueue();
-      }},
-      { event: "download:status", handler: async () => {
-        await get().fetchDownloads();
-      }},
-      { event: "torrent:status", handler: async () => {
-        await get().fetchDownloads();
-      }}
-    ];
-
-    // Register all listeners
-    listeners.forEach(({ event, handler }) => {
-      window.ipcRenderer.on(event, handler);
-    });
-
-    // Return cleanup function
-    return () => {
-      listeners.forEach(({ event, handler }) => {
-        window.ipcRenderer.off(event, handler);
-      });
-    };
-  };
-
-  // Initialize event listeners
-  const cleanup = setupEventListeners();
-
-  return {
-    queue: [],
-    downloads: [],
-    maxConcurrentDownloads: 1,
-    cleanup,
-    
-    getDownloadById: (id: string) => {
-      const { downloads, queue } = get();
-      return [...downloads, ...queue].find(item => {
-        if ('type' in item) {
-          return item.type === 'torrent' ? item.data.torrentId === id : item.data.id === id;
-        }
-        return 'infoHash' in item ? item.infoHash === id : item.id === id;
-      });
-    },
-    
-    getActiveDownloadsCount: () => {
-      const { downloads } = get();
-      return downloads.filter(d => 
-        d.status !== 'completed' && d.status !== 'failed' && d.status !== 'stopped'
-      ).length;
-    },
-
-    fetchQueue: async () => {
-      try {
-        const response = await window.ipcRenderer.invoke("queue:getQueueItems");
-        if (response.success) {
-          safeSetState("queue", response.data);
-        } else {
-          logError("Fetching queue", response.error);
-        }
-      } catch (error) {
-        logError("Fetching queue", error);
-      }
-    },
-
-    fetchDownloads: async () => {
-      try {
-        const response = await window.ipcRenderer.invoke("queue:getDownloads");
-        if (response.success) {
-          safeSetState("downloads", response.data);
-        } else {
-          logError("Fetching downloads", response.error);
-        }
-      } catch (error) {
-        logError("Fetching downloads", error);
-      }
-    },
-
-    addToQueue: async (item: QueueData) => {
-      try {
-        const response = await window.ipcRenderer.invoke("queue:add", item);
-        if (response.success) {
-          await Promise.all([get().fetchDownloads(), get().fetchQueue()]);
-          return true;
-        } else {
-          logError("Adding to queue", response.error);
-          return false;
-        }
-      } catch (error) {
-        logError("Adding to queue", error);
-        return false;
-      }
-    },
-
-    removeFromQueue: async (id: string) => {
-      try {
-        const response = await window.ipcRenderer.invoke("queue:remove", id);
-        if (response.success) {
-          await get().fetchQueue();
-        } else {
-          logError("Removing from queue", response.error);
-        }
-      } catch (error) {
-        logError("Removing from queue", error);
-      }
-    },
-
-    pauseDownload: async (id: string) => {
-      try {
-        const response = await window.ipcRenderer.invoke("queue:pause", id);
-        if (response.success) {
-          await get().fetchDownloads();
-          return true;
-        } else {
-          logError("Pausing download", response.error);
-          return false;
-        }
-      } catch (error) {
-        logError("Pausing download", error);
-        return false;
-      }
-    },
-
-    resumeDownload: async (id: string) => {
-      try {
-        const response = await window.ipcRenderer.invoke("queue:resume", id);
-        if (response.success) {
-          await get().fetchDownloads();
-          return true;
-        } else {
-          logError("Resuming download", response.error);
-          return false;
-        }
-      } catch (error) {
-        logError("Resuming download", error);
-        return false;
-      }
-    },
-
-    stopDownload: async (id: string) => {
-      try {
-        const response = await window.ipcRenderer.invoke("queue:stop", id);
-        if (response.success) {
-          await get().fetchDownloads();
-          return true;
-        } else {
-          logError("Stopping download", response.error);
-          return false;
-        }
-      } catch (error) {
-        logError("Stopping download", error);
-        return false;
-      }
-    },
-
-    updateMaxConcurrentDownloads: async (max: number) => {
-      try {
-        safeSetState("maxConcurrentDownloads", max);
-        const response = await window.ipcRenderer.invoke(
-          "queue:updateMaxConcurrentDownloads",
-          max
-        );
-        if (!response.success) {
-          logError("Updating max concurrent downloads", response.error);
-        }
-      } catch (error) {
-        logError("Updating max concurrent downloads", error);
-      }
-    },
-  };
-});

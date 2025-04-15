@@ -17,4 +17,10 @@ export const defaultSettings: SettingsConfig = {
   notifications: true,
   api_base_url: constants.apiUrl ?? "https://api.falkor.moe",
   maxConcurrentDownloads: 1,
+  downloadConfig: {
+    maxConcurrentDownloads: 2,
+    maxRetries: 3,
+    persistQueue: true,
+    retryDelay: 1000,
+  },
 };

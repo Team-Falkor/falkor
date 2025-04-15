@@ -1,6 +1,7 @@
 import { app, BrowserWindow, net, protocol } from "electron";
 import path from "node:path";
 import url from "node:url";
+import { torrentDownloadHandler } from "./handlers";
 import window from "./utils/window";
 
 // Constants
@@ -36,7 +37,7 @@ const handleSecondInstance = (commandLine: string[]) => {
 
 // Wait until the main window is ready
 const waitForWindow = async (): Promise<BrowserWindow | null> => {
-  const w = window.getWindow();;
+  const w = window.getWindow();
   while (!w) {
     await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
   }
@@ -81,6 +82,10 @@ const setEventListeners = () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       window.createWindow();
     }
+  });
+
+  app.on("will-quit", () => {
+    torrentDownloadHandler.destroy();
   });
 };
 

@@ -29,6 +29,12 @@ export default defineConfig(({ command }) => {
           // Shortcut of `build.lib.entry`.
           entry: "backend/main.ts",
           vite: {
+            resolve: {
+              alias: {
+                "@": resolve(__dirname, "./src"),
+                "@resources": resolve(__dirname, "./resources"),
+              },
+            },
             build: {
               sourcemap,
               minify: isBuild,
