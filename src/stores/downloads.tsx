@@ -82,21 +82,66 @@ export const useDownloadsStore = create<DownloadsState>((set) => ({
   pauseDownload: async (id) => {
     try {
       set({ error: null });
+      // First, ensure we have the download in our state before pausing
+      const currentState = useDownloadsStore.getState();
+      const downloadToUpdate = currentState.downloads.find(
+        (download) => download.id === id
+      );
+
+      if (!downloadToUpdate) {
+        console.error(`Download with ID ${id} not found in store`);
+        return false;
+      }
+
+      // Call the backend to pause the download
       const success = await window.ipcRenderer.invoke(
         "download-queue:pause",
         id
       );
+
       if (success) {
+        // Update the download status in our store
         set((state) => ({
           downloads: state.downloads.map((download) =>
             download.id === id
-              ? { ...download, status: DownloadStatus.PAUSED, paused: true }
+              ? {
+                  ...download,
+                  status: DownloadStatus.PAUSED,
+                  paused: true,
+                }
               : download
           ),
         }));
+
+        // Verify the download is still in the store with paused status
+        setTimeout(() => {
+          const updatedState = useDownloadsStore.getState();
+          const pausedDownloadExists = updatedState.downloads.some(
+            (download) =>
+              download.id === id && download.status === DownloadStatus.PAUSED
+          );
+
+          if (!pausedDownloadExists) {
+            console.warn(
+              `Paused download ${id} not found in store, restoring it`
+            );
+            // If the download was somehow removed, add it back with paused status
+            set((state) => ({
+              downloads: [
+                ...state.downloads,
+                {
+                  ...downloadToUpdate,
+                  status: DownloadStatus.PAUSED,
+                  paused: true,
+                },
+              ],
+            }));
+          }
+        }, 100); // Small delay to ensure state updates have propagated
       }
       return success;
     } catch (error) {
+      console.error(`Error pausing download: ${(error as Error).message}`);
       set({ error: (error as Error).message });
       return false;
     }
@@ -246,13 +291,27 @@ if (typeof window !== "undefined") {
   });
 
   window.ipcRenderer?.on("download-queue:state-change", (_, stateChange) => {
-    useDownloadsStore.setState((state) => ({
-      downloads: state.downloads.map((download) =>
-        download.id === stateChange.id
-          ? { ...download, ...stateChange }
-          : download
-      ),
-    }));
+    useDownloadsStore.setState((state) => {
+      // Make sure we don't lose paused downloads during state changes
+      if (stateChange.currentStatus === DownloadStatus.PAUSED) {
+        console.log(
+          `Download ${stateChange.id} paused, ensuring it stays in the UI`
+        );
+      }
+
+      return {
+        downloads: state.downloads.map((download) =>
+          download.id === stateChange.id
+            ? {
+                ...download,
+                status: stateChange.currentStatus,
+                paused: stateChange.currentStatus === DownloadStatus.PAUSED,
+                ...stateChange,
+              }
+            : download
+        ),
+      };
+    });
   });
 
   window.ipcRenderer?.on("download-queue:error", (_, error) => {

@@ -102,9 +102,17 @@ class DownloadQueue extends EventEmitter {
   }
 
   private async processQueue(): Promise<void> {
-    if (this.activeDownloads.size >= this.config.maxConcurrentDownloads) {
-      return;
-    }
+    // Log the current download status
+    console.log(
+      `Active downloads: ${this.activeDownloads.size}, Max allowed: ${this.config.maxConcurrentDownloads}`
+    );
+
+    // Check if we're at max capacity
+    const atMaxCapacity =
+      this.activeDownloads.size >= this.config.maxConcurrentDownloads;
+
+    // If we're at max capacity, we should still process the queue to ensure items are properly queued
+    // But we won't start any new downloads until active count drops below max
     for (const priority of ["high", "normal", "low"] as DownloadPriority[]) {
       const priorityQueue = this.priorityQueue.get(priority) || [];
       for (let i = 0; i < priorityQueue.length; i++) {
@@ -113,7 +121,13 @@ class DownloadQueue extends EventEmitter {
         if (!download) continue;
         if (this.activeDownloads.has(id) || download.paused) continue;
         if (download.status !== DownloadStatus.QUEUED) continue;
-        await this.startDownload(id);
+
+        // Only start the download if we're below max capacity
+        if (!atMaxCapacity) {
+          await this.startDownload(id);
+        }
+
+        // Check if we've reached max capacity after starting this download
         if (this.activeDownloads.size >= this.config.maxConcurrentDownloads) {
           break;
         }

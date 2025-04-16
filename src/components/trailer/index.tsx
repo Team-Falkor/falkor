@@ -11,7 +11,7 @@ const TrailerButton = (props: Props) => {
 
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button className="capitalize">{t("trailer")}</Button>
       </DialogTrigger>
 

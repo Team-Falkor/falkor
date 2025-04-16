@@ -11,7 +11,7 @@ autoUpdater.setFeedURL({
   repo: "app",
 });
 
-autoUpdater.allowDowngrade = true;
+autoUpdater.allowDowngrade = false;
 autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.autoDownload = false;
 autoUpdater.forceDevUpdateConfig = true;

@@ -22,7 +22,7 @@ const NavBarTop = () => {
     <>
       <div className="pt-2">
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Link
               aria-label="Home"
               className={buttonVariants({
@@ -45,7 +45,7 @@ const NavBarTop = () => {
 
       <div className="grid gap-2">
         <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger>
+          <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-lg">
               <SearchIcon className="size-5" />
             </Button>

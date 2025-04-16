@@ -136,7 +136,7 @@ const Updater = () => {
           )}
         </div>
         <DialogFooter>
-          <DialogClose>
+          <DialogClose asChild>
             <Button variant="destructive">{t("later")}</Button>
           </DialogClose>
           <Button

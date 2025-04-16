@@ -238,18 +238,6 @@ class Window {
    * @private
    */
   private setupWindowEvents(win: BrowserWindow) {
-    // Handle window close event
-    win.on("close", (event) => {
-      // Prevent default close behavior
-      event.preventDefault();
-
-      // Hide window instead of closing
-      if (win && !win.isDestroyed()) {
-        win.hide();
-        console.log("info", "Window hidden instead of closed");
-      }
-    });
-
     // Log window events
     win.on("minimize", () => {
       console.log("info", "Window minimized");

@@ -1,3 +1,4 @@
+import { downloadQueue } from "../../../handlers/downloads";
 import { gamesLaunched } from "../../../handlers/launcher/games_launched";
 import { settings } from "../../../utils/settings/settings";
 import window from "../../../utils/window";
@@ -22,7 +23,14 @@ const close = async (
       return;
     }
 
-    w?.close();
+    const isDownloading = downloadQueue.getDownloads()?.length > 0;
+
+    if (isDownloading && !confirmed) {
+      window.emitToFrontend("close-confirm", { message: "downloading" });
+      return;
+    }
+
+    return window.destroy();
   } catch (error) {
     console.error(error);
     return false;
