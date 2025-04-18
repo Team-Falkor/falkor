@@ -1,4 +1,4 @@
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import {
   Tooltip,
@@ -23,19 +23,11 @@ const NavBarTop = () => {
       <div className="pt-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link
-              aria-label="Home"
-              className={buttonVariants({
-                variant: "ghost",
-                size: "icon",
-                className: "group",
-              })}
-              to="/"
-            >
+            <Link aria-label="Home" className="group" to="/">
               <img
                 src={logo}
                 alt="logo"
-                className="transition-all size-14 object-contain group-hover:opacity-80"
+                className="transition-all size-11 object-contain group-hover:opacity-80"
               />
             </Link>
           </TooltipTrigger>
@@ -43,7 +35,7 @@ const NavBarTop = () => {
         </Tooltip>
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-2 pb-3">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-lg">

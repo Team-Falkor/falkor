@@ -8,6 +8,7 @@ import { useAccountServices } from "@/stores/account-services";
 import { PluginSearchResponse } from "@team-falkor/shared-types";
 import { CloudDownload, ShoppingCart } from "lucide-react";
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { sanitizeFilename } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -106,6 +107,14 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
         });
       }
     } catch (error) {
+      toast.error("Error downloading file", {
+        description:
+          error instanceof Error
+            ? error.message
+            : typeof error === "string"
+              ? error
+              : "Unknown error",
+      });
       console.error("Error handling download:", error);
     }
   }, [addDownload, realDebrid, torBox, settings, source, props]);

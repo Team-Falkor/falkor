@@ -174,7 +174,6 @@ const UnifiedPluginCard = ({
                   className="transition-all duration-200 hover:scale-105 capitalize"
                 >
                   <Trash2 />
-                  {t("uninstall")}
                 </Button>
                 {disabled ? (
                   <Button
@@ -184,7 +183,6 @@ const UnifiedPluginCard = ({
                     className="transition-all duration-200 hover:scale-105 capitalize"
                   >
                     <Power />
-                    {t("enable")}
                   </Button>
                 ) : (
                   <Button
@@ -194,7 +192,6 @@ const UnifiedPluginCard = ({
                     className="transition-all duration-200 hover:scale-105"
                   >
                     <PowerOff />
-                    {t("disable")}
                   </Button>
                 )}
               </>
@@ -205,7 +202,6 @@ const UnifiedPluginCard = ({
                 className="transition-all duration-200 hover:scale-105"
               >
                 <Download />
-                {t("install")}
               </Button>
             )}
           </div>
