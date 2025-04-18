@@ -12,7 +12,7 @@ const NavBar = () => {
   return (
     <aside
       className={cn(
-        "fixed inset-y-0  left-0 z-10 w-16 flex flex-col bg-background",
+        "fixed inset-y-0 left-0 z-10 w-16 flex flex-col bg-background",
         {
           "top-8": !shouldHideTitleBar(titleBarStyle),
         }
