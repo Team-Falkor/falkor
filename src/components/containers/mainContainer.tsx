@@ -1,15 +1,18 @@
 import { cn } from "@/lib";
-import { HTMLAttributes, PropsWithChildren } from "react";
+import { HTMLAttributes, PropsWithChildren, Ref } from "react";
 
-type Props = HTMLAttributes<HTMLDivElement>;
+type Props = PropsWithChildren<HTMLAttributes<HTMLDivElement>> & {
+  ref?: Ref<HTMLDivElement>;
+};
 
-const MainContainer = ({
-  children,
-  className,
-  id,
-}: PropsWithChildren<Props>) => {
+const MainContainer = ({ children, className, id, ref, ...rest }: Props) => {
   return (
-    <div className={cn("main-container", "p-6 lg:px-10", className)} id={id}>
+    <div
+      ref={ref}
+      className={cn("main-container", "p-6 lg:px-10", className)}
+      id={id}
+      {...rest}
+    >
       {children}
     </div>
   );
