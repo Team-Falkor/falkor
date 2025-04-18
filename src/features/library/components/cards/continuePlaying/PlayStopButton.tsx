@@ -14,9 +14,15 @@ const PlayStopButton: React.FC<PlayStopButtonProps> = ({
   stopGame,
 }) => (
   <button
-    className={cn("flex items-center justify-center transition-all", {
-      "opacity-0 group-hover:opacity-100": !isPlaying,
-    })}
+    className={cn(
+      "flex items-center justify-center transition-all duration-300",
+      "rounded-full p-3 bg-primary/80 hover:bg-primary hover:scale-110",
+      "shadow-lg backdrop-blur-sm cursor-pointer",
+      {
+        "opacity-0 group-hover:opacity-100": !isPlaying,
+        "scale-110": isPlaying,
+      }
+    )}
     onClick={isPlaying ? stopGame : playGame}
   >
     {isPlaying ? (

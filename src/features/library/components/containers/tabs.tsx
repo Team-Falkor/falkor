@@ -6,6 +6,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { H5 } from "@/components/ui/typography";
 import NewListDialogContent from "@/features/lists/components/newListDialogContent";
 import useGamepadButton from "@/hooks/useGamepadButton";
 import { cn } from "@/lib";
@@ -86,12 +87,9 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
       {/* New Game Button */}
       <Dialog open={newGameOpen} onOpenChange={setNewGameOpen}>
         <DialogTrigger>
-          <Button
-            variant="secondary"
-            className="text-white bg-gradient-to-tr from-blue-400 to-purple-400 rounded-xl gap-1.5"
-          >
+          <Button className="text-white bg-linear-to-tr from-blue-400 to-purple-400 gap-1.5 rounded-full hover:opacity-90 transition-all">
             <Plus strokeWidth={3} />
-            <span className="font-bold">New Game</span>
+            <H5>New Game</H5>
           </Button>
         </DialogTrigger>
         <NewGameModal />
@@ -110,13 +108,10 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
           {tabs.map((tab, i) => (
             <CarouselItem key={i} className="basis-auto ">
               <Button
-                variant="secondary"
+                variant={activeTab?.name === tab.name ? "active" : "default"}
                 key={i}
                 className={cn(
-                  "rounded-xl gap-1.5 font-semibold transition-all duration-75",
-                  {
-                    "bg-purple-400/20": activeTab?.name === tab.name,
-                  }
+                  "gap-1.5 font-semibold transition-all duration-75 rounded-full"
                 )}
                 onClick={() => setActiveTab(tab)}
               >
@@ -130,9 +125,9 @@ const LibraryTabs = ({ tabs, activeTab, setActiveTab }: LibraryTabsProps) => {
       {/* New List Button */}
       <Dialog open={newListOpen} onOpenChange={setNewListOpen}>
         <DialogTrigger>
-          <Button variant="secondary" className="rounded-xl gap-1.5 ml-1">
+          <Button className="rounded-full gap-1.5 ml-1">
             <Plus strokeWidth={3} />
-            <span className="font-bold">New List</span>
+            <H5>New List</H5>
           </Button>
         </DialogTrigger>
         <NewListDialogContent open={newListOpen} setOpen={setNewListOpen} />

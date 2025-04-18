@@ -1,6 +1,12 @@
 import { Data } from "@/components/info/specs";
+import {
+  H4,
+  TypographyMuted,
+  TypographySmall,
+} from "@/components/ui/typography";
+
 import { useLanguageContext } from "@/contexts/I18N";
-import { cn, scrapeOptions } from "@/lib";
+import { scrapeOptions } from "@/lib";
 import { useMemo } from "react";
 
 type RequirementsRowProps = Data;
@@ -15,22 +21,16 @@ const RequirementsRow = ({ type, data }: RequirementsRowProps) => {
   if (!isSpecsEm) return null;
 
   return (
-    <ul
-      className={cn(
-        "flex-1 py-4 bg-white border-gray-200 divide-gray-200 rounded-lg dark:divide-gray-700 dark:border-gray-700 dark:bg-muted dark:text-gray-100"
-      )}
-    >
-      <h3 className="p-4 pt-1 pb-2 text-lg font-bold leading-6 capitalize text-primary">
-        {t(type?.toLowerCase())}
-      </h3>
+    <div className="flex flex-col shrink-0 w-full gap-2 p-4 overflow-hidden rounded-2xl bg-background">
+      <H4 className="p-4 pt-1 pb-2 capitalize">{t(type?.toLowerCase())}</H4>
 
       {Object.entries(specs).map(([key, value]) => (
-        <li className="flex flex-col justify-between gap-1 p-4 py-1" key={key}>
-          <span className="text-xs font-medium text-slate-400">{key}</span>
-          <span className="mr-1 text-sm">{value[0]}</span>
-        </li>
+        <div className="flex flex-col justify-between gap-1 p-4 py-1" key={key}>
+          <TypographyMuted>{key}</TypographyMuted>
+          <TypographySmall className="mr-1">{value[0]}</TypographySmall>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 };
 

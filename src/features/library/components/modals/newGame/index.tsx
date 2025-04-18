@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguageContext } from "@/contexts/I18N";
 import { useGames } from "@/features/library/hooks/useGames";
@@ -19,9 +20,9 @@ import { NewGameFormSchema, newGameFormSchema } from "./schema";
 
 const NewGameModal = () => {
   const { addGame } = useGames();
-
-  const [popoverOpen, setPopoverOpen] = useState(false);
   const { t } = useLanguageContext();
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
   const form = useForm<NewGameFormSchema>({
     resolver: zodResolver(newGameFormSchema),
     defaultValues: {
@@ -32,10 +33,12 @@ const NewGameModal = () => {
       gameName: "",
       gamePath: "",
       igdbId: "",
+      steamId: "",
+      winePrefixFolder: "",
     },
   });
 
-  async function onSubmit(values: NewGameFormSchema) {
+  const handleAddGame = async (values: NewGameFormSchema) => {
     const {
       gameName,
       gamePath,
@@ -44,6 +47,8 @@ const NewGameModal = () => {
       gameIcon,
       gameArgs,
       gameCommand,
+      steamId,
+      winePrefixFolder,
     } = values;
 
     try {
@@ -55,61 +60,65 @@ const NewGameModal = () => {
         game_args: gameArgs,
         game_command: gameCommand,
         igdb_id: igdbId ? Number(igdbId) : null,
+        game_steam_id: steamId,
+        wine_prefix_folder: winePrefixFolder,
       });
-
       form.reset();
     } catch (err) {
       console.error("Failed to add game:", err);
     }
-  }
+  };
 
   return (
-    <DialogContent className="min-w-52 min-h-[30rem]">
-      <Tabs defaultValue="metadata" className="w-full">
-        <DialogHeader className="space-y-4">
+    <Tabs defaultValue="metadata">
+      <DialogContent className="h-[calc(100vh-10rem)] flex flex-col">
+        <DialogHeader>
           <DialogTitle>{t("new_game")}</DialogTitle>
 
-          <TabsList className="w-full">
+          <TabsList className="flex justify-between w-full">
             <TabsTrigger value="metadata" className="flex-1">
-              Metadata
+              {t("sections.metadata")}
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex-1">
-              Settings
+              {t("sections.settings")}
             </TabsTrigger>
           </TabsList>
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col justify-between mt-3"
-            autoComplete={"off"}
-          >
-            <TabsContent value="metadata">
-              <NewGameMetadataForm form={form} />
-            </TabsContent>
-            <TabsContent value="settings">
-              <NewGameSettingsForm form={form} />
-            </TabsContent>
-          </form>
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <form
+                className="flex flex-col gap-4"
+                autoComplete="off"
+                onSubmit={form.handleSubmit(handleAddGame)}
+              >
+                <TabsContent value="metadata">
+                  <NewGameMetadataForm form={form} />
+                </TabsContent>
+
+                <TabsContent value="settings">
+                  <NewGameSettingsForm form={form} />
+                </TabsContent>
+              </form>
+            </ScrollArea>
+          </div>
         </Form>
-      </Tabs>
-      <div className="flex items-end justify-between flex-1 mt-4">
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger>
-            <Button variant={"secondary"}>Import from igdb</Button>
-          </PopoverTrigger>
-          <NewGameImport form={form} setPopoverOpen={setPopoverOpen} />
-        </Popover>
-        <Button
-          type="submit"
-          variant="secondary"
-          onClick={form.handleSubmit(onSubmit)}
-        >
-          {t("add_game")}
-        </Button>
-      </div>
-    </DialogContent>
+
+        <div className="flex items-center justify-between gap-2">
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button>{t("import_from_igdb")}</Button>
+            </PopoverTrigger>
+            <NewGameImport form={form} setPopoverOpen={setPopoverOpen} />
+          </Popover>
+
+          <Button type="submit" onClick={form.handleSubmit(handleAddGame)}>
+            {t("add_game")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Tabs>
   );
 };
 

@@ -5,8 +5,8 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import { H2 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
-import { FilterOutNonePcGames } from "@/lib";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import { useMemo } from "react";
 
@@ -17,7 +17,7 @@ interface SimilarGamesProps {
 const SimilarGames = ({ data }: SimilarGamesProps) => {
   const { t } = useLanguageContext();
 
-  const items = useMemo(() => FilterOutNonePcGames(data), [data]);
+  const items = useMemo(() => data, [data]);
 
   if (!items?.length) return null;
 
@@ -30,17 +30,15 @@ const SimilarGames = ({ data }: SimilarGamesProps) => {
         }}
         className="w-full"
       >
-        <div className="flex justify-between">
-          <h1 className="text-xl font-medium capitalize">
-            {t("you_may_also_like")}
-          </h1>
+        <div className="flex justify-between mb-2">
+          <H2>{t("you_may_also_like")}</H2>
           <div>
             <CarouselButton direction="left" />
             <CarouselButton direction="right" />
           </div>
         </div>
 
-        <CarouselContent>
+        <CarouselContent className="-ml-2">
           {items.map((game) => (
             <CarouselItem key={game.id} className="px-2 basis-auto">
               <DefaultCard key={game.id} {...game} />

@@ -15,6 +15,7 @@ autoUpdater.allowDowngrade = false;
 autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.autoDownload = false;
 autoUpdater.forceDevUpdateConfig = true;
+autoUpdater.fullChangelog = false;
 
 class Updater {
   private settings = settings;
@@ -26,7 +27,13 @@ class Updater {
 
       if (info.version <= app.getVersion()) return;
 
-      window.window?.webContents.send("updater:update-available", info);
+      // Extract release notes from GitHub release info
+      const updateInfo = {
+        ...info,
+        releaseNotes: info.releaseNotes || "No changelog available",
+      };
+
+      window.emitToFrontend("updater:update-available", updateInfo);
     });
     autoUpdater.on("update-not-available", () => {
       this.updateAvailable = false;
@@ -44,11 +51,7 @@ class Updater {
     autoUpdater.on("download-progress", (progressObj) => {
       console.log("Download progress: ", progressObj);
 
-      if (!window.window) return;
-      window.window.webContents.send(
-        "updater:download-progress",
-        progressObj.percent
-      );
+      window.emitToFrontend("updater:download-progress", progressObj.percent);
     });
 
     autoUpdater.on("update-downloaded", () => {
@@ -56,7 +59,7 @@ class Updater {
     });
 
     autoUpdater.on("error", (error) => {
-      window.window?.webContents.send("updater:error", error);
+      window.emitToFrontend("updater:error", error);
     });
   }
 

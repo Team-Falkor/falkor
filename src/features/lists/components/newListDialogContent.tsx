@@ -93,7 +93,7 @@ const NewListDialogContent = ({ open, setOpen }: NewListDialogContentProps) => {
             Cancel
           </Button>
         </DialogClose>
-        <Button variant={"secondary"} onClick={onSubmit} disabled={loading}>
+        <Button onClick={onSubmit} disabled={loading}>
           {loading ? "Creating..." : "Create"}
         </Button>
       </DialogFooter>

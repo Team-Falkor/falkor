@@ -1,5 +1,6 @@
 import { Book, Play } from "lucide-react";
 import LibraryListActions from "./listActions";
+import { H2, P } from "@/components/ui/typography";
 
 interface GameProps {
   type: "game";
@@ -19,22 +20,20 @@ const LibraryHeader = (props: Props) => {
   const { type, title } = props;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5 justify-center">
       <div className="flex items-center gap-3">
         {type === "game" ? (
-          <Play size={36} className="text-primary fill-white" />
+          <Play size={25} className="fill-white" />
         ) : (
-          <Book size={36} className="text-primary" />
+          <Book size={30} className="" />
         )}
-        <h2 className="text-2xl font-bold capitalize flex=1 truncate">
-          {title}
-        </h2>
+        <H2>{title}</H2>
         {type === "list" && (
           <LibraryListActions listId={props.listId} key={props.listId} />
         )}
       </div>
       {type === "list" && props.description && (
-        <div className="text-muted-foreground">{props.description}</div>
+        <P className="text-muted-foreground">{props.description}</P>
       )}
     </div>
   );

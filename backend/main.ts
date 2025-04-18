@@ -1,6 +1,7 @@
 import { app, BrowserWindow, net, protocol } from "electron";
 import path from "node:path";
 import url from "node:url";
+import { torrentDownloadHandler } from "./handlers";
 import window from "./utils/window";
 
 // Constants
@@ -10,10 +11,12 @@ const RETRY_INTERVAL = 600;
 
 // Configure deep linking
 const configureDeepLinking = () => {
-  if (process.defaultApp && process.argv.length <= 2) {
-    app.setAsDefaultProtocolClient(DEEP_LINK_NAME, process.execPath, [
-      path.resolve(process.argv[1]),
-    ]);
+  if (process.defaultApp) {
+    if (process.argv.length <= 2) {
+      app.setAsDefaultProtocolClient(DEEP_LINK_NAME, process.execPath, [
+        path.resolve(process.argv[1]),
+      ]);
+    }
   } else {
     app.setAsDefaultProtocolClient(DEEP_LINK_NAME);
   }
@@ -21,32 +24,36 @@ const configureDeepLinking = () => {
 
 // Handle second instance
 const handleSecondInstance = (commandLine: string[]) => {
-  const mainWindow = window.window;
+  const mainWindow = window.getWindow();
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
-    mainWindow.webContents.send("app:deep-link", commandLine.pop()?.slice(0));
+
+    const url = commandLine.pop()?.slice(0);
+
+    mainWindow.webContents.send("app:deep-link", url);
   }
 };
 
 // Wait until the main window is ready
 const waitForWindow = async (): Promise<BrowserWindow | null> => {
-  while (!window.window) {
+  const w = window.getWindow();
+  while (!w) {
     await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
   }
-  return window.window;
+  return w;
 };
 
 // Initialize the app
 const initializeApp = async () => {
+  await import("./handlers/events");
+
   window.createWindow();
 
   protocol.handle("local", (request) => {
     const filePath = request.url.slice("local:".length);
     return net.fetch(url.pathToFileURL(decodeURI(filePath)).toString());
   });
-
-  await import("./handlers/events");
 
   const mainWindow = await waitForWindow();
   if (mainWindow) {
@@ -76,13 +83,19 @@ const setEventListeners = () => {
       window.createWindow();
     }
   });
+
+  app.on("will-quit", () => {
+    torrentDownloadHandler.destroy();
+  });
 };
+
+const gotTheLock = app.requestSingleInstanceLock();
 
 // Main Process
 const main = () => {
   configureDeepLinking();
 
-  if (!app.requestSingleInstanceLock()) {
+  if (!gotTheLock) {
     app.quit();
     return;
   }

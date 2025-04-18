@@ -1,72 +1,57 @@
 import { IGDBReturnDataType, SimilarGame } from "@/lib/api/igdb/types";
 import { Link } from "@tanstack/react-router";
-import { format } from "date-fns";
-import { useMemo } from "react";
+import { Star } from "lucide-react";
 import IGDBImage from "../IGDBImage";
-import { Card, CardContent } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { H5 } from "../ui/typography";
 
 type DefaultCardProps = (IGDBReturnDataType | SimilarGame) & {
   wantCountdown?: boolean;
+  playtime?: number;
 };
 
 const DefaultCard = ({
   cover,
   name,
   id,
-  genres,
-  release_dates,
+  total_rating,
+  aggregated_rating,
 }: DefaultCardProps) => {
-  // Memoize the release date for a specific platform (e.g., platform ID 6 for PC)
-  const findReleaseDate = useMemo(() => {
-    return release_dates?.find((item) => item.platform === 6);
-  }, [release_dates]);
+  // Format rating to show only one decimal place if available
+  const rating = total_rating ?? aggregated_rating ?? null;
+  const formattedRating = rating ? Math.round(rating) / 10 : null;
 
   return (
-    <Card className="group relative m-0 w-[200px] rounded-t-lg p-0 overflow-hidden">
-      <CardContent className="p-0 m-0">
-        <Link to={`/info/$id`} params={{ id: id.toString() }}>
-          <div className="relative overflow-hidden rounded-t-lg group focus:outline-none dark:ring-offset-gray-900">
-            <IGDBImage
-              imageId={cover?.image_id ?? ""}
-              imageSize="cover_med"
-              alt={name}
-              className="object-cover w-full transition duration-300 ease-out h-72 group-focus-within:scale-105 group-hover:scale-105 group-focus:scale-105"
-            />
+    <Link to={`/info/$id`} params={{ id: id.toString() }}>
+      <div className="w-[200px] h-[300px] relative flex flex-col rounded-lg overflow-hidden border transition-shadow duration-300 group hover:shadow-xl hover:border-border">
+        {/* IMAGE */}
+        <div className="absolute inset-0 z-0 overflow-hidden transition-transform duration-300 group-hover:scale-105">
+          <IGDBImage
+            alt={name}
+            imageId={cover?.image_id}
+            className="w-full h-full object-cover"
+          />
+
+          <span className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
+        </div>
+
+        {/* CONTENT */}
+        <div className="relative z-10 flex flex-col justify-between h-full p-3 px-4">
+          <div className="flex w-full justify-end items-end">
+            {formattedRating && (
+              <Badge className="flex items-center gap-1.5 bg-black/80 backdrop-blur-sm px-2.5 py-1 text-sm shadow-lg">
+                <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{formattedRating}</span>
+              </Badge>
+            )}
           </div>
 
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center transition duration-300 ease-out translate-y-full rounded opacity-0 cursor-pointer bg-slate-700 bg-opacity-80 group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:translate-y-0 group-hover:opacity-100">
-            <div className="flex flex-col items-center justify-center w-full gap-4 p-2">
-              <div className="flex flex-col w-full gap-1">
-                <h4 className="font-medium text-center text-white whitespace-pre-line break-before-avoid text-balance">
-                  {name}
-                </h4>
-
-                {!!findReleaseDate && !!findReleaseDate?.date && (
-                  <div className="flex items-center justify-center">
-                    <p className="text-xs text-slate-400">
-                      {format(
-                        new Date(findReleaseDate?.date * 1000),
-                        "MMMM d, yyyy"
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                <ul className="flex items-center justify-center w-full gap-1 px-2 text-xs text-slate-400 line-clamp-1">
-                  {!!genres?.length &&
-                    genres.slice(0, 2).map((genre, i) => (
-                      <li className="whitespace-nowrap line-clamp-1" key={i}>
-                        {genre.name}
-                        {i !== genres.slice(0, 2).length - 1 ? "," : ""}
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </Link>
-      </CardContent>
-    </Card>
+          <H5 className="text-pretty transition-all duration-300 transform group-hover:-translate-y-1 group-hover:opacity-100 line-clamp-2">
+            {name}
+          </H5>
+        </div>
+      </div>
+    </Link>
   );
 };
 

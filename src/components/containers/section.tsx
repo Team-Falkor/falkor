@@ -6,8 +6,8 @@ import { useState } from "react";
 import DefaultCard from "../cards/defaultCard";
 import Spinner from "../spinner";
 import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
 import MainContainer from "./mainContainer";
+import { H1, TypographyMuted } from "../ui/typography";
 
 type Props = {
   title: string;
@@ -38,12 +38,6 @@ export const Section = ({ title, dataToFetch }: Props) => {
     setOffset((prev) => (prev === 0 ? prev : prev - limit));
   };
 
-  if (isPending)
-    return (
-      <div className="w-full flex items-center justify-center h-[calc(100vh-2rem)]">
-        <Spinner size={23} />
-      </div>
-    );
   if (error) {
     window.location.reload();
     return null;
@@ -52,7 +46,7 @@ export const Section = ({ title, dataToFetch }: Props) => {
   return (
     <MainContainer
       id={`${dataToFetch}-section`}
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-8"
     >
       <div className="flex items-center gap-4">
         <Button
@@ -64,37 +58,42 @@ export const Section = ({ title, dataToFetch }: Props) => {
           <ChevronLeft className="size-8" />
         </Button>
 
-        <h2 className="text-4xl font-bold tracking-tight scroll-m-20 first:mt-0">
-          {title}
-        </h2>
-      </div>
-      <Separator className="-mt-1" />
-
-      <div
-        className="grid gap-5"
-        style={{
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-        }}
-      >
-        {data?.map((game) => <DefaultCard key={game.id} {...game} />)}
+        <H1>{title}</H1>
       </div>
 
-      <div className="flex justify-between flex-1 mt-4">
-        <Button
-          variant={"ghost"}
-          onClick={handlePrevPage}
-          disabled={page === 1}
-          size={"icon"}
-        >
-          <ChevronLeft />
-        </Button>
+      {!isPending ? (
+        <>
+          <div
+            className="grid gap-5"
+            style={{
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            }}
+          >
+            {data?.map((game) => <DefaultCard key={game.id} {...game} />)}
+          </div>
 
-        <span className="text-lg text-muted-foreground">Page {page}</span>
+          <div className="flex justify-between flex-1 mt-4">
+            <Button
+              variant={"ghost"}
+              onClick={handlePrevPage}
+              disabled={page === 1}
+              size={"icon"}
+            >
+              <ChevronLeft />
+            </Button>
 
-        <Button variant={"ghost"} onClick={handleNextPage} size={"icon"}>
-          <ChevronRight />
-        </Button>
-      </div>
+            <TypographyMuted>Page {page}</TypographyMuted>
+
+            <Button variant={"ghost"} onClick={handleNextPage} size={"icon"}>
+              <ChevronRight />
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="w-full flex items-center justify-center h-[calc(100vh-10rem)]">
+          <Spinner size={23} />
+        </div>
+      )}
     </MainContainer>
   );
 };

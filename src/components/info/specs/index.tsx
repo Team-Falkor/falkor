@@ -1,4 +1,5 @@
 import RequirementsRow from "@/components/info/specs/row";
+import { H5 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { PcRequirements } from "@/lib/api/igdb/types";
 import { useMemo } from "react";
@@ -26,9 +27,7 @@ const PcSpecs = ({ minimum, recommended }: PcSpecsProps) => {
 
   return (
     <div className="grid gap-4">
-      <h3 className="text-lg font-bold leading-6 text-primary">
-        {t("system_requirements")}
-      </h3>
+      <H5>{t("system_requirements")}</H5>
       <div className="flex gap-4 flex-2">
         {items.map((item) => (
           <RequirementsRow

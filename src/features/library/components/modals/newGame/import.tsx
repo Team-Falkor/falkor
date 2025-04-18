@@ -1,13 +1,14 @@
-import { Input } from "@/components/ui/input";
+import { InputWithIcon } from "@/components/inputWithIcon";
 import { PopoverContent } from "@/components/ui/popover";
 import useSearch from "@/features/search/hooks/useSearch";
-import { cn } from "@/lib";
+import { cn, getSteamIdFromWebsites } from "@/lib";
 import { IGDBReturnDataType } from "@/lib/api/igdb/types";
 import { t } from "i18next";
-import { ShipWheel } from "lucide-react";
+import { SearchIcon, ShipWheel } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { NewGameFormSchema } from "./schema";
+import { TypographySmall, TypographyMuted } from "@/components/ui/typography";
 
 interface NewGameImportProps {
   form: UseFormReturn<NewGameFormSchema>;
@@ -25,6 +26,7 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
   const { results, loading } = useSearch(searchTerm, 5);
 
   const handleClick = (game: IGDBReturnDataType) => {
+    const steam_id = getSteamIdFromWebsites(game.websites);
     form.setValue("gameName", game.name);
     form.setValue("igdbId", game.id.toString());
     form.setValue(
@@ -32,6 +34,7 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
       replaceUrl(game.screenshots?.[0]?.url ?? game.cover?.url)
     );
     form.setValue("gameId", game.id.toString());
+    form.setValue("steamId", steam_id);
 
     setPopoverOpen(false);
   };
@@ -40,11 +43,12 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
     <PopoverContent side="top" className="p-0 w-96">
       <div className="grid gap-4">
         <div className="w-full px-4 pt-4">
-          <Input
+          <InputWithIcon
             placeholder={t("search_placeholder")}
             className="w-full"
             onChange={(e) => setSearchTerm(e.target.value)}
             value={searchTerm}
+            startIcon={<SearchIcon />}
           />
         </div>
 
@@ -66,10 +70,12 @@ const NewGameImport = ({ form, setPopoverOpen }: NewGameImportProps) => {
                 onClick={() => handleClick(game)}
               >
                 <div className="flex gap-1.5">
-                  <p className="flex-1 text-sm line-clamp-2">{game?.name}</p>
-                  <span className="text-xs text-muted-foreground">
+                  <TypographySmall className="flex-1 line-clamp-2">
+                    {game?.name}
+                  </TypographySmall>
+                  <TypographyMuted>
                     ({game?.release_dates?.[0]?.human})
-                  </span>
+                  </TypographyMuted>
                 </div>
               </div>
             ))

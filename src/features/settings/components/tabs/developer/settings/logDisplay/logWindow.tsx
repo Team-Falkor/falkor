@@ -3,6 +3,7 @@ import { useLogger } from "@/hooks";
 import { cn } from "@/lib";
 import { useQuery } from "@tanstack/react-query";
 import LogSwitch from "./logSwitch";
+import { H5 } from "@/components/ui/typography";
 
 interface LogWindowProps {
   enabled: boolean;
@@ -13,7 +14,10 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
 
   useQuery({
     queryKey: ["logs"],
-    queryFn: retrieveLogs,
+    queryFn: async () => {
+      await retrieveLogs();
+      return null;
+    },
     enabled: enabled,
   });
 
@@ -32,7 +36,7 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
             })
           ) : (
             <div className="flex items-center justify-center size-full">
-              <p className="text-lg font-bold">No logs</p>
+              <H5>No logs</H5>
             </div>
           )}
         </div>

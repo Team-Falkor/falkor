@@ -11,8 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { useLists } from "../hooks/useLists";
 import ListsDropdownItem from "./dropdownItem";
+import { P } from "@/components/ui/typography";
 
-const ListsDropdownContent = (props: IGDBReturnDataType) => {
+type Props = IGDBReturnDataType & {
+  align?: "start" | "end" | "center" | undefined;
+};
+
+const ListsDropdownContent = (props: Props) => {
   const { t } = useLanguageContext();
   const { fetchLists, lists } = useLists();
 
@@ -25,7 +30,7 @@ const ListsDropdownContent = (props: IGDBReturnDataType) => {
   if (error) return null;
 
   return (
-    <DropdownMenuContent className="max-w-sm">
+    <DropdownMenuContent className="max-w-sm" align={props?.align ?? "start"}>
       <DropdownMenuLabel className="w-full truncate">
         {t("add-to-list")}
       </DropdownMenuLabel>
@@ -35,7 +40,7 @@ const ListsDropdownContent = (props: IGDBReturnDataType) => {
       <div className="overflow-y-auto max-h-24">
         {!lists?.length ? (
           <div className="flex items-center justify-center gap-2 p-2">
-            <p className="text-center">{t("create_new_list")}</p>
+            <P className="text-center">{t("create_new_list")}</P>
           </div>
         ) : (
           lists.map((list) => (
@@ -52,7 +57,7 @@ const ListsDropdownContent = (props: IGDBReturnDataType) => {
         <DialogTrigger>
           <div className="flex items-center gap-1.5">
             <PlusIcon className="size-5 " />
-            <p className="text-sm">Create a new collection</p>
+            <P>Create a new list</P>
           </div>
         </DialogTrigger>
       </DropdownMenuItem>

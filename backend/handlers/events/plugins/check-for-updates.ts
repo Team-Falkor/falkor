@@ -1,4 +1,4 @@
-import { PluginId, PluginSetupJSONDisabled } from "@/@types";
+import { PluginId, PluginSetupJSONDisabled } from "@team-falkor/shared-types";
 import pluginHandler from "../../../handlers/plugins/plugin";
 import { registerEvent } from "../utils/registerEvent";
 

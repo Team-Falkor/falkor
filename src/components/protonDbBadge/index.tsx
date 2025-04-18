@@ -21,11 +21,11 @@ const ProtonDbBadge = ({ appId }: Props) => {
 
   return (
     <div
-      className="flex items-center gap-1 h-8 overflow-hidden px-3 py-1"
+      className="flex items-center justify-center h-8 gap-0.5 px-3 py-1 overflow-hidden"
       style={{ backgroundColor: color }}
     >
-      <img src={protonDBBadge} className=" size-full object-contain" />
-      {/* <span className="text-lg uppercase text-black font-bold">{tier}</span> */}
+      <img src={protonDBBadge} className="object-contain size-full" />
+      {/* <span className="text-lg font-bold text-black uppercase">{tier}</span> */}
     </div>
   );
 };

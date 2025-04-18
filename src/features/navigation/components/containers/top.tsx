@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useLanguageContext } from "@/contexts/I18N";
 import Search from "@/features/search/components/search";
-import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { HomeIcon, LibraryIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
@@ -21,9 +20,9 @@ const NavBarTop = () => {
   const { t } = useLanguageContext();
   return (
     <>
-      <div className="p-2 border-b">
+      <div className="pt-2">
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Link
               aria-label="Home"
               className={buttonVariants({
@@ -36,7 +35,7 @@ const NavBarTop = () => {
               <img
                 src={logo}
                 alt="logo"
-                className="size-9 group-hover:opacity-80 transition-all"
+                className="transition-all size-14 object-contain group-hover:opacity-80"
               />
             </Link>
           </TooltipTrigger>
@@ -46,14 +45,8 @@ const NavBarTop = () => {
 
       <div className="grid gap-2">
         <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn({
-                "bg-muted": false,
-              })}
-            >
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-lg">
               <SearchIcon className="size-5" />
             </Button>
           </PopoverTrigger>

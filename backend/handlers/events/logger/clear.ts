@@ -1,4 +1,4 @@
-import { logger } from "../../../handlers/logging";
+import logger from "../../../handlers/logging";
 import { registerEvent } from "../utils/registerEvent";
 
 const clear = async (_event: Electron.IpcMainInvokeEvent) => {

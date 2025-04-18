@@ -13,6 +13,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Pen, TrashIcon } from "lucide-react";
 import { useLists } from "../../hooks/useLists";
+import { P } from "@/components/ui/typography";
 
 interface ListContainerProps {
   list_id: number;
@@ -33,9 +34,7 @@ const ListContainer = ({ list_id, list_name }: ListContainerProps) => {
   return (
     <div className="group/list">
       <div className="flex items-center justify-between transition-all">
-        <h3 className="pb-2 font-mono text-lg font-medium leading-6 capitalize truncate">
-          {list_name}
-        </h3>
+        <P className="pb-2 capitalize truncate">{list_name}</P>
 
         {/* Action Bar */}
         <div className="flex items-center justify-end w-2/6 gap-2 transition-all opacity-0 group-hover/list:opacity-100 group-focus-within/list:opacity-100">
@@ -46,7 +45,7 @@ const ListContainer = ({ list_id, list_name }: ListContainerProps) => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Edit List</p>
+              <P>Edit List</P>
             </TooltipContent>
           </Tooltip>
 
@@ -57,7 +56,7 @@ const ListContainer = ({ list_id, list_name }: ListContainerProps) => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Delete List</p>
+              <P>Delete List</P>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -81,9 +80,7 @@ const ListContainer = ({ list_id, list_name }: ListContainerProps) => {
         </Carousel>
       ) : (
         <div className="flex items-start justify-start">
-          <h3 className="mt-1 text-lg text-center">
-            No games found in this list.
-          </h3>
+          <P className="mt-1 text-center">No games found in this list.</P>
         </div>
       )}
     </div>

@@ -10,15 +10,24 @@ const MiscellaneousSettings = lazy(
 );
 const DeveloperSettings = lazy(() => import("../components/tabs/developer"));
 
+enum Tabs {
+  general = 0,
+  download = 1,
+  plugins = 2,
+  accounts = 3,
+  miscellaneous = 4,
+  developer = 5,
+}
+
 interface Tab {
   icon: ReactElement;
   titleKey: string;
-  index: number;
+  index: Tabs;
   component: ComponentType;
 }
 
 export const useSettingsTabs = () => {
-  const [currentTab, setCurrentTab] = useState(0);
+  const [currentTab, setCurrentTab] = useState<Tabs>(0);
 
   const tabs: Array<Tab> = [
     {

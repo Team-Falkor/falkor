@@ -1,103 +1,250 @@
 import { ChildProcess, spawn } from "child_process";
+import fs from "fs";
 import ms from "ms";
 import { gamesDB } from "../../sql";
 import windoww from "../../utils/window";
-import { logger } from "../logging";
+import { AchievementItem } from "../achievements/item";
+import logger from "../logging";
 import { gamesLaunched } from "./games_launched";
+import { getRealPath, spawnSync } from "./utils";
 
-const win = windoww?.window;
+interface Options {
+  game_path: string;
+  game_id: string;
+  steam_id?: string | null;
+  game_name: string;
+  game_icon?: string;
+  game_args?: string;
+  game_command?: string;
+  wine_prefix_folder?: string | null;
+}
 
 class GameProcessLauncher {
-  private gamePath: string;
   private gameId: string;
+  private gameArgs: string = "";
+  private gameCommand: string = "";
 
+  private gamePath: string;
   private gameProcess: ChildProcess | null = null;
+
   private startDate: Date | null = null;
-  private playtime: number = 0;
+  private playtime: number; // Total playtime in milliseconds
+
+  private sessionElapsed: number = 0; // Playtime for the current session
   private isPlaying: boolean = false;
+
   private interval: NodeJS.Timeout | null = null;
+  private achivementItem: AchievementItem | null = null;
 
-  private gamesDB = gamesDB;
+  constructor({
+    game_name,
+    game_path,
+    steam_id,
+    game_icon,
+    game_id,
+    game_args = "",
+    game_command = "",
+    wine_prefix_folder = null,
+  }: Options) {
+    if (!GameProcessLauncher.isValidExecutable(game_path)) {
+      throw new Error(`Invalid game path: ${game_path}`);
+    }
 
-  constructor(gamePath: string, gameId: string, currentPlaytime: number = 0) {
-    this.gamePath = gamePath;
-    this.gameId = gameId;
-    this.playtime = currentPlaytime;
+    this.gamePath = getRealPath(game_path);
+    this.gameId = game_id;
+    this.gameArgs = game_args;
+    this.gameCommand = game_command;
+    this.playtime = 0;
+    if (steam_id) {
+      this.achivementItem = new AchievementItem({
+        game_id,
+        steam_id,
+        game_name,
+        game_icon,
+        wine_prefix_folder,
+      });
+    }
   }
 
-  // Launch the game process
-  public launchGame() {
-    console.log("Launching game:", this.gamePath);
+  /**
+   * Validates the game executable path.
+   */
+  private static isValidExecutable(gamePath: string): boolean {
+    return fs.existsSync(gamePath) && fs.statSync(gamePath).isFile();
+  }
 
+  /**
+   * Launches the game and sets up playtime tracking.
+   */
+  public launchGame(): void {
+    console.log(
+      "info",
+      `Launching game: ${this.gamePath} with args: ${this.gameArgs}`
+    );
+
+    const args = this.gameArgs ? this.gameArgs.split(" ") : [];
     try {
-      // Spawn the game process
-      this.gameProcess = spawn(this.gamePath, {
-        detached: true,
-      });
+      if (this.gameCommand?.length) {
+        this.gameProcess = spawnSync(this.gameCommand, this.gamePath, args, {
+          detached: true,
+          stdio: "ignore",
+        });
+      } else {
+        this.gameProcess = spawn(this.gamePath, args, {
+          detached: true,
+          stdio: "ignore",
+        });
+      }
+
+      if (!this.gameProcess) {
+        throw new Error("Failed to launch game process");
+      }
+
       this.gameProcess.unref();
 
+      console.log("info", "Achievement item find");
+      this.achivementItem?.find();
+
       this.gameProcess.on("exit", (code, signal) => {
-        console.log(`Game exited with code: ${code}, signal: ${signal}`);
-
-        this.trackPlayTime();
-        this.cleanup();
-
-        if (this.interval) clearInterval(this.interval);
-
-        this.updatePlaytime();
-
-        // Send a message to the renderer process to update the status
-        if (!win) return;
-        win?.webContents.send("game:stopped", this.gameId);
+        console.log("info", `Game exited. Code: ${code}, Signal: ${signal}`);
+        this.onGameExit();
       });
 
-      this.startDate = new Date();
-      this.isPlaying = true;
+      this.gameProcess.on("error", (error) => {
+        console.log("error", `Game process error: ${(error as Error).message}`);
+        logger.log("error", `Game process error: ${(error as Error).message}`);
+      });
 
-      this.interval = setInterval(() => this.trackPlayTime(), ms("1m"));
+      this.gameProcess.on("close", (code, signal) => {
+        console.log(
+          "info",
+          `Game process closed. Code: ${code}, Signal: ${signal}`
+        );
+        this.onGameExit();
+      });
 
-      // Send a message to the renderer process to update the status
-      if (!win) return;
-      win?.webContents.send("game:playing", this.gameId);
+      this.gameProcess.on("disconnect", () => {
+        console.log("info", "Game process disconnected.");
+        this.onGameExit();
+      });
+
+      this.startGameSession();
     } catch (error) {
-      console.error("Error launching game:", error);
-      logger.log("error", `Error launching game: ${(error as Error).message}`);
+      console.log(
+        "error",
+        `Failed to launch game: ${(error as Error).message}`
+      );
+      logger.log("error", `Failed to launch game: ${(error as Error).message}`);
     }
   }
 
-  public trackPlayTime() {
-    if (!this.isPlaying) return;
-    if (!this.startDate) return;
+  /**
+   * Tracks the playtime for the current session.
+   */
+  private trackPlayTime(): void {
+    if (!this.isPlaying || !this.startDate) return;
 
-    const currentDate = new Date();
-    const playTime = currentDate.getTime() - this.startDate.getTime();
-    this.playtime += playTime;
+    const now = Date.now();
+    const elapsed = now - this.startDate.getTime();
+    this.sessionElapsed += elapsed;
+    this.playtime += elapsed;
+
+    console.log("info", `Session playtime updated. Elapsed: ${ms(elapsed)}`);
+
+    this.startDate = new Date(); // Reset start time
   }
 
-  public updatePlaytime() {
+  /**
+   * Updates the database with the game's playtime and last played timestamp.
+   */
+  private async updatePlaytime(): Promise<void> {
     if (!this.gameId) return;
-    this.gamesDB.updateGame(this.gameId, {
-      game_playtime: this.playtime,
-      game_last_played: new Date(),
-    });
-    console.log(`Game playtime: ${ms(this.playtime)}`);
+
+    try {
+      // Fetch existing playtime from the database
+      const existingGame = await gamesDB.getGameById(this.gameId);
+      const existingPlaytime = existingGame?.game_playtime || 0;
+
+      // Add the new playtime to the existing playtime
+      const totalPlaytime = existingPlaytime + this.playtime;
+
+      await gamesDB.updateGame(this.gameId, {
+        game_playtime: totalPlaytime,
+        game_last_played: new Date(),
+      });
+
+      console.log(
+        "info",
+        `Playtime updated successfully. Total: ${ms(totalPlaytime)}`
+      );
+    } catch (error) {
+      logger.log(
+        "error",
+        `Failed to update playtime: ${(error as Error).message}`
+      );
+    }
   }
 
-  public cleanup() {
-    if (this.gameProcess && !this.gameProcess.killed) {
-      this.gameProcess.kill("SIGTERM");
+  /**
+   * Handles game exit by cleaning up resources and updating playtime.
+   */
+  private async onGameExit(): Promise<void> {
+    this.trackPlayTime();
+    await this.updatePlaytime();
+    this.cleanup();
+
+    windoww.emitToFrontend("game:stopped", this.gameId);
+  }
+
+  /**
+   * Cleans up the game session.
+   */
+  private cleanup(): void {
+    try {
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = null;
+      }
+
+      if (this.gameProcess && !this.gameProcess.killed) {
+        this.gameProcess.kill("SIGTERM");
+        console.log("info", "Game process terminated.");
+      }
+
+      if (this.achivementItem) this.achivementItem?.watcher_instance?.destroy();
+    } catch (error) {
+      logger.log("error", `Error during cleanup: ${(error as Error).message}`);
     }
+
     this.gameProcess = null;
     this.startDate = null;
     this.isPlaying = false;
-    this.interval = null;
+
     gamesLaunched.delete(this.gameId);
   }
 
-  public stopGame() {
-    if (this.gameProcess && !this.gameProcess.killed) {
-      this.gameProcess.kill("SIGTERM");
+  /**
+   * Stops the game process manually.
+   */
+  public stopGame(): void {
+    if (this.isPlaying) {
+      this.trackPlayTime();
+      this.cleanup();
     }
+  }
+
+  /**
+   * Initializes game play session tracking.
+   */
+  private startGameSession(): void {
+    this.startDate = new Date();
+    this.sessionElapsed = 0;
+    this.isPlaying = true;
+
+    this.interval = setInterval(() => this.trackPlayTime(), ms("1m"));
+    windoww.emitToFrontend("game:playing", this.gameId);
+
+    console.log("info", "Game session started.");
   }
 }
 

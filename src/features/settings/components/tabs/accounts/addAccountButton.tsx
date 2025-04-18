@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { ButtonWithIcon } from "@/components/buttonWithIcon";
 import { Dialog } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -9,34 +9,68 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RealDebridDialogContent from "@/features/realDebrid/components/realDebridDialogContent";
+import TorBoxDialogContent from "@/features/torBox/components/torBoxDialogContent";
+import { cn } from "@/lib";
 import { useAccountServices } from "@/stores/account-services";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 const AddAccountButton = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { realDebrid } = useAccountServices();
+  const [isRealDebridDialogOpen, setIsRealDebridDialogOpen] = useState(false);
+  const [isTorBoxDialogOpen, setIsTorBoxDialogOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { realDebrid, torBox } = useAccountServices();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="secondary">Add Account</Button>
+        <ButtonWithIcon
+          endIcon={
+            <ChevronDown
+              className={cn("transition-all overflow-hidden truncate w-full", {
+                "rotate-180": open,
+                "rotate-0": !open,
+              })}
+            />
+          }
+        >
+          Add Account
+        </ButtonWithIcon>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuLabel>Choose an account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => setIsDialogOpen(true)}
+          onSelect={() => setIsRealDebridDialogOpen(true)}
           disabled={!!realDebrid}
         >
           Real Debrid ({realDebrid ? "Connected" : "Not Connected"})
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={() => setIsTorBoxDialogOpen(true)}
+          disabled={!!torBox}
+        >
+          TorBox ({torBox ? "Connected" : "Not Connected"})
+        </DropdownMenuItem>
       </DropdownMenuContent>
 
-      {/* Dialog triggers on state change */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* Real Debrid Dialog */}
+      <Dialog
+        open={isRealDebridDialogOpen}
+        onOpenChange={setIsRealDebridDialogOpen}
+      >
         <RealDebridDialogContent
-          setOpen={setIsDialogOpen}
-          open={isDialogOpen}
+          setOpen={setIsRealDebridDialogOpen}
+          open={isRealDebridDialogOpen}
+        />
+      </Dialog>
+
+      {/* TorBox Dialog */}
+      <Dialog open={isTorBoxDialogOpen} onOpenChange={setIsTorBoxDialogOpen}>
+        <TorBoxDialogContent
+          setOpen={setIsTorBoxDialogOpen}
+          open={isTorBoxDialogOpen}
         />
       </Dialog>
     </DropdownMenu>

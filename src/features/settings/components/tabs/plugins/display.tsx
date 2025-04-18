@@ -1,11 +1,12 @@
-import { PluginSetupJSONDisabled } from "@/@types";
-import PluginCard from "@/components/cards/pluginCard";
+import UnifiedPluginCard from "@/components/cards/unified-plugin-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { H5 } from "@/components/ui/typography";
 import UsePlugins from "@/hooks/usePlugins";
 import { cn } from "@/lib";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { SortBy } from ".";
+import { SortBy } from "./sort";
+import { PluginSetupJSONDisabled } from "@team-falkor/shared-types";
 
 interface Props {
   showRows: boolean;
@@ -82,7 +83,7 @@ const PluginDisplay = ({
       >
         {sortedPlugins?.length ? (
           sortedPlugins?.map((plugin: PluginSetupJSONDisabled) => (
-            <PluginCard
+            <UnifiedPluginCard
               key={plugin.id}
               id={plugin.id}
               name={plugin.name}
@@ -90,17 +91,17 @@ const PluginDisplay = ({
               version={plugin.version}
               image={plugin.logo}
               banner={plugin.banner}
-              installed={true}
+              isInstalled={true}
               disabled={plugin.disabled}
               author={plugin.author}
               needsUpdate={!!needsUpdate?.get(plugin.id)}
             />
           ))
         ) : (
-          <div className="w-full flex items-center justify-start py-2">
-            <p className="text-left text-lg w-full font-bold">
+          <div className="flex items-center justify-start w-full py-2">
+            <H5 className="w-full text-left">
               {search?.length ? `No results for "${search}"` : "No plugins"}
-            </p>
+            </H5>
           </div>
         )}
       </div>

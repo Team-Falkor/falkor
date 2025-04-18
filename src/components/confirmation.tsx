@@ -17,6 +17,9 @@ interface ConfirmationProps {
   onCancel?: () => void;
   title?: string;
   description?: string;
+  noTrigger?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const Confirmation = ({
@@ -25,12 +28,15 @@ const Confirmation = ({
   onCancel,
   title,
   description,
+  noTrigger = false,
+  open,
+  onOpenChange,
 }: PropsWithChildren<ConfirmationProps>) => {
   const { t } = useLanguageContext();
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {!noTrigger && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -50,7 +56,7 @@ const Confirmation = ({
             </Button>
           </DialogClose>
           <DialogClose>
-            <Button type="submit" variant={"secondary"} onClick={onConfirm}>
+            <Button type="submit" onClick={onConfirm}>
               {t("confirm")}
             </Button>
           </DialogClose>

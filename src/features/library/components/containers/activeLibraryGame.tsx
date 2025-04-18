@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useGames } from "../../hooks/useGames";
 import ContinuePlayingCard from "../cards/continuePlaying";
+import { H5 } from "@/components/ui/typography";
 
 const ActiveLibraryGame = () => {
   const { fetchGames, deleteGame, updateGame, games } = useGames(true);
@@ -21,9 +22,7 @@ const ActiveLibraryGame = () => {
       ))}
     </div>
   ) : (
-    <p className="text-lg font-semibold">
-      You have not added any games to continue playing.
-    </p>
+    <H5>You have not added any games to continue playing.</H5>
   );
 };
 

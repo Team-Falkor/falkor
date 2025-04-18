@@ -160,3 +160,5 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 dev-app-update.yml
+backend/handlers/downloads/plan.md
+download-bugs.md

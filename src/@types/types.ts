@@ -1,6 +1,7 @@
 import { ITADPrice } from "@/lib/api/itad/types";
-import { ReactElement } from "react";
-import { PluginConfig, PluginSearchResponse } from "./plugins";
+import { PluginConfig, PluginSearchResponse } from "@team-falkor/shared-types";
+import { UpdateInfo } from "electron-updater";
+import { JSX, ReactElement } from "react";
 
 export type IGDBImageSize =
   | "original"
@@ -100,11 +101,11 @@ export type SearchPluginResponse =
       success: false;
     }
   | {
-      data: Array<SearchPlugiData>;
+      data: Array<SearchPluginData>;
       success: true;
     };
 
-export type SearchPlugiData = {
+export type SearchPluginData = {
   id: string;
   name: string;
   sources: PluginSearchResponse[];
@@ -141,3 +142,31 @@ export interface Tab {
   name: string;
   component: JSX.Element;
 }
+
+export interface Response<T = any> {
+  message: string;
+  error: boolean;
+  data: T | null;
+  timestamp?: string;
+}
+
+export type Cracker =
+  | "codex"
+  | "rune"
+  | "onlinefix"
+  | "goldberg"
+  | "rld"
+  | "empress"
+  | "skidrow"
+  | "creamapi"
+  | "smartsteamemu"
+  | "flt"
+  | "razor1911"
+  | "rle"
+  | "_3dm";
+
+export type NotificationType = "download_completed" | "achievement_unlocked";
+
+export type UpdateInfoWithReleaseNotes = UpdateInfo & {
+  releaseNotes: string;
+};

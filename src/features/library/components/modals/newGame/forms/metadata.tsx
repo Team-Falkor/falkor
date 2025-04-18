@@ -17,7 +17,7 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
     useFormActions(form);
 
   return (
-    <div className="flex flex-col flex-1 gap-2.5">
+    <div className="flex flex-col w-full h-full gap-4">
       <FormField
         control={form.control}
         name="gameName"
@@ -42,14 +42,14 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
             required
             Button={
               <Button
-                variant="secondary"
                 size="icon"
+                className="rounded-lg rounded-l-none"
                 onClick={(e) => {
                   e.preventDefault();
                   handlePathButton();
                 }}
               >
-                <FolderOpen />
+                <FolderOpen className="w-5 h-5" />
               </Button>
             }
           />
@@ -64,16 +64,17 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
             text={t("id")}
             description={t("game_id")}
             field={field}
+            required
             Button={
               <Button
-                variant="secondary"
+                className="rounded-lg rounded-l-none"
                 size="icon"
                 onClick={(e) => {
                   e.preventDefault();
                   handleShuffleButton();
                 }}
               >
-                <Shuffle />
+                <Shuffle className="w-5 h-5" />
               </Button>
             }
           />
@@ -91,14 +92,14 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
             required
             Button={
               <Button
-                variant="secondary"
+                className="rounded-lg rounded-l-none"
                 size="icon"
                 onClick={(e) => {
                   e.preventDefault();
                   handleIconButton();
                 }}
               >
-                <FolderOpen />
+                <FolderOpen className="w-5 h-5" />
               </Button>
             }
           />
@@ -112,6 +113,18 @@ const NewGameMetadataForm = ({ form }: NewGameMetadataFormProps) => {
           <GameFormInput
             text={t("igdb_id")}
             description={t("igdb_id")}
+            field={field}
+          />
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="steamId"
+        render={({ field }) => (
+          <GameFormInput
+            text={t("steam_id")}
+            description={t("steam_id")}
             field={field}
           />
         )}

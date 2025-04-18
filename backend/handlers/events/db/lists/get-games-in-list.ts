@@ -1,6 +1,7 @@
 import { listsDB } from "../../../../sql";
 import { registerEvent } from "../../utils/registerEvent";
 
+
 const getGamesInList = async (
   _event: Electron.IpcMainInvokeEvent,
   listId: number

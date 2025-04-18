@@ -6,6 +6,7 @@ import { TrashIcon } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { useLists } from "../hooks/useLists";
+import { P } from "@/components/ui/typography";
 
 interface CollectionDropdownItemProps extends PropsWithChildren {
   list_id: number;
@@ -73,7 +74,7 @@ const ListsDropdownItem = ({
           onSelect={handleSelect}
           disabled={loading}
         >
-          <span className="truncate">{children || game.name}</span>
+          <P className="truncate">{children || game.name}</P>
         </DropdownMenuCheckboxItem>
       </div>
 

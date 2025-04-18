@@ -10,9 +10,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { H5, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/contexts/I18N";
 import { useUpdater } from "@/hooks/useUpdater";
-import { invoke } from "@/lib";
+import { invoke, parseHtmlString } from "@/lib";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -54,7 +56,10 @@ const Updater = () => {
   });
 
   useEffect(() => {
-    if (updateAvailable === true) setOpen(true);
+    if (updateAvailable === true) {
+      setOpen(true);
+      return;
+    }
     setOpen(false);
   }, [updateAvailable]);
 
@@ -70,6 +75,10 @@ const Updater = () => {
     };
   }, []);
 
+  useEffect(() => {
+    console.log(updateInfo);
+  }, [updateInfo]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
@@ -80,49 +89,57 @@ const Updater = () => {
         <div className="flex flex-col">
           {appInfo && !isPending && !isError && appInfo.app_version && (
             <div className="flex flex-row items-end gap-2">
-              <p className="text-sm text-muted-foreground min-w-28">
+              <TypographyMuted className="min-w-28">
                 {t("current_version")}:
-              </p>
-              <h2 className="text-lg font-bold capitalize">
-                {appInfo.app_version}
-              </h2>
+              </TypographyMuted>
+              <H5 className="font-bold capitalize">{appInfo.app_version}</H5>
             </div>
           )}
 
           {updateInfo?.version && (
             <div className="flex flex-row items-end gap-2">
-              <p className="text-sm text-muted-foreground min-w-28">
+              <TypographyMuted className="min-w-28">
                 {t("new_version")}:
-              </p>
-              <h2 className="text-lg font-bold capitalize">
-                {updateInfo.version}
-              </h2>
+              </TypographyMuted>
+              <H5 className="font-bold capitalize">{updateInfo.version}</H5>
             </div>
           )}
 
           {updateInfo?.releaseDate && (
             <div className="flex flex-row items-end gap-2">
-              <p className="text-sm text-muted-foreground min-w-28">
+              <TypographyMuted className="min-w-28">
                 {t("release_date")}:
-              </p>
-              <h2 className="text-lg font-bold capitalize">
+              </TypographyMuted>
+              <H5 className="text-lg font-bold capitalize">
                 {formatWithOrdinal(new Date(updateInfo.releaseDate))}
-              </h2>
+              </H5>
+            </div>
+          )}
+
+          {updateInfo?.releaseNotes && (
+            <div className="flex flex-col gap-2 mt-4">
+              <TypographyMuted className="min-w-28">
+                {t("changelog")}:
+              </TypographyMuted>
+              <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+                <div className="prose prose-sm dark:prose-invert">
+                  {parseHtmlString(updateInfo.releaseNotes)}
+                </div>
+              </ScrollArea>
             </div>
           )}
 
           {progress !== undefined && progress > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-4">
               <Progress value={progress} />
             </div>
           )}
         </div>
         <DialogFooter>
-          <DialogClose>
+          <DialogClose asChild>
             <Button variant="destructive">{t("later")}</Button>
           </DialogClose>
           <Button
-            variant="secondary"
             onClick={installUpdate}
             disabled={progress !== undefined && progress > 0}
           >

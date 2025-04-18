@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useGames } from "../hooks/useGames";
 import { NewGameCard } from "./cards/newGame";
 import GamesContainer from "./containers/games";
-import NewGameModalContent from "./modals/newGame.old/modal";
+import NewGameModal from "./modals/newGame";
 
 const ContinuePlaying = () => {
   const { games, fetchGames, deleteGame, updateGame } = useGames();
@@ -26,7 +26,7 @@ const ContinuePlaying = () => {
         <NewGameCard />
       </DialogTrigger>
 
-      <NewGameModalContent />
+      <NewGameModal />
     </Dialog>
   );
 };

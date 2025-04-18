@@ -1,15 +1,16 @@
 import { List, ListGame } from "@/@types";
-import { logger } from "../../handlers/logging";
+import logger from "../../handlers/logging";
 import { db } from "../knex";
+import { BaseQuery } from "./base";
 
 /**
  * Handles CRUD operations for lists and games in the database
  */
-class ListsDatabase {
+class ListsDatabase extends BaseQuery {
   /**
    * Indicates if the database has been initialized
    */
-  private initialized: boolean = false;
+  initialized: boolean = false;
 
   /**
    * Initializes the database tables if they don't exist
@@ -80,10 +81,12 @@ class ListsDatabase {
   async createList(name: string, description?: string): Promise<void> {
     await this.init();
     try {
-      await db("lists").insert({ name, description: description || null });
+      await db.transaction(async (trx) => {
+        await trx("lists").insert({ name, description: description || null });
+      });
     } catch (error) {
-      console.error(`Error creating list: ${error}`);
-      throw error;
+      logger.log("error", `Error creating list: ${(error as Error).message}`);
+      throw new Error(`Failed to create list: ${(error as Error).message}`);
     }
   }
 
@@ -96,24 +99,26 @@ class ListsDatabase {
     await this.init();
 
     try {
-      // Insert the game if it doesn't already exist
-      await db("games")
-        .insert({
-          game_id: game.game_id,
-          title: game.title,
-          description: game.description || null,
-          image: game.image || null,
-          release_date: game.release_date || null,
-          genre: game.genre || null,
-        })
-        .onConflict("game_id")
-        .ignore(); // Ignore if the game already exists
+      await db.transaction(async (trx) => {
+        // Insert the game if it doesn't already exist
+        await trx("games")
+          .insert({
+            game_id: game.game_id,
+            title: game.title,
+            description: game.description || null,
+            image: game.image || null,
+            release_date: game.release_date || null,
+            genre: game.genre || null,
+          })
+          .onConflict("game_id")
+          .ignore(); // Ignore if the game already exists
 
-      // Link the game to the list
-      await db("list_games").insert({ list_id, game_id: game.game_id });
+        // Link the game to the list
+        await trx("list_games").insert({ list_id, game_id: game.game_id });
+      });
     } catch (error) {
-      console.error(`Error adding game to list: ${error}`);
-      throw error;
+      logger.log("error", `Error adding game to list: ${(error as Error).message}`);
+      throw new Error(`Failed to add game to list: ${(error as Error).message}`);
     }
   }
 
@@ -194,14 +199,16 @@ class ListsDatabase {
     await this.init();
 
     try {
-      // Delete the game
-      await db("games").where({ game_id }).del();
-
-      // Remove all links to the game
-      await db("list_games").where({ game_id }).del();
+      await db.transaction(async (trx) => {
+        // Remove all links between the game and lists first
+        await trx("list_games").where({ game_id }).del();
+        
+        // Then delete the game
+        await trx("games").where({ game_id }).del();
+      });
     } catch (error) {
-      console.error(`Error deleting game: ${error}`);
-      throw error;
+      logger.log("error", `Error deleting game: ${(error as Error).message}`);
+      throw new Error(`Failed to delete game: ${(error as Error).message}`);
     }
   }
 }

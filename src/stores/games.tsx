@@ -14,24 +14,40 @@ interface GamesState {
   games: Record<string, LibraryGame>;
   loading: boolean;
   error: string | null;
+  lastUpdated: number | null;
   fetchGames: () => Promise<void>;
   addGame: (game: NewLibraryGame) => Promise<void>;
   getGameById: (gameId: string) => Promise<LibraryGame | null>;
   getGameByIGDBId: (gameId: string) => Promise<LibraryGame | null>;
   updateGame: (gameId: string, updates: LibraryGameUpdate) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
+  clearError: () => void;
 }
 
-export const useGamesStore = create<GamesState>((set, _get) => ({
+export const useGamesStore = create<GamesState>((set, get) => ({
   games: {},
   loading: false,
   error: null,
+  lastUpdated: null,
+
+  clearError: () => set({ error: null }),
 
   fetchGames: async () => {
+    const lastUpdated = get().lastUpdated;
+    const now = Date.now();
+    
+    // Only fetch if data is stale (older than 5 minutes)
+    if (lastUpdated && now - lastUpdated < 300000) {
+      return;
+    }
+
     set({ loading: true, error: null });
     try {
       const games = await gamesDB<LibraryGame[]>("get-all-games");
-      if (!games) return;
+      if (!games) {
+        set({ error: "No games found" });
+        return;
+      }
 
       const gamesMap = games.reduce<Record<string, LibraryGame>>(
         (acc, game) => {
@@ -41,10 +57,11 @@ export const useGamesStore = create<GamesState>((set, _get) => ({
         {}
       );
 
-      set({ games: gamesMap });
+      set({ games: gamesMap, lastUpdated: now });
     } catch (error) {
-      console.error(error);
-      set({ error: "Failed to fetch games" });
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch games";
+      console.error("Error fetching games:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -64,8 +81,9 @@ export const useGamesStore = create<GamesState>((set, _get) => ({
         games: { ...state.games, [newGame.game_id]: newGame },
       }));
     } catch (error) {
-      console.error(error);
-      set({ error: "Failed to add game" });
+      const errorMessage = error instanceof Error ? error.message : "Failed to add game";
+      console.error("Error adding game:", error);
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -85,8 +103,9 @@ export const useGamesStore = create<GamesState>((set, _get) => ({
       }
       return game;
     } catch (error) {
-      console.error(error);
-      set({ error: "Failed to fetch game" });
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch game";
+      console.error("Error fetching game:", error);
+      set({ error: errorMessage });
       return null;
     } finally {
       set({ loading: false });
@@ -110,8 +129,9 @@ export const useGamesStore = create<GamesState>((set, _get) => ({
       }
       return game;
     } catch (error) {
-      console.error(error);
-      set({ error: "Failed to fetch game" });
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch game";
+      console.error("Error fetching game:", error);
+      set({ error: errorMessage });
       return null;
     } finally {
       set({ loading: false });

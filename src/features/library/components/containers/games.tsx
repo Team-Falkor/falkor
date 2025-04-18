@@ -1,4 +1,4 @@
-import { LibraryGameUpdate } from "@/@types/library/types";
+import { LibraryGame, LibraryGameUpdate } from "@/@types/library/types";
 import {
   Carousel,
   CarouselContent,
@@ -7,10 +7,10 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ContinuePlayingCard from "../cards/continuePlaying";
 import { NewGameCard } from "../cards/newGame";
-import NewGameModalContent from "../modals/newGame.old/modal";
+import NewGameModal from "../modals/newGame";
 
 interface GamesContainerProps {
-  games: Record<string, any>;
+  games: Record<string, LibraryGame>;
   fetchGames: () => void;
   deleteGame: (gameId: string) => void;
   updateGame: (gameId: string, updates: LibraryGameUpdate) => void;
@@ -25,11 +25,11 @@ const GamesContainer = ({
   return (
     <div className="flex gap-2 overflow-hidden">
       <Dialog>
-        <DialogTrigger className="w-[200px] h-full flex-shrink-0 flex-grow-0">
+        <DialogTrigger className="w-[200px] h-full shrink-0 grow-0">
           <NewGameCard />
         </DialogTrigger>
 
-        <NewGameModalContent />
+        <NewGameModal />
       </Dialog>
 
       <div className="flex-1 w-full">
@@ -44,7 +44,7 @@ const GamesContainer = ({
               <CarouselItem className="basis-auto">
                 <ContinuePlayingCard
                   key={game.id}
-                  bg_image={game.game_icon}
+                  bg_image={game.game_icon ?? ""}
                   game={game}
                   fetchGames={fetchGames}
                   deleteGame={deleteGame}

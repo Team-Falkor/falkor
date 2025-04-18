@@ -1,5 +1,5 @@
 import { LogEntry } from "@/@types/logs";
-import { logger } from "../../../handlers/logging";
+import logger from "../../../handlers/logging";
 import { registerEvent } from "../utils/registerEvent";
 
 const log = (

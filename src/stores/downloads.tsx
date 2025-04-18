@@ -1,298 +1,326 @@
-import { AddDownloadData, DownloadData } from "@/@types";
-import { ITorrent, ITorrentGameData } from "@/@types/torrent";
-import { invoke, isDownload, isTorrent } from "@/lib";
-import { toast } from "sonner";
+import { DownloadItem, DownloadPriority, DownloadStatus } from "@/@types";
+import { invoke } from "@/lib";
 import { create } from "zustand";
 
-interface DownloadState {
-  downloading: Map<string, ITorrent | DownloadData>;
-  torrents: Map<string, ITorrent>;
-  downloads: Map<string, DownloadData>;
+type DownloadsState = {
+  downloads: DownloadItem[];
+  isLoading: boolean;
   error: string | null;
-  loading: boolean;
+  // Actions
+  fetchDownloads: () => Promise<void>;
+  addDownload: (options: {
+    url: string;
+    type: "http" | "torrent";
+    path: string;
+    name?: string;
+  }) => Promise<DownloadItem | null>;
+  pauseDownload: (id: string) => Promise<boolean>;
+  resumeDownload: (id: string) => Promise<boolean>;
+  cancelDownload: (id: string) => Promise<boolean>;
+  removeDownload: (id: string) => Promise<boolean>;
+  clearCompletedDownloads: () => Promise<boolean>;
+  setPriority: (id: string, priority: DownloadPriority) => Promise<boolean>;
+  throttleDownload: (speed: number) => Promise<boolean>;
+  throttleUpload: (speed: number) => Promise<boolean>;
+};
 
-  // Torrent methods
-  addTorrent: (torrentId: string, game_data: ITorrentGameData) => void;
-  removeTorrent: (infoHash: string) => void;
-  pauseTorrent: (infoHash: string) => void;
-  resumeTorrent: (infoHash: string) => void;
-  getTorrent: (torrentId: string) => Promise<ITorrent | null>;
-  getTorrents: () => void;
-
-  // Direct download methods
-  addDownload: (downloadData: AddDownloadData) => void;
-  pauseDownload: (id: string) => void;
-  resumeDownload: (id: string) => void;
-  stopDownload: (id: string) => void;
-  getDownload: (id: string) => Promise<DownloadData | null>;
-
-  // Fetch all downloads
-  fetchDownloads: () => void;
-
-  // Queue management
-  getQueue: () => Array<ITorrent | DownloadData>;
-}
-
-export const useDownloadStore = create<DownloadState>((set, get) => ({
-  downloading: new Map(),
-  torrents: new Map(),
-  downloads: new Map(),
+export const useDownloadsStore = create<DownloadsState>((set) => ({
+  downloads: [],
+  isLoading: false,
   error: null,
-  loading: false,
-
-  addTorrent: async (torrentId: string, game_data: ITorrentGameData) => {
-    set({ loading: true });
-    try {
-      const torrent = await window.ipcRenderer.invoke(
-        "torrent:add-torrent",
-        torrentId,
-        game_data
-      );
-      if (!torrent) throw new Error("Failed to add torrent");
-
-      set((state) => {
-        const newTorrent = { ...torrent, game_data };
-
-        state.torrents.set(torrentId, newTorrent);
-        state.downloading.set(torrentId, newTorrent);
-        state.loading = false;
-        return state;
-      });
-      toast.success("Torrent added successfully");
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to add torrent", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  removeTorrent: async (infoHash: string) => {
-    set({ loading: true });
-    try {
-      await window.ipcRenderer.invoke("torrent:delete-torrent", infoHash);
-      set((state) => {
-        state.torrents.delete(infoHash);
-        state.downloading.delete(infoHash);
-        state.loading = false;
-
-        return state;
-      });
-      toast.success("Torrent deleted successfully");
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to delete torrent", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  pauseTorrent: async (infoHash: string) => {
-    set({ loading: true });
-    try {
-      const response = await window.ipcRenderer.invoke(
-        "torrent:pause-torrent",
-        infoHash
-      );
-      if (!response.success) throw new Error("Failed to pause torrent");
-
-      set((state) => {
-        const download = state.downloading.get(infoHash);
-        if (!download) return state;
-        download.status = "paused";
-        state.downloading.set(infoHash, download);
-        state.loading = false;
-        return state;
-      });
-      toast.success("Torrent paused successfully");
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to pause torrent", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  resumeTorrent: async (infoHash: string) => {
-    set({ loading: true });
-    try {
-      const response = await window.ipcRenderer.invoke(
-        "torrent:resume-torrent",
-        infoHash
-      );
-      if (!response.success) throw new Error("Failed to resume torrent");
-
-      set((state) => {
-        const download = state.downloading.get(infoHash);
-        if (!download) return state;
-        download.status = "downloading";
-        state.loading = false;
-
-        return state;
-      });
-      toast.success("Torrent resumed successfully");
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to resume torrent", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  getTorrent: async (torrentId: string) => {
-    return get().torrents.get(torrentId) || null;
-  },
-
-  getTorrents: async () => {
-    set({ loading: true });
-    try {
-      const torrents = await window.ipcRenderer.invoke("torrent:get-torrents");
-      set((state) => {
-        state.downloading = new Map([...state.downloading, ...torrents]);
-        state.loading = false;
-        return state;
-      });
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      console.error("Failed to fetch torrents:", error);
-    }
-  },
-
-  addDownload: async (downloadData) => {
-    set({ loading: true });
-    try {
-      const download = await window.ipcRenderer.invoke(
-        "download:add",
-        downloadData
-      );
-
-      if (download?.error) {
-        toast.error(download.message);
-        return;
-      }
-
-      set((state) => {
-        state.downloading.set(downloadData.id, download);
-        state.downloads.set(downloadData.id, download);
-        state.loading = false;
-        return state;
-      });
-      toast.success("Download added successfully");
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to add download", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  pauseDownload: async (id: string) => {
-    set({ loading: true });
-    try {
-      const response = await window.ipcRenderer.invoke("download:pause", id);
-      if (response.error) throw new Error(response.message);
-
-      set((state) => {
-        const download = state.downloading.get(id);
-        if (!download) return state;
-        download.status = "paused";
-        state.downloading.set(id, download);
-        state.loading = false;
-        return state;
-      });
-      toast.success(response.message);
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to pause download", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  resumeDownload: async (id: string) => {
-    set({ loading: true });
-    try {
-      const response = await window.ipcRenderer.invoke("download:resume", id);
-      if (response.error) throw new Error(response.message);
-
-      set((state) => {
-        const download = state.downloading.get(id);
-        if (!download) return state;
-        download.status = "downloading";
-        state.downloading.set(id, download);
-        state.loading = false;
-        return state;
-      });
-      toast.success(response.message);
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to resume download", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  stopDownload: async (id: string) => {
-    set({ loading: true });
-    try {
-      const response = await window.ipcRenderer.invoke("download:stop", id);
-      if (response.error) throw new Error(response.message);
-
-      set((state) => {
-        state.downloading.delete(id);
-        state.downloads.delete(id);
-        state.loading = false;
-        return state;
-      });
-      toast.success(response.message);
-    } catch (error) {
-      set({ error: String(error), loading: false });
-      toast.error("Failed to stop download", {
-        description: (error as Error).message,
-      });
-    }
-  },
-
-  getDownload: async (id: string) => {
-    return get().downloads.get(id) || null;
-  },
 
   fetchDownloads: async () => {
-    set({ loading: true });
     try {
-      const downloads =
-        (await invoke<Array<DownloadData>>("download:get-downloads")) ?? [];
-      const torrents =
-        (await invoke<Array<ITorrent>>("torrent:get-torrents")) ?? [];
-
-      set((state) => {
-        torrents?.forEach((t) => {
-          state.torrents.set(t.infoHash, t);
-        });
-
-        downloads?.forEach((d) => {
-          state.downloads.set(d.id, d);
-        });
-
-        [...downloads, ...torrents].forEach((d) => {
-          if (isDownload(d)) state.downloading.set(d.id, d);
-          if (isTorrent(d)) state.downloading.set(d.infoHash, d);
-        });
-
-        state.loading = false;
-        return state;
-      });
+      set({ isLoading: true, error: null });
+      const downloads = await window.ipcRenderer.invoke(
+        "download-queue:get-all"
+      );
+      set({ downloads, isLoading: false });
     } catch (error) {
-      set({ error: String(error), loading: false });
-      console.error("Failed to fetch downloads:", error);
+      set({ error: (error as Error).message, isLoading: false });
     }
   },
 
-  getQueue: () => {
-    return Array.from(get().downloading.values()).filter((item) => {
-      if (isDownload(item)) return item.status !== "downloading";
-      if (isTorrent(item)) return item.status !== "downloading";
+  addDownload: async (options) => {
+    try {
+      set({ error: null });
+      // Ensure autoStart is explicitly set to true to fix the download not starting bug
+      // The backend returns a string ID, not a DownloadItem
+      const downloadId = await invoke<string>("download-queue:add", {
+        ...options,
+        autoStart: true,
+      });
+      if (downloadId) {
+        // Create a temporary download item with the ID and basic info
+        // The full details will be updated via the event listeners
+        const newDownload: DownloadItem = {
+          id: downloadId,
+          url: options.url,
+          type: options.type,
+          name: options.name || `Download-${downloadId.substring(0, 8)}`,
+          path: options.path || "",
+          status: DownloadStatus.QUEUED,
+          progress: 0,
+          speed: 0,
+          size: 0,
+          timeRemaining: 0,
+          paused: false,
+          created: new Date(),
+        };
+        set((state) => ({
+          downloads: [...state.downloads, newDownload],
+        }));
+        return newDownload;
+      }
+      return null;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return null;
+    }
+  },
+
+  pauseDownload: async (id) => {
+    try {
+      set({ error: null });
+      // First, ensure we have the download in our state before pausing
+      const currentState = useDownloadsStore.getState();
+      const downloadToUpdate = currentState.downloads.find(
+        (download) => download.id === id
+      );
+
+      if (!downloadToUpdate) {
+        console.error(`Download with ID ${id} not found in store`);
+        return false;
+      }
+
+      // Call the backend to pause the download
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:pause",
+        id
+      );
+
+      if (success) {
+        // Update the download status in our store
+        set((state) => ({
+          downloads: state.downloads.map((download) =>
+            download.id === id
+              ? {
+                  ...download,
+                  status: DownloadStatus.PAUSED,
+                  paused: true,
+                }
+              : download
+          ),
+        }));
+
+        // Verify the download is still in the store with paused status
+        setTimeout(() => {
+          const updatedState = useDownloadsStore.getState();
+          const pausedDownloadExists = updatedState.downloads.some(
+            (download) =>
+              download.id === id && download.status === DownloadStatus.PAUSED
+          );
+
+          if (!pausedDownloadExists) {
+            console.warn(
+              `Paused download ${id} not found in store, restoring it`
+            );
+            // If the download was somehow removed, add it back with paused status
+            set((state) => ({
+              downloads: [
+                ...state.downloads,
+                {
+                  ...downloadToUpdate,
+                  status: DownloadStatus.PAUSED,
+                  paused: true,
+                },
+              ],
+            }));
+          }
+        }, 100); // Small delay to ensure state updates have propagated
+      }
+      return success;
+    } catch (error) {
+      console.error(`Error pausing download: ${(error as Error).message}`);
+      set({ error: (error as Error).message });
       return false;
-    });
+    }
+  },
+
+  resumeDownload: async (id) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:resume",
+        id
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.map((download) =>
+            download.id === id
+              ? {
+                  ...download,
+                  status: DownloadStatus.DOWNLOADING,
+                  paused: false,
+                }
+              : download
+          ),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  cancelDownload: async (id) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:cancel",
+        id
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.map((download) =>
+            download.id === id
+              ? { ...download, status: DownloadStatus.CANCELLED }
+              : download
+          ),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  removeDownload: async (id) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:remove",
+        id
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.filter((download) => download.id !== id),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  clearCompletedDownloads: async () => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:clear-completed"
+      );
+      if (success) {
+        set((state) => ({
+          downloads: state.downloads.filter(
+            (download) => download.status !== DownloadStatus.COMPLETED
+          ),
+        }));
+      }
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  setPriority: async (id, priority) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "download-queue:set-priority",
+        id,
+        priority
+      );
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  throttleDownload: async (speed) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "torrent:throttle-download",
+        speed
+      );
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
+  },
+
+  throttleUpload: async (speed) => {
+    try {
+      set({ error: null });
+      const success = await window.ipcRenderer.invoke(
+        "torrent:throttle-upload",
+        speed
+      );
+      return success;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      return false;
+    }
   },
 }));
+
+// Setup event listeners for real-time updates
+if (typeof window !== "undefined") {
+  window.ipcRenderer?.on("download-queue:progress", (_, progress) => {
+    useDownloadsStore.setState((state) => ({
+      downloads: state.downloads.map((download) =>
+        download.id === progress.id ? { ...download, ...progress } : download
+      ),
+    }));
+  });
+
+  window.ipcRenderer?.on("download-queue:state-change", (_, stateChange) => {
+    useDownloadsStore.setState((state) => {
+      // Make sure we don't lose paused downloads during state changes
+      if (stateChange.currentStatus === DownloadStatus.PAUSED) {
+        console.log(
+          `Download ${stateChange.id} paused, ensuring it stays in the UI`
+        );
+      }
+
+      return {
+        downloads: state.downloads.map((download) =>
+          download.id === stateChange.id
+            ? {
+                ...download,
+                status: stateChange.currentStatus,
+                paused: stateChange.currentStatus === DownloadStatus.PAUSED,
+                ...stateChange,
+              }
+            : download
+        ),
+      };
+    });
+  });
+
+  window.ipcRenderer?.on("download-queue:error", (_, error) => {
+    useDownloadsStore.setState((state) => ({
+      downloads: state.downloads.map((download) =>
+        download.id === error.id
+          ? { ...download, status: DownloadStatus.FAILED, error: error.message }
+          : download
+      ),
+    }));
+  });
+}

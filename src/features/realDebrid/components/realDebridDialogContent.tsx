@@ -5,6 +5,7 @@ import { User } from "@/lib/api/realdebrid/user";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import * as auth from "../utils/auth";
+import { P, TypographyMuted } from "@/components/ui/typography";
 
 interface RealDebridDialogContentProps {
   open: boolean;
@@ -112,12 +113,12 @@ const RealDebridDialogContent = ({
           "loading..."
         ) : (
           <div className="flex flex-col gap-3">
-            <p>Please go to the following URL and enter the code:</p>
-            <p className="text-sm text-muted-foreground">
-              {deviceCodeInfo.verification_url}
-            </p>
-            <p>Enter the code: {deviceCodeInfo.user_code}</p>
-            <p>Expires in: {deviceCodeInfo.expires_in} seconds</p>
+            <P>Please go to the following URL and enter the code:</P>
+            <TypographyMuted>{deviceCodeInfo.verification_url}</TypographyMuted>
+            <P>Enter the code: {deviceCodeInfo.user_code}</P>
+            <TypographyMuted>
+              Expires in: {deviceCodeInfo.expires_in} seconds
+            </TypographyMuted>
           </div>
         )}
       </div>

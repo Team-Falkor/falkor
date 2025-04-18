@@ -1,6 +1,8 @@
 import { LogEntry } from "@/@types/logs";
 import { Ban } from "lucide-react";
+import { JSX } from "react";
 import { BaseLog } from "./base";
+import { TypographyMuted } from "@/components/ui/typography";
 
 interface ConsoleErrorDisplayProps {
   customIcon?: JSX.Element;
@@ -17,7 +19,7 @@ const ConsoleErrorDisplay = ({
   return (
     <BaseLog timestamp={timestamp}>
       <div className="text-red-400">{customIcon ? customIcon : <Ban />}</div>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <TypographyMuted>{description}</TypographyMuted>
     </BaseLog>
   );
 };

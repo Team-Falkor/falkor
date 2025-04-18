@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguageContext } from "@/contexts/I18N";
 import { SettingsSection } from "../section";
+import { SettingsItem } from "../settingsItem";
 import SettingTitle from "../title";
 import SettingsContainer from "./container";
 
@@ -20,14 +21,12 @@ const MiscellaneousSettings = () => {
       <SettingTitle>{t("settings.titles.miscellaneous")}</SettingTitle>
 
       <SettingsContainer>
-        <SettingsSection>
-          <Button
-            variant={"secondary"}
-            onClick={handleResetCache}
-            className="w-1/3"
-          >
-            {t("settings.settings.reset-igdb-cache")}
-          </Button>
+        <SettingsSection title="reset-igdb-cache">
+          <SettingsItem title="reset-igdb-cache">
+            <Button onClick={handleResetCache}>
+              {t("settings.settings.reset-igdb-cache")}
+            </Button>
+          </SettingsItem>
         </SettingsSection>
       </SettingsContainer>
     </div>

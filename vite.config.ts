@@ -1,6 +1,6 @@
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import path from "node:path";
+import path, { resolve } from "node:path";
 import { defineConfig } from "vite";
 import electron from "vite-plugin-electron/simple";
 import pkg from "./package.json";
@@ -29,6 +29,12 @@ export default defineConfig(({ command }) => {
           // Shortcut of `build.lib.entry`.
           entry: "backend/main.ts",
           vite: {
+            resolve: {
+              alias: {
+                "@": resolve(__dirname, "./src"),
+                "@resources": resolve(__dirname, "./resources"),
+              },
+            },
             build: {
               sourcemap,
               minify: isBuild,
@@ -57,7 +63,18 @@ export default defineConfig(({ command }) => {
     ],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": resolve(__dirname, "./src"),
+        "@resources": resolve(__dirname, "./resources"),
+      },
+    },
+    server: {
+      proxy: {
+        "/api/torbox": {
+          target: "https://api.torbox.app/v1/api",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/torbox/, ""),
+          secure: true,
+        },
       },
     },
   };

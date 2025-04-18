@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { ButtonWithIcon } from "@/components/buttonWithIcon";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -9,11 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguageContext } from "@/contexts/I18N";
 import { useSettings } from "@/hooks";
-import { useMemo } from "react";
+import { cn } from "@/lib";
+import { ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const LanguageDropdown = () => {
   const { languages, i18n } = useLanguageContext();
   const { settings, updateSetting } = useSettings();
+  const [open, setOpen] = useState(false);
 
   const currentLanguage = useMemo(() => {
     return Object.entries(languages).find(([key, _value]) => {
@@ -23,14 +26,23 @@ const LanguageDropdown = () => {
   }, [languages, settings.language, i18n.language]);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full">
+        <ButtonWithIcon
+          endIcon={
+            <ChevronDown
+              className={cn("transition-all overflow-hidden truncate w-full", {
+                "rotate-180": open,
+                "rotate-0": !open,
+              })}
+            />
+          }
+        >
           {currentLanguage?.[1].nativeName}
-        </Button>
+        </ButtonWithIcon>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-56" align="start">
+      <DropdownMenuContent className="w-64" align="start" side="bottom">
         <DropdownMenuLabel>Choose Language</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {Object.entries(languages).map(([key, value]) => (

@@ -1,6 +1,8 @@
 import { LogEntry } from "@/@types/logs";
 import { CircleAlert } from "lucide-react";
+import { JSX } from "react";
 import { BaseLog } from "./base";
+import { TypographyMuted } from "@/components/ui/typography";
 
 interface ConsoleWarningDisplayProps {
   customIcon?: JSX.Element;
@@ -19,7 +21,7 @@ const ConsoleWarningDisplay = ({
       <div className="text-yellow-400">
         {customIcon ? customIcon : <CircleAlert />}
       </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <TypographyMuted>{description}</TypographyMuted>
     </BaseLog>
   );
 };

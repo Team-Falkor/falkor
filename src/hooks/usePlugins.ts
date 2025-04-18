@@ -1,8 +1,9 @@
-import { PluginSetupJSONDisabled, SearchPluginResponse } from "@/@types";
 import { invoke } from "@/lib";
 import { usePluginsStore } from "@/stores/plugins";
+import { PluginSetupJSONDisabled } from "@team-falkor/shared-types";
 import { useCallback, useEffect } from "react";
 import { useSettings } from "./useSettings";
+import { SearchPluginResponse } from "@/@types";
 
 type InvokeReturn = {
   data: PluginSetupJSONDisabled[];

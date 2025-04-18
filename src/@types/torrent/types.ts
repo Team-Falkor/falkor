@@ -1,4 +1,4 @@
-import { DownloadStatus } from "../download";
+import { DownloadgameData, DownloadStatus } from "../download";
 
 export interface ITorrent {
   infoHash: string;
@@ -12,12 +12,6 @@ export interface ITorrent {
   status: DownloadStatus;
   totalSize: number;
   timeRemaining: number;
-  game_data?: ITorrentGameData;
-}
-
-export interface ITorrentGameData {
-  id: number;
-  name: string;
-  image_id: string;
-  banner_id?: string;
+  game_data?: DownloadgameData;
+  url?: string;
 }

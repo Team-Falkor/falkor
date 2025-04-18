@@ -5,7 +5,8 @@
     "most_anticipated": "Most Anticipated",
     "continue_playing": "Continue Playing",
     "settings": "Settings",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "metadata": "Metadata"
   },
   "settings": {
     "titles": {
@@ -16,6 +17,10 @@
       "developer": "Developer Settings",
       "miscellaneous": "Miscellaneous Settings"
     },
+    "plugins": {
+      "community_title": "Community Plugins",
+      "community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+    },
     "settings": {
       "reset-igdb-cache": "Reset IGDB Cache",
       "downloads_path": "Downloads Path",
@@ -24,7 +29,7 @@
       "check-for-plugin-updates-on-startup": "Check for plugin updates on startup",
       "check-for-app-updates-on-startup": "Check for app updates on startup",
       "update_settings": "Update Settings",
-      "enable_developer_console": "Enable Developer Console",
+      "show_dev_console": "Show Developer Console",
       "change-title-bar-style": "Change Title Bar Style",
       "change_title_bar_style_description": "Some options require a restart to take effect",
       "launch-on-startup": "Launch Falkor on system startup",
@@ -32,7 +37,10 @@
       "app-settings": "App Settings",
       "close-to-tray": "Minimize Falkor to the system tray instead of fully exiting the application",
       "max_speed": "Max Speed",
-      "max_speed_description": "The maximum speed for the downloads to be throttled to (-1 for unlimited)"
+      "max_speed_description": "The maximum speed for the downloads to be throttled to (-1 for unlimited)",
+      "toggle-notifications": "Enable Notifications",
+      "title-bar-style": "Change the style of the title bar",
+      "language": "Change the language of the application"
     }
   },
   "view_more": "View More",
@@ -94,6 +102,7 @@
   "open_downloads_folder": "Open downloads folder",
   "star_us_on_github": "Star us on GitHub",
   "join_the_discord": "Join the Discord",
+  "start_download_message": "Start downloading a game or add a torrent to begin.",
   "update_game": "Update Game",
   "update": "Update",
   "updating": "Updating",
@@ -121,5 +130,16 @@
   "new_version": "New Version",
   "torrent": "Torrent",
   "max_download_speed": "Max Download Speed",
-  "max_upload_speed": "Max Upload Speed"
+  "max_upload_speed": "Max Upload Speed",
+  "add-to-list": "Add To List",
+  "steam_id": "Steam ID",
+  "wine_prefix_folder": "Wine Prefix Folder",
+  "the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
+  "import_from_igdb": "Import From IGDB",
+  "install_plugin": "Install Plugin",
+  "update_available": "Update Available",
+  "update_description": "A new update is available for Falkor. Do you want to update now?",
+  "update_now": "Update Now",
+  "later": "Later",
+  "changelog": "Changelog"
 }

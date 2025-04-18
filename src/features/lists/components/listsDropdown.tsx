@@ -17,7 +17,7 @@ const ListsDropdown = (props: IGDBReturnDataType) => {
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant={"secondary"} size={"icon"}>
+          <Button size={"icon"}>
             <List className="size-5" />
           </Button>
         </DropdownMenuTrigger>
