@@ -20,7 +20,7 @@ const NavBarTop = () => {
   const { t } = useLanguageContext();
   return (
     <>
-      <div className="pt-2">
+      <div className="pt-2 pb-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <Link aria-label="Home" className="group" to="/">
@@ -35,7 +35,7 @@ const NavBarTop = () => {
         </Tooltip>
       </div>
 
-      <div className="grid gap-2 pb-3">
+      <div className="grid gap-2 pb-4">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-lg">
