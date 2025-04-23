@@ -173,7 +173,27 @@ class DownloadQueue extends EventEmitter {
     download.status = DownloadStatus.PAUSED;
     download.paused = true;
     this.activeDownloads.delete(id);
+
+    // Remove from all priority queues to prevent re-processing
+    for (const queue of this.priorityQueue.values()) {
+      const index = queue.indexOf(id);
+      if (index !== -1) {
+        queue.splice(index, 1);
+      }
+    }
+
+    // Stop the download through the handler if available
+    const handler = this.handlers.get(download.type);
+    if (handler && typeof handler.pauseDownload === "function") {
+      try {
+        await handler.pauseDownload(id);
+      } catch (error) {
+        console.error(`Error stopping download ${id}: ${error}`);
+      }
+    }
+
     this.emitStateChange(id, previousStatus, DownloadStatus.PAUSED);
+    // Process queue after ensuring download is fully stopped
     await this.processQueue();
     return true;
   }
@@ -186,6 +206,9 @@ class DownloadQueue extends EventEmitter {
     }
     download.status = DownloadStatus.QUEUED;
     download.paused = false;
+    // Add back to priority queue when resuming
+    const priority = download.priority || "normal";
+    this.priorityQueue.get(priority)?.push(id);
     this.emitStateChange(id, DownloadStatus.PAUSED, DownloadStatus.QUEUED);
     this.processQueue();
     return true;

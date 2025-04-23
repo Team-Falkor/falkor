@@ -34,6 +34,7 @@ export interface DownloadItem {
   created: Date; // When download was added
   started?: Date; // When download started
   completed?: Date; // When download completed
+  priority?: DownloadPriority; // Download priority level
 }
 
 /**
