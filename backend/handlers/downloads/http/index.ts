@@ -115,12 +115,36 @@ export class HttpDownloadHandler extends EventEmitter {
         item.size = downloadInfo.totalBytes;
       }
 
+      // Extract filename and extension from URL if not already set
+      if (!item.name || !path.extname(item.name)) {
+        const urlPath = new URL(item.url).pathname;
+        const urlFilename = path.basename(urlPath);
+        if (urlFilename && path.extname(urlFilename)) {
+          item.name = urlFilename;
+        }
+      }
+
       // Get filename from Content-Disposition if available
       const contentDisposition = response.headers["content-disposition"];
       if (contentDisposition) {
         const filenameMatch = /filename="?([^"]+)"?/i.exec(contentDisposition);
         if (filenameMatch && filenameMatch[1]) {
-          item.name = filenameMatch[1];
+          const dispositionFilename = filenameMatch[1];
+          // Only use Content-Disposition filename if it has an extension
+          if (path.extname(dispositionFilename)) {
+            item.name = dispositionFilename;
+          }
+        }
+      }
+
+      // If still no extension, try to add one based on content type
+      if (!path.extname(item.name)) {
+        const contentType = response.headers["content-type"];
+        if (contentType) {
+          const ext = contentType.split("/").pop();
+          if (ext && ext !== "octet-stream") {
+            item.name = `${item.name}.${ext}`;
+          }
         }
       }
 
