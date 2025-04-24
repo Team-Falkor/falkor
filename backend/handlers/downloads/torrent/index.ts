@@ -77,7 +77,7 @@ export class TorrentDownloadHandler extends EventEmitter {
   public async startDownload(item: DownloadItem): Promise<void> {
     try {
       // Create directory if it doesn't exist
-      await fs.promises.mkdir(item.path, { recursive: true });
+      await fs.promises.mkdir(item.path, { recursive: true, mode: 0o755 });
 
       console.log("Starting download:", item);
 

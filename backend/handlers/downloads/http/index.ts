@@ -47,7 +47,7 @@ export class HttpDownloadHandler extends EventEmitter {
     try {
       // Create directory if it doesn't exist
       const downloadDir = path.dirname(path.join(item.path, item.name));
-      await fs.promises.mkdir(downloadDir, { recursive: true });
+      await fs.promises.mkdir(downloadDir, { recursive: true, mode: 0o755 });
 
       // Start the download
       this.initiateDownload(item);
@@ -62,7 +62,7 @@ export class HttpDownloadHandler extends EventEmitter {
   /**
    * Initiate the HTTP download
    */
-  private initiateDownload(item: DownloadItem): void {
+  private async initiateDownload(item: DownloadItem): Promise<void> {
     const downloadInfo = this.downloads.get(item.id);
     if (!downloadInfo) return;
 
@@ -70,12 +70,22 @@ export class HttpDownloadHandler extends EventEmitter {
     const parsedUrl = new URL(item.url);
     const protocol = parsedUrl.protocol === "https:" ? https : http;
 
-    // Create request
-    const request = protocol.get(item.url, {
-      headers: {
-        "User-Agent": "Falkor-App/1.0",
-      },
-    });
+    // Check if file exists and get its size
+    const filePath = path.join(item.path, item.name);
+    let existingSize = 0;
+    try {
+      const stats = await fs.promises.stat(filePath);
+      existingSize = stats.size;
+    } catch {}
+
+    // Create request with range header if file exists
+    const headers: Record<string, string> = {};
+
+    if (existingSize > 0) {
+      headers.Range = `bytes=${existingSize}-`;
+    }
+
+    const request = protocol.get(item.url, { headers });
 
     // Store request reference
     downloadInfo.request = request;
@@ -148,9 +158,22 @@ export class HttpDownloadHandler extends EventEmitter {
         }
       }
 
-      // Create file stream
+      // Handle 206 Partial Content response
+      if (response.statusCode === 206) {
+        const contentRange = response.headers["content-range"];
+        if (contentRange) {
+          const match = /bytes (\d+)-\d+\/\d+/.exec(contentRange);
+          if (match && match[1]) {
+            downloadInfo.downloadedBytes = parseInt(match[1], 10);
+          }
+        }
+      }
+
+      // Create file stream in append mode if resuming, otherwise write mode
       const filePath = path.join(item.path, item.name);
-      const fileStream = fs.createWriteStream(filePath);
+      const fileStream = fs.createWriteStream(filePath, {
+        flags: response.statusCode === 206 ? "a" : "w",
+      });
       downloadInfo.fileStream = fileStream;
 
       // Pipe response to file
@@ -356,10 +379,8 @@ export class HttpDownloadHandler extends EventEmitter {
    * Note: HTTP resume requires range support from the server
    * This is a simplified implementation
    */
-  public resumeDownload(item: DownloadItem): void {
-    // For simplicity, we'll just restart the download
-    // A full implementation would use Range headers to resume
-    this.startDownload(item);
+  public async resumeDownload(item: DownloadItem): Promise<void> {
+    await this.startDownload(item);
   }
 
   /**
