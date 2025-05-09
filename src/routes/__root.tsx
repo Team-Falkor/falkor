@@ -1,12 +1,10 @@
-// import TitleBar from "@/components/titleBar";
-
+// import Updater from "@/features/updater/components/updater";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import TitleBar from "@/components/title-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NavBar from "@/features/navigation/components/navbar";
 import { useSettings } from "@/features/settings/hooks/useSettings";
-// import Updater from "@/features/updater/components/updater";
-// import { useAppStartup, useSettings } from "@/hooks";
+import { useGamepadNavigation } from "@/hooks/use-gamepad-navigation";
 import { cn, shouldHideTitleBar } from "@/lib";
 
 export const Route = createRootRoute({
@@ -14,6 +12,7 @@ export const Route = createRootRoute({
 });
 
 function Root() {
+	useGamepadNavigation();
 	const { settings } = useSettings();
 	// useAppStartup();
 

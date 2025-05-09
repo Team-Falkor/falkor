@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { trpc } from "@/lib";
 
 /**
@@ -25,11 +24,6 @@ export function useSettings() {
 	const resetSettingsMutation = trpc.settings.reset.useMutation({
 		onSuccess: () => utils.settings.read.invalidate(),
 	});
-
-	useEffect(() => {
-		console.log("useSettings", "invalidated");
-		console.log({ data: settingsQuery.data });
-	}, [settingsQuery.data]);
 
 	return {
 		// Queries
