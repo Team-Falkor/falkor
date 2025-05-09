@@ -2,10 +2,11 @@ import type { DownloadgameData, RouterOutputs } from "@/@types";
 import { useLanguageContext } from "@/i18n/I18N";
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import { CloudDownload, ShoppingCart } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import { Card } from "../ui/card";
 import { H3, P } from "../ui/typography";
 import { useSettings } from "@/features/settings/hooks/useSettings";
+import { cn } from "@/lib";
 
 type Deal = RouterOutputs["itad"]["pricesByName"]["prices"][number]["deals"][number];
 
@@ -35,14 +36,17 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 						<P className="-mt-0.5 w-full truncate text-muted-foreground">
 							{source.url}
 						</P>
-						<Button
-							className="w-full items-center gap-3 rounded-full font-bold"
-							variant="success"
-							// onClick={handleClick}
+						<a
+              className={cn(buttonVariants({
+                variant: "success",
+              }), "w-full items-center gap-3 rounded-full font-bold")}
+							href={source.url}
+							target="_blank"
+							rel="noopener noreferrer"
 						>
 							<ShoppingCart size={18} fill="currentColor" />
 							{source.price.currency} {source.price.amount}
-						</Button>
+						</a>
 					</>
 				) : (
 					<>
