@@ -1,3 +1,4 @@
+import { getInfoHashFromMagnet } from "@backend/utils/utils";
 import { RealDebridAuthService } from "./services/auth";
 import { RealDebridTorrentService } from "./services/torrents";
 import { RealDebridUnrestrictService } from "./services/unrestrict";
@@ -55,6 +56,64 @@ class RealDebridClient {
 		}
 
 		return response.json();
+	}
+
+	private async getOrCreateTorrent(magnetLink: string): Promise<string> {
+		const infoHash = getInfoHashFromMagnet(magnetLink);
+		const existingTorrents = await this.torrents.getTorrents();
+		const foundTorrent = existingTorrents?.length
+			? existingTorrents?.find((torrent) => torrent.hash === infoHash)
+			: null;
+
+		if (foundTorrent) {
+			return foundTorrent.id;
+		}
+
+		// If torrent does not exist, add it and return the new ID
+		const addedTorrent = await this.torrents.addTorrent(magnetLink);
+		console.log(addedTorrent);
+		if (!addedTorrent?.id) {
+			throw new Error("Failed to add torrent. No ID returned.");
+		}
+		return addedTorrent.id;
+	}
+
+	public async downloadTorrentFromMagnet(
+		magnetLink: string,
+		password?: string,
+		fileSelection: string | "all" = "all",
+	): Promise<string> {
+		const torrentId = await this.getOrCreateTorrent(
+			decodeURIComponent(magnetLink),
+		);
+		let torrentInfo = await this.torrents.getTorrentInfo(torrentId);
+
+		// Select files if necessary
+		if (torrentInfo.status === "waiting_files_selection") {
+			await this.torrents.selectAllFiles(torrentId);
+			torrentInfo = await this.torrents.getTorrentInfo(torrentId);
+		}
+
+		// Check download status
+		if (torrentInfo.status !== "downloaded") {
+			// TODO: handle not cached
+			// For now just throw an error
+			throw new Error("Torrent has not completed downloading.");
+		}
+
+		// Ensure links are available
+		const [firstLink] = torrentInfo.links || [];
+		if (!firstLink) {
+			throw new Error("No links available for the completed torrent.");
+		}
+
+		// Unrestrict the first available link
+		try {
+			const unrestrictedLink = await this.unrestrict.unrestrictLink(firstLink);
+			return unrestrictedLink.download;
+		} catch (error) {
+			throw new Error(`Failed to unrestrict link: ${(error as Error).message}`);
+		}
 	}
 }
 

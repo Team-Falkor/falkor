@@ -77,11 +77,6 @@ export const convertBytesToHumanReadable = (bytes: number): string => {
 	return `${value.toFixed(2)} ${sizes[i]}`;
 };
 
-export const getInfoHashFromMagnet = (magnetURI: string): string | null => {
-	const match = magnetURI.match(/xt=urn:btih:([a-fA-F0-9]{40,})/);
-	return match ? match[1] : null;
-};
-
 export function formatBytes(bytes: number, decimals = 2): string {
 	if (bytes === 0) return "0 Bytes";
 

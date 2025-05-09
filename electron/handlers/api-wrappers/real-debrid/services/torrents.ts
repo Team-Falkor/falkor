@@ -84,4 +84,15 @@ export class RealDebridTorrentService {
 			throw new Error(`Failed to select files: ${response.statusText}`);
 		}
 	}
+
+	public async selectAllFiles(id: string): Promise<void> {
+		// First get the torrent info to retrieve all file IDs
+		const torrentInfo = await this.getTorrentInfo(id);
+
+		// Extract all file IDs
+		const fileIds = torrentInfo.files.map((file) => file.id);
+
+		// Use the existing selectFiles method to select all files
+		await this.selectFiles(id, fileIds);
+	}
 }

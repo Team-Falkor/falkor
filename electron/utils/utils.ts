@@ -223,3 +223,8 @@ export const getUserCountry = async (
 		return "Unknown";
 	}
 };
+
+export const getInfoHashFromMagnet = (magnetURI: string): string | null => {
+	const match = magnetURI.match(/xt=urn:btih:([a-fA-F0-9]{40,})/);
+	return match ? match[1] : null;
+};

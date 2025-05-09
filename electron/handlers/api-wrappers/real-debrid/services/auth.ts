@@ -2,7 +2,6 @@ import { EventEmitter } from "node:events";
 import { db } from "@backend/database";
 import { accounts } from "@backend/database/schemas";
 import type { InferInsertModel } from "drizzle-orm";
-import { ExternalAccountType } from "@/@types";
 import type { RealDebridDeviceCode, RealDebridToken } from "../@types";
 
 type Account = InferInsertModel<typeof accounts>;
@@ -26,7 +25,7 @@ export class RealDebridAuthService extends EventEmitter {
 	 */
 	private async upsertAccountToken(token: RealDebridToken): Promise<Account> {
 		const payload: Partial<Account> = {
-			type: ExternalAccountType["real-debrid"]?.toString(),
+			type: "real-debrid",
 			accessToken: token.access_token,
 			refreshToken: token.refresh_token,
 			expiresIn: token.expires_in,
@@ -63,12 +62,9 @@ export class RealDebridAuthService extends EventEmitter {
 		});
 		const data = await res.json();
 		if (!res.ok) {
-			const msg =
-				(data as any).error_description ??
-				(data as any).message ??
-				res.statusText;
+			const msg = data.error_description ?? data.message ?? res.statusText;
 			throw new Error(
-				`RealDebrid OAuth error (${(data as any).error ?? res.status}): ${msg}`,
+				`RealDebrid OAuth error (${data.error ?? res.status}): ${msg}`,
 			);
 		}
 		return data as T;
