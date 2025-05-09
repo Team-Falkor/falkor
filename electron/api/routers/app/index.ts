@@ -1,5 +1,5 @@
 import AutoLaunch from "auto-launch";
-import { BrowserWindow, app } from "electron";
+import { app, BrowserWindow } from "electron";
 import { z } from "zod";
 import { downloadQueue } from "../../../handlers/downloads/queue";
 import { gamesLaunched } from "../../../handlers/launcher/games-launched";

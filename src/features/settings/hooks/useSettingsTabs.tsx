@@ -1,5 +1,5 @@
 import { Blocks, Code2, Cog, FileCog2, Settings2, UserCog } from "lucide-react";
-import { type ComponentType, type ReactElement, lazy, useState } from "react";
+import { type ComponentType, lazy, type ReactElement, useState } from "react";
 
 const GeneralSettings = lazy(() => import("../components/tabs/general"));
 const DownloadSettings = lazy(() => import("../components/tabs/download"));

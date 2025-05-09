@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import type { SettingsTitleBarStyle } from "@/@types";
 import { ButtonWithIcon } from "@/components/buttonWithIcon";
 import {
@@ -11,8 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSettings } from "@/features/settings/hooks/useSettings";
 import { cn } from "@/lib";
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
 
 const TitleBarDropdown = () => {
 	const { settings, updateSetting } = useSettings();

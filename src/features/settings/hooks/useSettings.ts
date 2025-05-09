@@ -1,5 +1,5 @@
-import { trpc } from "@/lib";
 import { useEffect } from "react";
+import { trpc } from "@/lib";
 
 /**
  * Custom hook for settings operations using tRPC.

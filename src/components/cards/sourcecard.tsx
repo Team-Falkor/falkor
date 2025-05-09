@@ -1,14 +1,15 @@
-import type { DownloadgameData, RouterOutputs } from "@/@types";
-import { useLanguageContext } from "@/i18n/I18N";
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import { CloudDownload, ShoppingCart } from "lucide-react";
+import type { DownloadgameData, RouterOutputs } from "@/@types";
+import { useSettings } from "@/features/settings/hooks/useSettings";
+import { useLanguageContext } from "@/i18n/I18N";
+import { cn } from "@/lib";
 import { Button, buttonVariants } from "../ui/button";
 import { Card } from "../ui/card";
 import { H3, P } from "../ui/typography";
-import { useSettings } from "@/features/settings/hooks/useSettings";
-import { cn } from "@/lib";
 
-type Deal = RouterOutputs["itad"]["pricesByName"]["prices"][number]["deals"][number];
+type Deal =
+	RouterOutputs["itad"]["pricesByName"]["prices"][number]["deals"][number];
 
 type SourceCardProps = {
 	source: PluginSearchResponse | Deal;
@@ -26,7 +27,6 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 	const isDeal = (item: SourceCardProps["source"]): item is Deal =>
 		"price" in item && "shop" in item;
 
-
 	return (
 		<Card className="h-28 w-full overflow-hidden rounded-2xl border-none p-2.5">
 			<div className="flex h-full w-full flex-col items-start justify-between overflow-hidden">
@@ -37,9 +37,12 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 							{source.url}
 						</P>
 						<a
-              className={cn(buttonVariants({
-                variant: "success",
-              }), "w-full items-center gap-3 rounded-full font-bold")}
+							className={cn(
+								buttonVariants({
+									variant: "success",
+								}),
+								"w-full items-center gap-3 rounded-full font-bold",
+							)}
 							href={source.url}
 							target="_blank"
 							rel="noopener noreferrer"

@@ -1,10 +1,10 @@
+import type { PluginSetupJSONDisabled } from "@team-falkor/shared-types";
+import { useCallback, useMemo } from "react";
 import UnifiedPluginCard from "@/components/cards/unified-plugin-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { H5 } from "@/components/ui/typography";
 import { usePluginsProviders } from "@/features/plugins/providers/hooks/usePluginsProviders";
 import { cn } from "@/lib";
-import type { PluginSetupJSONDisabled } from "@team-falkor/shared-types";
-import { useCallback, useMemo } from "react";
 import type { SortBy } from "./sort";
 
 interface Props {
@@ -22,9 +22,14 @@ const PluginDisplay = ({
 	showEnabledOnly,
 	search,
 }: Props) => {
-	const { getPlugins, needsUpdate, plugins, isErrorPlugins, errorPlugins, isLoadingPlugins} = usePluginsProviders();
-
-
+	const {
+		getPlugins,
+		needsUpdate,
+		plugins,
+		isErrorPlugins,
+		errorPlugins,
+		isLoadingPlugins,
+	} = usePluginsProviders();
 
 	const onSearch = useCallback(
 		(search: string, toSearch?: PluginSetupJSONDisabled[] | null) => {
@@ -58,10 +63,10 @@ const PluginDisplay = ({
 	}, [plugins, onSearch, search, showEnabledOnly, sortBy]);
 
 	if (isLoadingPlugins) return <div>Loading...</div>;
-	if (isErrorPlugins){
-    console.error(errorPlugins);
-    return <div>Error</div>
-  }
+	if (isErrorPlugins) {
+		console.error(errorPlugins);
+		return <div>Error</div>;
+	}
 
 	if (!plugins) return null;
 

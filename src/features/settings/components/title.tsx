@@ -1,6 +1,6 @@
+import type { HTMLAttributes } from "react";
 import { H3 } from "@/components/ui/typography";
 import { cn } from "@/lib";
-import type { HTMLAttributes } from "react";
 
 interface SettingTitleProps extends HTMLAttributes<HTMLDivElement> {
 	children: string;

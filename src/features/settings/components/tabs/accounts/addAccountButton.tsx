@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { ButtonWithIcon } from "@/components/buttonWithIcon";
 import { Dialog } from "@/components/ui/dialog";
 import {
@@ -11,8 +13,6 @@ import {
 import RealDebridDialogContent from "@/features/debrid/components/real-debrid/real-debrid-dialog-content";
 // import TorBoxDialogContent from "@/features/torBox/components/torBoxDialogContent";
 import { cn, trpc } from "@/lib";
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
 
 const AddAccountButton = () => {
 	const [isRealDebridDialogOpen, setIsRealDebridDialogOpen] = useState(false);

@@ -1,7 +1,7 @@
+import type { HTMLAttributes, PropsWithChildren } from "react";
 import { H3, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
 import { cn } from "@/lib";
-import type { HTMLAttributes, PropsWithChildren } from "react";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
 	title?: string;

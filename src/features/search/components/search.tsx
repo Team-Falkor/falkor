@@ -34,12 +34,12 @@ export default function SearchDialog() {
 					<SearchIcon />
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="mx-2 my-4 w-full sm:mx-auto sm:max-w-xl max-h-[calc(100vh-4rem)] overflow-y-auto p-0">
+			<DialogContent className="mx-2 my-4 max-h-[calc(100vh-4rem)] w-full overflow-y-auto p-0 sm:mx-auto sm:max-w-xl">
 				<DialogHeader className="px-6 pt-6 pb-2">
 					<DialogTitle>Search</DialogTitle>
 				</DialogHeader>
 
-				<div className="space-y-4 w-full px-6 pb-6">
+				<div className="w-full space-y-4 px-6 pb-6">
 					<InputWithIcon
 						placeholder="Type to search..."
 						value={query}
@@ -51,7 +51,7 @@ export default function SearchDialog() {
 
 					{/* Recent Searches */}
 					{recentSearches.length > 0 && (
-						<div className="flex flex-row items-center justify-between w-full gap-2">
+						<div className="flex w-full flex-row items-center justify-between gap-2">
 							<Carousel
 								className="flex-1 overflow-hidden"
 								opts={{
@@ -65,7 +65,7 @@ export default function SearchDialog() {
 										<CarouselItem
 											key={search}
 											// first item should have left padding of 16px or the layout will be off
-											className="basis-auto first:pl-4 pl-1 py-1"
+											className="basis-auto py-1 pl-1 first:pl-4"
 										>
 											<Button
 												key={search}
@@ -93,7 +93,7 @@ export default function SearchDialog() {
 					)}
 
 					{/* Search Results */}
-					<div className="space-y-2 mt-2">
+					<div className="mt-2 space-y-2">
 						{loading && (
 							<div className="flex items-center justify-center py-10">
 								<GameLoader />
@@ -101,19 +101,19 @@ export default function SearchDialog() {
 						)}
 
 						{!loading && error && (
-							<p className="text-sm text-destructive text-center py-4">
+							<p className="py-4 text-center text-destructive text-sm">
 								{error}
 							</p>
 						)}
 
 						{!loading && !query && (
-							<p className="text-sm text-muted-foreground text-center py-4">
+							<p className="py-4 text-center text-muted-foreground text-sm">
 								Start typing to search...
 							</p>
 						)}
 
 						{!loading && query && results.length === 0 && (
-							<p className="text-sm text-muted-foreground text-center py-4">
+							<p className="py-4 text-center text-muted-foreground text-sm">
 								No results found.
 							</p>
 						)}

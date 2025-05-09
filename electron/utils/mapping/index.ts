@@ -35,7 +35,6 @@ export class Mapping<T extends { name: string }> {
 
 	async search(searching_for: SearchingFor = "title") {
 		switch (searching_for) {
-			case "title":
 			default: {
 				const fuse = new Fuse(this.array_to_search, {
 					keys: ["title", "name", "game_name"],

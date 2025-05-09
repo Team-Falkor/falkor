@@ -1,11 +1,10 @@
 // src/components/active-library/active-library-content.tsx
 
-import { trpc } from "@/lib";
 import { useMemo } from "react";
-
 import ContinuePlayingCard from "@/components/cards/continue-playing";
 import ListCard from "@/components/cards/list-card";
 import { H5, P } from "@/components/ui/typography";
+import { trpc } from "@/lib";
 
 import { useGames } from "../hooks/use-games";
 import type { ActiveLibraryProps } from "./active-library";

@@ -1,5 +1,5 @@
-import { useLanguageContext } from "@/i18n/I18N";
 import { DownloadIcon, Settings2 } from "lucide-react";
+import { useLanguageContext } from "@/i18n/I18N";
 import NavItem from "../item";
 
 const NavBarBottom = () => {

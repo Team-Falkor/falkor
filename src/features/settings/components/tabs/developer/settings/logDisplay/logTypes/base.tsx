@@ -1,11 +1,11 @@
+import { format } from "date-fns";
+import type { HTMLAttributes, PropsWithChildren } from "react";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib";
-import { format } from "date-fns";
-import type { HTMLAttributes, PropsWithChildren } from "react";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
 	timestamp?: number;

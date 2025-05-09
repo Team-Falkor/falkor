@@ -1,6 +1,6 @@
-import { cn } from "@/lib";
 import { Play } from "lucide-react";
 import { MdStop } from "react-icons/md";
+import { cn } from "@/lib";
 
 interface PlayStopButtonProps {
 	isPlaying: boolean;

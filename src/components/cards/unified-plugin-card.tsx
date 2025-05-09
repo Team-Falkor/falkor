@@ -1,3 +1,7 @@
+import type { PluginSetupJSONAuthor } from "@team-falkor/shared-types";
+import { Download, Power, PowerOff, Trash2, UserIcon } from "lucide-react";
+import { type SyntheticEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,10 +14,6 @@ import {
 import { usePluginsProviders } from "@/features/plugins/providers/hooks/usePluginsProviders";
 import { useLanguageContext } from "@/i18n/I18N";
 import { cn } from "@/lib";
-import type { PluginSetupJSONAuthor } from "@team-falkor/shared-types";
-import { Download, Power, PowerOff, Trash2, UserIcon } from "lucide-react";
-import { type SyntheticEvent, useMemo, useState } from "react";
-import { toast } from "sonner";
 
 interface UnifiedPluginCardProps {
 	// Common props

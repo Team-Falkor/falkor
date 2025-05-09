@@ -1,13 +1,12 @@
+import { useMemo } from "react";
 import {
 	H4,
 	TypographyMuted,
 	TypographySmall,
 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-
-import { useMemo } from "react";
-import type { RequirementsData } from ".";
 import { scrapeOptions } from "@/lib";
+import type { RequirementsData } from ".";
 
 type RequirementsRowProps = RequirementsData;
 

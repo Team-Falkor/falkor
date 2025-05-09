@@ -1,6 +1,6 @@
-import { cn } from "@/lib";
 import type React from "react";
 import { type ButtonHTMLAttributes, forwardRef } from "react";
+import { cn } from "@/lib";
 import { Button } from "./ui/button";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {

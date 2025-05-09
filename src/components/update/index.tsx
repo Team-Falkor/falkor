@@ -1,7 +1,7 @@
-import Modal from "@/components/update/Modal";
-import Progress from "@/components/update/Progress";
 import type { ProgressInfo } from "electron-updater";
 import { useCallback, useEffect, useState } from "react";
+import Modal from "@/components/update/Modal";
+import Progress from "@/components/update/Progress";
 import "./update.css";
 
 const Update = () => {
@@ -97,7 +97,12 @@ const Update = () => {
 			window.ipcRenderer.off("download-progress", onDownloadProgress);
 			window.ipcRenderer.off("update-downloaded", onUpdateDownloaded);
 		};
-	}, []);
+	}, [
+		onDownloadProgress,
+		onUpdateCanAvailable,
+		onUpdateDownloaded,
+		onUpdateError,
+	]);
 
 	return (
 		<>

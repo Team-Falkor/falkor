@@ -1,10 +1,10 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import {
 	type DownloadProgress,
 	type DownloadStateChange,
 	DownloadStatus,
 } from "@/@types/download/queue";
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 import { publicProcedure, router } from "../../../api/trpc";
 import { downloadQueue } from "../../../handlers/downloads/queue";
 import { emitOnce } from "../../../utils/emit-once";

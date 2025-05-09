@@ -1,16 +1,16 @@
+import logo from "@resources/icon.png";
+import { Link } from "@tanstack/react-router";
+import { CalendarDays, HomeIcon, LibraryIcon } from "lucide-react";
+import { useState } from "react";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Search from "@/features/search/components/search";
-import { Link } from "@tanstack/react-router";
-import { CalendarDays, HomeIcon, LibraryIcon } from "lucide-react";
-import { useState } from "react";
-import NavItem from "../item";
 
 import { useLanguageContext } from "@/i18n/I18N";
-import logo from "@resources/icon.png";
+import NavItem from "../item";
 
 const NavBarTop = () => {
 	const [open, setOpen] = useState(false);

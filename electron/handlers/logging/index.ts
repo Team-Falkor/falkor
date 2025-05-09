@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { LogEntry, LogLevel, LoggerFilterOptions } from "@/@types";
+import type { LogEntry, LoggerFilterOptions, LogLevel } from "@/@types";
 import { constants } from "../../utils/constants";
 import { JsonFileEditor } from "../json/jsonFileEditor";
 

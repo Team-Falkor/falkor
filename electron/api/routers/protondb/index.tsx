@@ -1,6 +1,6 @@
-import type { ProtonDBSummary } from "@/@types";
 import { publicProcedure, router } from "@backend/api/trpc";
 import { z } from "zod";
+import type { ProtonDBSummary } from "@/@types";
 
 export const protonDbRouter = router({
 	getBadge: publicProcedure

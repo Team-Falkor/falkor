@@ -1,6 +1,6 @@
-import { cn } from "@/lib";
 import type React from "react";
-import { type InputHTMLAttributes, forwardRef } from "react";
+import { forwardRef, type InputHTMLAttributes } from "react";
+import { cn } from "@/lib";
 import { Input } from "./ui/input";
 
 interface Props extends InputHTMLAttributes<HTMLInputElement> {

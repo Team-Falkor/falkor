@@ -1,6 +1,6 @@
+import type { PropsWithChildren } from "react";
 import { Label } from "@/components/ui/label";
 import { useLanguageContext } from "@/i18n/I18N";
-import type { PropsWithChildren } from "react";
 
 type Props = {
 	title: string;

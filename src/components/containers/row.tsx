@@ -1,7 +1,7 @@
-import { useLanguageContext } from "@/i18n/I18N";
-import { cn } from "@/lib";
 import { Link } from "@tanstack/react-router";
 import type { HTMLAttributes } from "react";
+import { useLanguageContext } from "@/i18n/I18N";
+import { cn } from "@/lib";
 import CarouselButton from "../carouselButton";
 import GenericRow from "../genericRow";
 import { Carousel } from "../ui/carousel";

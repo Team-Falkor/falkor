@@ -1,3 +1,6 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import {
 	Dialog,
 	DialogContent,
@@ -11,9 +14,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGames } from "@/features/library/hooks/use-games";
 import { useLanguageContext } from "@/i18n/I18N";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { NewGameButton } from "../../new-game";
 import NewGameMetadataForm from "./forms/metadata";
 import NewGameSettingsForm from "./forms/settings";

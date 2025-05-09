@@ -1,4 +1,6 @@
 // import TitleBar from "@/components/titleBar";
+
+import { createRootRoute, Outlet } from "@tanstack/react-router";
 import TitleBar from "@/components/title-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NavBar from "@/features/navigation/components/navbar";
@@ -6,7 +8,6 @@ import { useSettings } from "@/features/settings/hooks/useSettings";
 // import Updater from "@/features/updater/components/updater";
 // import { useAppStartup, useSettings } from "@/hooks";
 import { cn, shouldHideTitleBar } from "@/lib";
-import { Outlet, createRootRoute } from "@tanstack/react-router";
 
 export const Route = createRootRoute({
 	component: Root,

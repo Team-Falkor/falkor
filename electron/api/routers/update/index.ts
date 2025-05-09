@@ -4,6 +4,7 @@ import { app } from "electron";
 import type { UpdateInfo } from "electron-updater";
 import { publicProcedure, router } from "../../../api/trpc";
 import { emitOnce } from "../../../utils/emit-once";
+
 const { autoUpdater } = createRequire(import.meta.url)("electron-updater");
 
 type UpdateAvailabilityPayload = {

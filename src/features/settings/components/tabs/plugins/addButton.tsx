@@ -1,3 +1,5 @@
+import { Plus } from "lucide-react";
+import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -6,8 +8,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useLanguageContext } from "@/i18n/I18N";
-import { Plus } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
 import AddPluginModal from "./addPluginModal";
 
 interface PluginAddButtonProps {

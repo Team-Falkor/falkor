@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { IGDBReturnDataType } from "@/@types";
 import DefaultCard from "@/components/cards/defaultCard";
 import CarouselButton from "@/components/carouselButton";
@@ -8,7 +9,6 @@ import {
 } from "@/components/ui/carousel";
 import { H2 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { useMemo } from "react";
 
 interface SimilarGamesProps {
 	data: IGDBReturnDataType["similar_games"];

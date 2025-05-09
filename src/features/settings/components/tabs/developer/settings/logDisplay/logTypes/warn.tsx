@@ -1,7 +1,7 @@
-import type { LogEntry } from "@/@types/logs";
-import { TypographyMuted } from "@/components/ui/typography";
 import { CircleAlert } from "lucide-react";
 import type { JSX } from "react";
+import type { LogEntry } from "@/@types/logs";
+import { TypographyMuted } from "@/components/ui/typography";
 import { BaseLog } from "./base";
 
 interface ConsoleWarningDisplayProps {

@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	DialogClose,
@@ -11,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguageContext } from "@/i18n/I18N";
-import type { Dispatch, SetStateAction } from "react";
 import { useLists } from "../hooks/use-lists";
 
 interface NewListDialogProps {

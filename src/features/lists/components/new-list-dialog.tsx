@@ -1,5 +1,5 @@
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { NewListDialogContent } from "./new-list-dialog-content";
 
 interface NewListDialogProps {

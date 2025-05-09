@@ -1,11 +1,11 @@
+import type { ReactElement } from "react";
+import { FaDiscord, FaGithub } from "react-icons/fa6";
+import { SiKofi } from "react-icons/si";
 import type { LinkItemType } from "@/@types";
 // import { useUpdater } from "@/hooks/useUpdater";
 import { H3 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
 import { cn, shouldHideTitleBar, trpc } from "@/lib";
-import type { ReactElement } from "react";
-import { FaDiscord, FaGithub } from "react-icons/fa6";
-import { SiKofi } from "react-icons/si";
 import SettingsLinkGroup from "./linkGroup";
 
 const LINKS: Array<LinkItemType> = [

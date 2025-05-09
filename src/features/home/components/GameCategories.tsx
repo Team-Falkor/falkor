@@ -1,6 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "@tanstack/react-router";
 
 const categories = [
 	{ title: "Action", icon: "🎮", id: "1", type: "theme" },

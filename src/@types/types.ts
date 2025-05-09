@@ -1,6 +1,6 @@
 import type {
-  PluginConfig,
-  PluginSearchResponse,
+	PluginConfig,
+	PluginSearchResponse,
 } from "@team-falkor/shared-types";
 
 import type { inferReactQueryProcedureOptions } from "@trpc/react-query";
@@ -38,7 +38,9 @@ export type NonDefaultSource = {
 };
 
 export type ItemDownload = {
-	sources: Array<PluginSearchResponse> | RouterOutputs["itad"]["pricesByName"]["prices"];
+	sources:
+		| Array<PluginSearchResponse>
+		| RouterOutputs["itad"]["pricesByName"]["prices"];
 	name: string;
 	id?: string;
 	multiple_choice?: boolean;

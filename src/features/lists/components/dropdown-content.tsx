@@ -1,3 +1,4 @@
+import { PlusIcon } from "lucide-react";
 import type { IGDBReturnDataType } from "@/@types";
 import { DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -8,7 +9,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { P } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { PlusIcon } from "lucide-react";
 import { useLists } from "../hooks/use-lists";
 import ListsDropdownItem from "./dropdown-item";
 

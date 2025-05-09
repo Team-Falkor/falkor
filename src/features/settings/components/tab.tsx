@@ -1,6 +1,6 @@
+import type { JSX } from "react";
 import { P } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import type { JSX } from "react";
 
 interface SettingTabProps {
 	title: string;

@@ -1,5 +1,5 @@
-import { cn } from "@/lib";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib";
 import { Button } from "./ui/button";
 import { useCarousel } from "./ui/carousel";
 

@@ -1,9 +1,9 @@
+import { createFileRoute } from "@tanstack/react-router";
 import MainContainer from "@/components/containers/mainContainer";
+import FeaturedGames from "@/features/home/components/featuredGames";
 import GameCategories from "@/features/home/components/GameCategories";
 import GameRows from "@/features/home/components/GameRows";
 import HeroSection from "@/features/home/components/HeroSection";
-import FeaturedGames from "@/features/home/components/featuredGames";
-import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({ component: Index });
 

@@ -1,5 +1,5 @@
-import { cn, trpc } from "@/lib";
 import type { HTMLAttributes } from "react";
+import { cn, trpc } from "@/lib";
 import BannerCard from "./cards/bannerCard";
 import BannerSkeleton from "./skeletons/banner";
 import { CarouselContent, CarouselItem } from "./ui/carousel";

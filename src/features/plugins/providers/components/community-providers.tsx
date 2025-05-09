@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import UnifiedPluginCard from "@/components/cards/unified-plugin-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +9,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { trpc } from "@/lib";
-import { Plus } from "lucide-react";
 
 export function CommunityProviders() {
 	const {

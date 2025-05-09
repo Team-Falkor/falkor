@@ -1,7 +1,7 @@
-import type { IGDBReturnDataType } from "@/@types";
-import { useLanguageContext } from "@/i18n/I18N";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
+import type { IGDBReturnDataType } from "@/@types";
+import { useLanguageContext } from "@/i18n/I18N";
 import IGDBImage from "../IGDBImage";
 import TrailerButton from "../trailer";
 import { buttonVariants } from "../ui/button";

@@ -1,12 +1,11 @@
+import { Link } from "@tanstack/react-router";
+import Autoplay from "embla-carousel-autoplay";
+import { useRef } from "react";
 import Banner from "@/components/banner";
 import CarouselButton from "@/components/carouselButton";
 import { Carousel } from "@/components/ui/carousel";
 import { H2, TypographySmall } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-
-import { Link } from "@tanstack/react-router";
-import Autoplay from "embla-carousel-autoplay";
-import { useRef } from "react";
 
 const FeaturedGames = () => {
 	const { t } = useLanguageContext();

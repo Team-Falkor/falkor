@@ -1,7 +1,7 @@
+import { Link } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
 import { H1, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { Link } from "@tanstack/react-router";
 
 const HeroSection = () => {
 	const { t } = useLanguageContext();

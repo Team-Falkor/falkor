@@ -1,6 +1,6 @@
+import type { ColumnDef } from "@tanstack/react-table";
 import type { RouterOutputs } from "@/@types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { ColumnDef } from "@tanstack/react-table";
 
 type ExternalAccountColumn = RouterOutputs["accounts"]["getAll"][number];
 

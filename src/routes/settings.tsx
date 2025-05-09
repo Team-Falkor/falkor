@@ -1,12 +1,12 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-adapter";
+import { Suspense, useEffect } from "react";
+import { z } from "zod";
 import Spinner from "@/components/spinner";
 import SettingsSidebar from "@/features/settings/components/sidebar";
 import SettingTab from "@/features/settings/components/tab";
 import { useSettingsTabs } from "@/features/settings/hooks/useSettingsTabs";
 import { useLanguageContext } from "@/i18n/I18N";
-import { createFileRoute } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
-import { Suspense, useEffect } from "react";
-import { z } from "zod";
 
 const searchParamsSchema = z.object({
 	tab: z.string().optional(),

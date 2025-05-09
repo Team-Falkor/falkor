@@ -1,12 +1,12 @@
+import { createLazyFileRoute, Link } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import type { RouterOutputs } from "@/@types";
 import GameLoader from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { trpc } from "@/lib";
 import { cn } from "@/lib/utils";
-import { Link, createLazyFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
 
 type Game = RouterOutputs["igdb"]["calendarReleases"][number];
 type ReleaseMap = Record<string, Game[]>;

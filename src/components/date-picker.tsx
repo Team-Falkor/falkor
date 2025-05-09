@@ -1,14 +1,13 @@
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import type { SelectSingleEventHandler } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import type { SelectSingleEventHandler } from "react-day-picker";
 import { Calendar } from "./ui/calendar";
 
 interface DatePickerProps {

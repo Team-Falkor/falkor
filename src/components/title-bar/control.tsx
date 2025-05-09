@@ -1,5 +1,5 @@
-import { cn, trpc } from "@/lib"; // Ensure you have the correct import path for cn from shadcn
 import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
+import { cn, trpc } from "@/lib"; // Ensure you have the correct import path for cn from shadcn
 
 interface TitleBarControlProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	controlType: "minimize" | "maximize" | "close";

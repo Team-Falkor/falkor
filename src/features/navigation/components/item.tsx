@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import type { ButtonHTMLAttributes, FunctionComponent, JSX } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Tooltip,
@@ -5,8 +7,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
-import type { ButtonHTMLAttributes, FunctionComponent, JSX } from "react";
 
 type NavItemProps =
 	| {

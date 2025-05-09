@@ -2,7 +2,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { db } from "@backend/database";
-import { BrowserWindow, app, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { createIPCHandler } from "trpc-electron/main";
 import { appRouter } from "../api/trpc/root";
 import { SettingsManager } from "../handlers/settings/settings";

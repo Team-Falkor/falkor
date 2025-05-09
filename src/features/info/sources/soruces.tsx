@@ -15,14 +15,17 @@ const SourceShowcase = ({ sources, game_data, slug }: SourceShowcaseProps) => {
 		return sources?.flatMap((item) => {
 			if (item.id === "itad") {
 				if (!item.sources) return;
-				return (item.sources as RouterOutputs["itad"]["pricesByName"]["prices"])?.flatMap((source) => source.deals?.map((deal, i) => (
-          <CarouselItem
-            key={`${item.id}-${i}`}
-            className="relative overflow-hidden sm:basis-1/2 md:basis-1/2 2xl:basis-1/3"
-          >
-            <SourceCard source={deal} />
-          </CarouselItem>
-        )),
+				return (
+					item.sources as RouterOutputs["itad"]["pricesByName"]["prices"]
+				)?.flatMap((source) =>
+					source.deals?.map((deal, i) => (
+						<CarouselItem
+							key={`${item.id}-${i}`}
+							className="relative overflow-hidden sm:basis-1/2 md:basis-1/2 2xl:basis-1/3"
+						>
+							<SourceCard source={deal} />
+						</CarouselItem>
+					)),
 				);
 			}
 

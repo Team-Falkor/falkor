@@ -1,5 +1,5 @@
-import type { IGDBImageSize } from "@/@types";
 import type { ImgHTMLAttributes } from "react";
+import type { IGDBImageSize } from "@/@types";
 
 interface IGDBImageProps extends ImgHTMLAttributes<HTMLImageElement> {
 	imageSize?: IGDBImageSize;

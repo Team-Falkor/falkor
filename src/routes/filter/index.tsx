@@ -1,9 +1,9 @@
-import { FilterSidebar } from "@/features/filter/components/filter-sidebar";
-import { GameGrid } from "@/features/filter/components/game-grid";
-import { trpc } from "@/lib/trpc";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
+import { FilterSidebar } from "@/features/filter/components/filter-sidebar";
+import { GameGrid } from "@/features/filter/components/game-grid";
+import { trpc } from "@/lib/trpc";
 
 const filterSearchSchema = z.object({
 	sort: z.string().optional(),

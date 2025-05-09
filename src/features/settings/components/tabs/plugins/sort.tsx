@@ -1,3 +1,5 @@
+import { ArrowDownAZ, ArrowUpAZ, Check, Columns2, Rows3 } from "lucide-react";
+import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Tooltip,
@@ -5,8 +7,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useLanguageContext } from "@/i18n/I18N";
-import { ArrowDownAZ, ArrowUpAZ, Check, Columns2, Rows3 } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
 
 export type SortBy = "alphabetic-asc" | "alphabetic-desc";
 

@@ -1,10 +1,10 @@
+import { useEffect, useState } from "react";
 import Confirmation from "@/components/confirmation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
-import { useEffect, useState } from "react";
 import LogWindow from "./logWindow";
 
 const LogDisplay = () => {
@@ -20,7 +20,7 @@ const LogDisplay = () => {
 
 	useEffect(() => {
 		setEnabled(getInitialEnabledState());
-	}, []);
+	}, [getInitialEnabledState]);
 
 	const onCheckedChange = (value: boolean) => {
 		localStorage.setItem("enableDevConsole", JSON.stringify(value));

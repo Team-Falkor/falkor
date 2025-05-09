@@ -1,11 +1,11 @@
 import { EventEmitter } from "node:events";
 import * as fs from "node:fs";
+import WebTorrent from "webtorrent";
 import {
 	type DownloadItem,
 	type DownloadProgress,
 	DownloadStatus,
 } from "@/@types";
-import WebTorrent from "webtorrent";
 import { SettingsManager } from "../../../handlers/settings/settings";
 import { downloadQueue } from "../queue";
 

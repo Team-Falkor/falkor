@@ -1,3 +1,5 @@
+import type { InputHTMLAttributes, JSX } from "react";
+import type { ControllerRenderProps, FieldValues } from "react-hook-form";
 import {
 	FormControl,
 	FormItem,
@@ -6,8 +8,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib";
-import type { InputHTMLAttributes, JSX } from "react";
-import type { ControllerRenderProps, FieldValues } from "react-hook-form";
 
 interface GameFormInputProps<T extends FieldValues>
 	extends InputHTMLAttributes<HTMLInputElement> {

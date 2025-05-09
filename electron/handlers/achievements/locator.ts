@@ -1,8 +1,8 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { app } from "electron";
 import type { Cracker } from "@/@types";
 import type { AchievementFile } from "@/@types/achievements/types";
-import { app } from "electron";
 import logger from "../logging";
 
 type PathType =

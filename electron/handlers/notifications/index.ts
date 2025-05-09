@@ -1,11 +1,11 @@
 import { createWriteStream, existsSync } from "node:fs";
 import https from "node:https";
 import { join } from "node:path";
-import type { NotificationType } from "@/@types";
 import { constants } from "@backend/utils/constants";
 import { playSound } from "@backend/utils/playsound";
 import { getSoundPath } from "@backend/utils/utils";
 import { Notification, type NotificationConstructorOptions } from "electron";
+import type { NotificationType } from "@/@types";
 import logger from "../logging";
 import { SettingsManager } from "../settings/settings";
 

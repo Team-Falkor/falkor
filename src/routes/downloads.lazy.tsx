@@ -1,5 +1,5 @@
-import { DownloadList } from "@/features/downloads/components/DownloadList";
 import { createLazyFileRoute } from "@tanstack/react-router";
+import { DownloadList } from "@/features/downloads/components/DownloadList";
 
 export const Route = createLazyFileRoute("/downloads")({
 	component: RouteComponent,

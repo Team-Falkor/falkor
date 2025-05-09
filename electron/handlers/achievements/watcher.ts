@@ -1,4 +1,4 @@
-import { type FSWatcher, type WatchListener, statSync, watch } from "node:fs";
+import { type FSWatcher, statSync, type WatchListener, watch } from "node:fs";
 import { platform } from "node:os";
 import { setTimeout } from "node:timers/promises";
 

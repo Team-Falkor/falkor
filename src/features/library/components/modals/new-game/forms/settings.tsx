@@ -1,9 +1,9 @@
+import { FolderOpen } from "lucide-react";
+import type { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form";
 import { useFormActions } from "@/features/library/hooks/use-form-actions";
 import { useLanguageContext } from "@/i18n/I18N";
-import { FolderOpen } from "lucide-react";
-import type { UseFormReturn } from "react-hook-form";
 import GameFormInput from "../../../game-form-input";
 import type { NewGameFormSchema } from "../schema";
 

@@ -1,12 +1,12 @@
+import { db } from "@backend/database";
+import { achievements } from "@backend/database/schemas";
+import { and, eq } from "drizzle-orm";
 import type {
 	AchievementFile,
 	AchivementStat,
 	ISchemaForGame,
 	UnlockedAchievement,
 } from "@/@types/achievements/types";
-import { db } from "@backend/database";
-import { achievements } from "@backend/database/schemas";
-import { and, eq } from "drizzle-orm";
 import logger from "../logging";
 import { NotificationsHandler } from "../notifications";
 import { achievementData } from "./data";

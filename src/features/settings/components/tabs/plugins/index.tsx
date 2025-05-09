@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { H1, TypographyMuted } from "@/components/ui/typography";
 import { CommunityProviders } from "@/features/plugins/providers/components/community-providers";
+import { useLanguageContext } from "@/i18n/I18N";
 import { cn } from "@/lib";
-import { useEffect, useState } from "react";
 import { SettingsSection } from "../../section";
 import SettingTitle from "../../title";
 import SettingsContainer from "../container";
@@ -10,7 +11,6 @@ import PluginAddButton from "./addButton";
 import PluginDisplay from "./display";
 import PluginSearch from "./search";
 import PluginsSort, { type SortBy } from "./sort";
-import { useLanguageContext } from "@/i18n/I18N";
 
 const PluginSettings = () => {
 	const { t } = useLanguageContext();

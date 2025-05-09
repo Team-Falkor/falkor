@@ -1,7 +1,7 @@
+import type { Dispatch, SetStateAction } from "react";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { P, TypographyMuted } from "@/components/ui/typography";
 import { trpc } from "@/lib";
-import type { Dispatch, SetStateAction } from "react";
 
 interface RealDebridDialogContentProps {
 	open: boolean;

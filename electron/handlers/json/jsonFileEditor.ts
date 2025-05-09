@@ -1,11 +1,11 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
-	type FormattingOptions,
-	type ParseError,
 	applyEdits,
+	type FormattingOptions,
 	findNodeAtLocation,
 	modify,
+	type ParseError,
 	parse,
 	parseTree,
 } from "jsonc-parser";

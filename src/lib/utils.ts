@@ -61,8 +61,6 @@ export const timeSince = (date: number): string => {
 	return `${years} year${years === 1 ? "" : "s"} ago`;
 };
 
-
-
 export const bytesToHumanReadable = (bytes: number): string => {
 	if (bytes === 0) return "0 Bytes";
 	const k = 1024;

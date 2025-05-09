@@ -19,7 +19,6 @@ function Info() {
 		id: id,
 	});
 
-
 	const releaseDate = useMemo(
 		() =>
 			data
@@ -30,8 +29,7 @@ function Info() {
 		[data],
 	);
 
-  
-  const isReleased = useMemo(
+	const isReleased = useMemo(
 		() =>
 			!releaseDate
 				? false
@@ -39,13 +37,14 @@ function Info() {
 		[releaseDate],
 	);
 
-  const itadQuery = trpc.itad.pricesByName.useQuery({
-name: data?.name?? "",
-  },
-{
-  enabled: !!id && isReleased,
-})
-
+	const itadQuery = trpc.itad.pricesByName.useQuery(
+		{
+			name: data?.name ?? "",
+		},
+		{
+			enabled: !!id && isReleased,
+		},
+	);
 
 	const steam_id = useMemo(
 		() => getSteamIdFromWebsites(data?.websites ?? []),

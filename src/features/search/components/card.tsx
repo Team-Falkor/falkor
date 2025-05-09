@@ -39,7 +39,7 @@ const SearchCard = ({
 					</Avatar>
 				)}
 				<div className="flex flex-1 flex-col gap-0.5">
-					<P className="line-clamp-1 text-sm font-medium text-muted-foreground group-hover:text-foreground">
+					<P className="line-clamp-1 font-medium text-muted-foreground text-sm group-hover:text-foreground">
 						{name}
 					</P>
 					<TypographyMuted className="text-xs">{year}</TypographyMuted>

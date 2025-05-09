@@ -1,3 +1,5 @@
+import { SearchIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { InputWithIcon } from "@/components/inputWithIcon";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,8 +8,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useLanguageContext } from "@/i18n/I18N";
-import { SearchIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
 
 interface PluginSearchProps {
 	isSearchExpanded: boolean;
@@ -42,8 +42,7 @@ const PluginSearch = ({
 	return (
 		<div className="relative">
 			<div
-				className={`absolute top-0 left-0 transition-all duration-300 ease-in-out ${isSearchExpanded ? "pointer-events-auto w-64 opacity-100" : "pointer-events-none w-10 opacity-0"}
-        `}
+				className={`absolute top-0 left-0 transition-all duration-300 ease-in-out ${isSearchExpanded ? "pointer-events-auto w-64 opacity-100" : "pointer-events-none w-10 opacity-0"} `}
 			>
 				<InputWithIcon
 					ref={searchInputRef}
@@ -66,8 +65,7 @@ const PluginSearch = ({
 						variant="ghost"
 						size="icon"
 						onClick={handleSearchToggle}
-						className={`relative z-10 transition-all duration-300 ease-in-out ${isSearchExpanded ? "pointer-events-none opacity-0" : "opacity-100"}
-            `}
+						className={`relative z-10 transition-all duration-300 ease-in-out ${isSearchExpanded ? "pointer-events-none opacity-0" : "opacity-100"} `}
 					>
 						<SearchIcon className="h-4 w-4" />
 					</Button>

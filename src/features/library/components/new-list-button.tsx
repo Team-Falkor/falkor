@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { H5 } from "@/components/ui/typography";
 import { PlusIcon } from "lucide-react";
 import type { HTMLAttributes } from "react";
+import { Button } from "@/components/ui/button";
+import { H5 } from "@/components/ui/typography";
 
 export const NewListButton = ({
 	className,

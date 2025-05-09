@@ -1,7 +1,7 @@
+import { useMemo } from "react";
 import type { PcRequirements } from "@/@types";
 import { H5 } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { useMemo } from "react";
 import RequirementsRow from "./row";
 
 type PcSpecsProps = PcRequirements;

@@ -1,11 +1,11 @@
 import { publicProcedure, router } from "@backend/api/trpc";
-import { z } from "zod";
+import { createApiUrl } from "@backend/utils/createApiUrl";
 import type {
 	ApiResponse,
 	PluginProvider,
 	PluginSetupJSON,
 } from "@team-falkor/shared-types";
-import { createApiUrl } from "@backend/utils/createApiUrl";
+import { z } from "zod";
 
 // Input schema
 const getProvidersInput = z.object({

@@ -1,3 +1,5 @@
+import { type Dispatch, type SetStateAction, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	DialogClose,
@@ -9,8 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib";
-import { type Dispatch, type SetStateAction, useRef, useState } from "react";
-import { toast } from "sonner";
 
 interface Props {
 	open: boolean;

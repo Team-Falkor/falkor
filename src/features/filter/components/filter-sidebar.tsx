@@ -1,3 +1,6 @@
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import type { RouterInputs } from "@/@types";
 import { DatePicker } from "@/components/date-picker";
 import { Button } from "@/components/ui/button";
@@ -11,9 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib";
-import { useNavigate } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
 
 export type FilterOptions = RouterInputs["igdb"]["filter"]["options"];
 

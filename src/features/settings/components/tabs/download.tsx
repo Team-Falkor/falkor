@@ -1,3 +1,6 @@
+import { Folder } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { SettingsConfig } from "@/@types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,9 +8,6 @@ import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks";
 import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
-import { Folder } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { SettingsSection } from "../section";
 import SettingTitle from "../title";
 import SettingsContainer from "./container";

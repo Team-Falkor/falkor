@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
 import { ButtonWithIcon } from "@/components/buttonWithIcon";
 import {
 	DropdownMenu,
@@ -9,10 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSettings } from "@/features/settings/hooks/useSettings";
 import { useLanguageContext } from "@/i18n/I18N";
-
 import { cn } from "@/lib";
-import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
 
 const LanguageDropdown = () => {
 	const { languages, i18n } = useLanguageContext();

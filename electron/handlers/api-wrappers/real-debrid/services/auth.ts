@@ -1,8 +1,8 @@
 import { EventEmitter } from "node:events";
-import { ExternalAccountType } from "@/@types";
 import { db } from "@backend/database";
 import { accounts } from "@backend/database/schemas";
 import type { InferInsertModel } from "drizzle-orm";
+import { ExternalAccountType } from "@/@types";
 import type { RealDebridDeviceCode, RealDebridToken } from "../@types";
 
 type Account = InferInsertModel<typeof accounts>;

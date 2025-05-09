@@ -1,6 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import type { RouterOutputs } from "@/@types";
 import { H5 } from "@/components/ui/typography";
-import { Link } from "@tanstack/react-router";
 import ListCardImage from "./image";
 
 type ListCardProps =

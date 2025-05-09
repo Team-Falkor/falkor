@@ -1,6 +1,6 @@
-import type { IGDBReturnDataType, SimilarGame } from "@/@types";
 import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
+import type { IGDBReturnDataType, SimilarGame } from "@/@types";
 import IGDBImage from "../IGDBImage";
 import { Badge } from "../ui/badge";
 import { H5 } from "../ui/typography";

@@ -1,3 +1,6 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import NewGameMetadataForm from "@/features/library/components/modals/new-game/forms/metadata";
@@ -7,9 +10,6 @@ import {
 	newGameFormSchema,
 } from "@/features/library/components/modals/new-game/schema";
 import { useLanguageContext } from "@/i18n/I18N";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
 
 interface UpdateGameFormProps {
 	onSubmit: (values: NewGameFormSchema) => void;
@@ -25,7 +25,7 @@ const UpdateGameForm = ({ onSubmit, defaultValues }: UpdateGameFormProps) => {
 
 	useEffect(() => {
 		form.reset(defaultValues);
-	}, [defaultValues]);
+	}, [defaultValues, form.reset]);
 
 	return (
 		<Form {...form}>

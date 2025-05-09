@@ -1,3 +1,5 @@
+import { Ellipsis } from "lucide-react";
+import type { RouterInputs, RouterOutputs } from "@/@types";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -7,11 +9,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguageContext } from "@/i18n/I18N";
-import { Ellipsis } from "lucide-react";
 import DeleteDialog from "./delete";
 import UpdateDialog from "./edit";
-
-import type { RouterInputs, RouterOutputs } from "@/@types";
 
 type LibraryGame = RouterOutputs["library"]["list"][number];
 
