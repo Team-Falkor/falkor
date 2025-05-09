@@ -1,13 +1,12 @@
 import type {
-	PluginConfig,
-	PluginSearchResponse,
+  PluginConfig,
+  PluginSearchResponse,
 } from "@team-falkor/shared-types";
 
 import type { inferReactQueryProcedureOptions } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "electron/api/trpc/root";
 import type { JSX, ReactElement } from "react";
-import type { ITADPrice } from "./itad";
 
 export interface Provider {
 	label: string;
@@ -20,9 +19,9 @@ export interface InfoProps {
 }
 
 export interface InfoItadProps {
-	itadData: ITADPrice[] | undefined;
+	itadData: RouterOutputs["itad"]["pricesByName"] | undefined;
 	itadPending: boolean;
-	itadError: Error | null;
+	itadError: string | undefined;
 }
 
 // export interface infoHLTBProps {
@@ -39,7 +38,7 @@ export type NonDefaultSource = {
 };
 
 export type ItemDownload = {
-	sources: Array<PluginSearchResponse | ITADPrice>;
+	sources: Array<PluginSearchResponse> | RouterOutputs["itad"]["pricesByName"]["prices"];
 	name: string;
 	id?: string;
 	multiple_choice?: boolean;

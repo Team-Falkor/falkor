@@ -1,5 +1,5 @@
-import { trpc } from "@/lib";
 import { useCallback } from "react";
+import { trpc } from "@/lib";
 
 /**
  * Custom hook for plugin operations using tRPC.
@@ -17,8 +17,7 @@ export const usePluginsProviders = () => {
 
 	// Mutations with cache invalidation
 	const installPluginMutation = trpc.plugins.providers.install.useMutation({
-		onSuccess: async () => await utils.plugins.providers.list.invalidate()
-    
+		onSuccess: async () => await utils.plugins.providers.list.invalidate(),
 	});
 
 	const deletePluginMutation = trpc.plugins.providers.delete.useMutation({
@@ -60,17 +59,22 @@ export const usePluginsProviders = () => {
 		[pluginsQuery, utils.plugins.providers.list],
 	);
 
+	const searchAllPlugins = trpc.plugins.providers.searchAll.useQuery;
+
 	return {
 		// Queries
 		plugins: pluginsQuery.data,
 		isLoadingPlugins: pluginsQuery.isLoading,
 		isFetchingPlugins: pluginsQuery.isFetching,
-    isErrorPlugins: pluginsQuery.isError,
-    errorPlugins: pluginsQuery.error,
+		isErrorPlugins: pluginsQuery.isError,
+		errorPlugins: pluginsQuery.error,
 		needsUpdate: needsUpdateQuery.data,
 
 		// Get plugins with force refresh option
 		getPlugins,
+
+		// Search across all plugins and flatten all sources
+		searchAllPlugins,
 
 		// Plugin operations
 		installPlugin: installPluginMutation.mutate,

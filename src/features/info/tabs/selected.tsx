@@ -1,12 +1,18 @@
-import type { InfoProps, ReleaseDate, RouterOutputs } from "@/@types";
+import type {
+	InfoItadProps,
+	InfoProps,
+	ReleaseDate,
+	RouterOutputs,
+} from "@/@types";
 import PcSpecs from "../specs";
 import InfoAboutTab from "./about";
 
-type SelectedTab0Data = InfoProps & {
-	data: RouterOutputs["igdb"]["info"];
-	isReleased: boolean;
-	releaseDate: ReleaseDate | null | undefined;
-};
+type SelectedTab0Data = InfoItadProps &
+	InfoProps & {
+		data: RouterOutputs["igdb"]["info"];
+		isReleased: boolean;
+		releaseDate: ReleaseDate | null | undefined;
+	};
 
 type Props = SelectedTab0Data & {
 	selectedTab: number;

@@ -1,16 +1,14 @@
+import { createLazyFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import type { ReleaseDate } from "@/@types";
-
-// TODO: Port over components from old codebase
-import SimilarGames from "@/features/info/similar";
-
 // TODO: Port over components from old codebase
 // import AchievementContainer from "@/features/achievements/components/container";
 import { InfoBar } from "@/features/info/info-bar";
+// TODO: Port over components from old codebase
+import SimilarGames from "@/features/info/similar";
 import InfoTop from "@/features/info/top";
 import { getSteamIdFromWebsites, trpc } from "@/lib";
 import { goBack } from "@/lib/history";
-import { createLazyFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
 
 export const Route = createLazyFileRoute("/info/$id")({ component: Info });
 
@@ -20,6 +18,7 @@ function Info() {
 	const { isPending, error, data } = trpc.igdb.info.useQuery({
 		id: id,
 	});
+
 
 	const releaseDate = useMemo(
 		() =>
@@ -31,13 +30,22 @@ function Info() {
 		[data],
 	);
 
-	const isReleased = useMemo(
+  
+  const isReleased = useMemo(
 		() =>
 			!releaseDate
 				? false
 				: !releaseDate?.date || releaseDate.date < Date.now() / 1000,
 		[releaseDate],
 	);
+
+  const itadQuery = trpc.itad.pricesByName.useQuery({
+name: data?.name?? "",
+  },
+{
+  enabled: !!id && isReleased,
+})
+
 
 	const steam_id = useMemo(
 		() => getSteamIdFromWebsites(data?.websites ?? []),
@@ -63,6 +71,9 @@ function Info() {
 					isPending={isPending}
 					releaseDate={releaseDate}
 					steamID={steam_id}
+					itadData={itadQuery.data}
+					itadError={itadQuery.error?.message}
+					itadPending={itadQuery.isPending}
 				/>
 
 				{/* {!!steam_id && <AchievementContainer steamId={steam_id} gameId={id} />} */}

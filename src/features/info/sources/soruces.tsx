@@ -1,8 +1,8 @@
-import type { DownloadgameData, ITADPrice, ItemDownload } from "@/@types";
-import { SourceCard } from "@/components/cards/sourcecard";
-import { CarouselItem } from "@/components/ui/carousel";
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import { useMemo } from "react";
+import type { DownloadgameData, ItemDownload, RouterOutputs } from "@/@types";
+import { SourceCard } from "@/components/cards/sourcecard";
+import { CarouselItem } from "@/components/ui/carousel";
 
 interface SourceShowcaseProps {
 	sources: ItemDownload[];
@@ -14,15 +14,15 @@ const SourceShowcase = ({ sources, game_data, slug }: SourceShowcaseProps) => {
 	const renderedSources = useMemo(() => {
 		return sources?.flatMap((item) => {
 			if (item.id === "itad") {
-				return (item.sources as ITADPrice[]).flatMap((source) =>
-					source.deals?.map((deal, i) => (
-						<CarouselItem
-							key={`${item.id}-${i}`}
-							className="relative overflow-hidden sm:basis-1/2 md:basis-1/2 2xl:basis-1/3"
-						>
-							<SourceCard source={deal} />
-						</CarouselItem>
-					)),
+				if (!item.sources) return;
+				return (item.sources as RouterOutputs["itad"]["pricesByName"]["prices"])?.flatMap((source) => source.deals?.map((deal, i) => (
+          <CarouselItem
+            key={`${item.id}-${i}`}
+            className="relative overflow-hidden sm:basis-1/2 md:basis-1/2 2xl:basis-1/3"
+          >
+            <SourceCard source={deal} />
+          </CarouselItem>
+        )),
 				);
 			}
 

@@ -1,10 +1,16 @@
-import type { IGDBReturnDataType, InfoProps, ReleaseDate } from "@/@types";
-import Stars from "@/components/starts";
-import { TypographyMuted, TypographySmall } from "@/components/ui/typography";
-import { useLanguageContext } from "@/i18n/I18N";
 import { format } from "date-fns";
 import { Lightbulb } from "lucide-react";
 import { useMemo } from "react";
+import type {
+	IGDBReturnDataType,
+	InfoItadProps,
+	InfoProps,
+	ReleaseDate,
+} from "@/@types";
+import Stars from "@/components/starts";
+import { TypographyMuted, TypographySmall } from "@/components/ui/typography";
+import { useLanguageContext } from "@/i18n/I18N";
+import Sources from "../sources";
 
 interface InfoAboutTabProps extends InfoProps {
 	data: IGDBReturnDataType | undefined;
@@ -12,9 +18,17 @@ interface InfoAboutTabProps extends InfoProps {
 	releaseDate: ReleaseDate | null | undefined;
 }
 
-type Props = InfoAboutTabProps;
+type Props = InfoAboutTabProps & InfoItadProps;
 
-const InfoAboutTab = ({ data, isReleased, releaseDate }: Props) => {
+const InfoAboutTab = ({
+	data,
+	isReleased,
+	releaseDate,
+	isPending,
+	itadData,
+	itadError,
+	itadPending,
+}: Props) => {
 	const { t } = useLanguageContext();
 
 	const genres = useMemo(
@@ -113,11 +127,10 @@ const InfoAboutTab = ({ data, isReleased, releaseDate }: Props) => {
 				</TypographyMuted>
 			</div>
 
-			{/* {!!isReleased && !isPending && !!data && (
+			{!!isReleased && !isPending && !!data && (
 				<div className="">
 					<Sources
 						title={data?.name}
-						isReleased={isReleased}
 						websites={data?.websites}
 						slug={data?.slug}
 						itadData={itadData}
@@ -131,7 +144,7 @@ const InfoAboutTab = ({ data, isReleased, releaseDate }: Props) => {
 						}}
 					/>
 				</div>
-			)} */}
+			)}
 		</>
 	);
 };

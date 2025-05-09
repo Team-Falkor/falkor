@@ -1,8 +1,9 @@
-import type { PluginId } from "@team-falkor/shared-types";
+import { publicProcedure, router } from "@backend/api/trpc";
+import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
+import { getOS } from "@backend/utils/utils";
+import type { PluginId, PluginSearchResponse } from "@team-falkor/shared-types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router } from "../../../../api/trpc";
-import pluginProviderHandler from "../../../../handlers/plugins/providers/handler";
 
 // Input validation schemas
 export const pluginIdSchema = z.string().refine(
@@ -118,4 +119,69 @@ export const pluginProvidersRouter = router({
 		const updatedPlugins = await pluginProviderHandler.updateAll();
 		return { updatedPlugins };
 	}),
+
+	// Search across all plugins and flatten all sources
+	searchAll: publicProcedure
+		.input(z.string().min(1, { message: "Query must not be empty" }))
+		.query(async ({ input: query }) => {
+			try {
+				const os = getOS();
+				const plugins = await pluginProviderHandler.list(false);
+
+				if (!plugins.length) {
+					return {
+						success: false,
+						message: "No plugins found",
+						data: [],
+					};
+				}
+
+				const results = await Promise.all(
+					plugins.map(async (plugin) => {
+						try {
+							const configParams = plugin.config
+								? plugin.config?.search?.join("/")
+								: null;
+							const baseUrl = `${plugin.api_url}/search/${os}`;
+							const searchUrl = configParams
+								? `${baseUrl}/${configParams}/${encodeURIComponent(query)}`
+								: `${baseUrl}/${encodeURIComponent(query)}`;
+
+							const res = await fetch(searchUrl);
+							const json: PluginSearchResponse[] = res.ok
+								? await res.json()
+								: [];
+
+							return {
+								id: plugin.id,
+								name: plugin.name,
+								sources: json,
+								config: plugin.config,
+								multiple_choice: Boolean(plugin?.multiple_choice) ?? false,
+							};
+						} catch (err) {
+							console.error(`Error fetching from plugin ${plugin.id}:`, err);
+
+							return {
+								id: plugin.id,
+								name: plugin.name,
+								sources: [],
+								config: plugin.config,
+							};
+						}
+					}),
+				);
+
+				return {
+					success: true,
+					data: results,
+				};
+			} catch (err) {
+				console.error(err);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: (err as Error).message,
+				});
+			}
+		}),
 });

@@ -1,114 +1,48 @@
-// TODO: Convert from ld invoke to trpc
-import type {
-  DownloadgameData,
-  InfoItadProps,
-  ItemDownload,
-  SourceProvider,
-  Website,
-} from "@/@types";
+import { X } from "lucide-react";
+import type { DownloadgameData, InfoItadProps, Website } from "@/@types";
 import { Button } from "@/components/ui/button";
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
+	Carousel,
+	CarouselContent,
+	CarouselItem,
 } from "@/components/ui/carousel";
 import { P, TypographySmall } from "@/components/ui/typography";
+import { useSources } from "@/hooks";
 import { useLanguageContext } from "@/i18n/I18N";
-import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
-import { useMemo, useState } from "react";
 import SourceShowcase from "./soruces";
 
 interface DownloadDialogProps extends InfoItadProps {
 	title: string;
 	slug?: string;
-	isReleased: boolean;
 	websites: Website[];
 	game_data: DownloadgameData;
 }
 
-const Sources = ({
-	isReleased,
-	itadData,
-	title,
-	game_data,
-}: DownloadDialogProps) => {
+const Sources = ({ itadData, title, game_data }: DownloadDialogProps) => {
 	const { t } = useLanguageContext();
-	const [selectedProvider, setSelectedProvider] = useState<SourceProvider>({
-		value: "all",
-		label: "All",
-	});
-
-	const { searchAllPlugins } = UsePlugins();
-
-	const itadSources: ItemDownload[] = useMemo(
-		() => [{ id: "itad", name: "IsThereAnyDeal", sources: itadData ?? [] }],
-		[itadData],
-	);
-
-	const { data: pluginSources, isError } = useQuery<ItemDownload[]>({
-		queryKey: ["sources", formatName(title)],
-		queryFn: async () => {
-			const plugins = await searchAllPlugins(formatName(title));
-			return plugins.filter((plugin) => plugin.sources.length > 0);
-		},
-		enabled: isReleased,
-		staleTime: 60000, // Cache for a minute to reduce unnecessary queries
-	});
-
-	const allSources = useMemo(
-		() => [...itadSources, ...(pluginSources ?? [])],
-		[itadSources, pluginSources],
-	);
-
-	const providers = useMemo((): Array<SourceProvider> => {
-		return [
-			{
-				value: "all",
-				label: "All",
-			},
-			...allSources
-				.filter((source) => source.sources.length > 0)
-				.map((source) => ({
-					value: source.id ?? "unknown",
-					label: source.name ?? "Unknown",
-				}))
-				.filter((provider) => provider.value !== "unknown"),
-		];
-	}, [allSources]);
-
-	const filteredSources = useMemo((): Array<ItemDownload> => {
-		if (selectedProvider.value === "all") return allSources;
-		const searchValue = selectedProvider.value.toLowerCase();
-		return allSources.filter((source) =>
-			source.id?.toLowerCase().includes(searchValue),
-		);
-	}, [allSources, selectedProvider]);
+	const {
+		providers,
+		filteredSources,
+		isError,
+		selectedProvider,
+		setSelectedProvider,
+	} = useSources(title, itadData);
 
 	return (
 		<div className="flex w-full flex-col gap-1">
 			<TypographySmall>{t("sources")}</TypographySmall>
-
 			<div className="flex flex-col gap-2">
-				<Carousel
-					opts={{
-						skipSnaps: true,
-						dragFree: true,
-					}}
-				>
+				<Carousel opts={{ skipSnaps: true, dragFree: true }}>
 					<CarouselContent>
-						{providers.map((provider, i) => (
-							<CarouselItem className="relative basis-auto" key={i}>
+						{providers.map(({ value, label }) => (
+							<CarouselItem key={value} className="relative basis-auto">
 								<Button
 									variant={
-										selectedProvider.value === provider.value
-											? "active"
-											: "default"
+										selectedProvider.value === value ? "active" : "default"
 									}
-									key={provider.value}
-									onClick={() => setSelectedProvider(provider)}
+									onClick={() => setSelectedProvider({ value, label })}
 								>
-									{provider.label}
+									{label}
 								</Button>
 							</CarouselItem>
 						))}
@@ -117,20 +51,14 @@ const Sources = ({
 
 				{isError ? (
 					<P className="text-red-500">{t("error_loading_sources")}</P>
-				) : filteredSources?.length ? (
-					<Carousel
-						opts={{
-							skipSnaps: true,
-							dragFree: true,
-						}}
-						className="mt-2"
-					>
+				) : filteredSources.length > 0 ? (
+					<Carousel opts={{ skipSnaps: true, dragFree: true }} className="mt-2">
 						<CarouselContent>
 							<SourceShowcase game_data={game_data} sources={filteredSources} />
 						</CarouselContent>
 					</Carousel>
 				) : (
-					<div className="mt-2 flex items-center justify-start gap-2.5 font-bold text-sm">
+					<div className="mt-2 flex items-center gap-2.5 font-bold text-sm">
 						<X className="size-7" />
 						<P>{t("no_sources_found")}</P>
 					</div>

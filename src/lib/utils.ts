@@ -61,20 +61,7 @@ export const timeSince = (date: number): string => {
 	return `${years} year${years === 1 ? "" : "s"} ago`;
 };
 
-export const getUserCountry = async (
-	sendDefaultOnError = true,
-): Promise<string> => {
-	try {
-		const response = await fetch("https://ipinfo.io/json");
-		const data = await response.json();
-		const countryCode = data.country;
-		return countryCode;
-	} catch (error) {
-		console.error("Error fetching user country:", error);
-		if (sendDefaultOnError) return "US";
-		return "Unknown";
-	}
-};
+
 
 export const bytesToHumanReadable = (bytes: number): string => {
 	if (bytes === 0) return "0 Bytes";

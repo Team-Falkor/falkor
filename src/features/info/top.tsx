@@ -1,9 +1,14 @@
-import type { InfoProps, ReleaseDate, RouterOutputs } from "@/@types";
+import { useState } from "react";
+import type {
+  InfoItadProps,
+  InfoProps,
+  ReleaseDate,
+  RouterOutputs,
+} from "@/@types";
 import IGDBImage from "@/components/IGDBImage";
 import ProtonDbBadge from "@/components/protonDbBadge";
 import InfoTopSkeleton from "@/components/skeletons/info/top.skeleton";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import SelectedInfoTab from "./tabs/selected";
 
 type InfoTopProps = InfoProps & {
@@ -15,7 +20,7 @@ type InfoTopProps = InfoProps & {
 	// playingPending: boolean;
 };
 
-type Props = InfoTopProps;
+type Props = InfoTopProps & InfoItadProps;
 
 const InfoTop = (props: Props) => {
 	const { data, isPending, error, steamID } = props;
@@ -28,7 +33,7 @@ const InfoTop = (props: Props) => {
 	return (
 		<div className="flex h-[32rem] overflow-hidden">
 			{/* BACKGROUND */}
-			<div className="absolute inset-0 z-0 h-[38rem] w-full overflow-hidden bg-center bg-cover bg-no-repeat">
+			<div className="absolute inset-0 z-0 h-[38rem] drop-shadow-xl w-full overflow-hidden bg-center bg-cover bg-no-repeat">
 				<IGDBImage
 					imageId={
 						data?.screenshots?.[0]?.image_id ?? data?.cover?.image_id ?? ""

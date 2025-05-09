@@ -119,16 +119,18 @@ export class PluginProviderHandler {
 	 * @param data The plugin data to validate
 	 * @throws PluginError if the plugin data is invalid
 	 */
-	private validatePluginData(data: any): asserts data is PluginSetupJSON {
+	private validatePluginData(
+		data: Partial<PluginSetupJSON>,
+	): asserts data is PluginSetupJSON {
 		if (!data) {
 			throw new PluginError("Plugin data is empty");
 		}
 
-		if (!data.id) {
+		if (!data?.id) {
 			throw new PluginError("Invalid plugin format: 'id' field is missing");
 		}
 
-		if (!data.version) {
+		if (!data?.version) {
 			throw new PluginError(
 				"Invalid plugin format: 'version' field is missing",
 				data.id,

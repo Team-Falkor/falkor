@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import os from "node:os";
 import path, { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Response } from "@/@types";
 import { app } from "electron";
+import type { Response } from "@/@types";
 
 /**
  * Operating system types supported by the application
@@ -206,5 +206,20 @@ export const pathExists = (filePath: string): boolean => {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		console.log("error", `Error checking if path exists: ${errorMessage}`);
 		return false;
+	}
+};
+
+export const getUserCountry = async (
+	sendDefaultOnError = true,
+): Promise<string> => {
+	try {
+		const response = await fetch("https://ipinfo.io/json");
+		const data = await response.json();
+		const countryCode = data.country;
+		return countryCode;
+	} catch (error) {
+		console.error("Error fetching user country:", error);
+		if (sendDefaultOnError) return "US";
+		return "Unknown";
 	}
 };

@@ -1,17 +1,13 @@
-import type { DownloadgameData } from "@/@types";
-import { useDownloadActions } from "@/features/downloads/hooks";
+import type { DownloadgameData, RouterOutputs } from "@/@types";
 import { useLanguageContext } from "@/i18n/I18N";
-import { invoke, openLink } from "@/lib";
-import type { Deal } from "@/lib/api/itad/types";
-import { useAccountServices } from "@/stores/account-services";
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import { CloudDownload, ShoppingCart } from "lucide-react";
-import { useCallback } from "react";
-import { toast } from "sonner";
-import { sanitizeFilename } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { H3, P } from "../ui/typography";
+import { useSettings } from "@/features/settings/hooks/useSettings";
+
+type Deal = RouterOutputs["itad"]["pricesByName"]["prices"][number]["deals"][number];
 
 type SourceCardProps = {
 	source: PluginSearchResponse | Deal;
@@ -23,100 +19,12 @@ type SourceCardProps = {
 
 export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 	const { t } = useLanguageContext();
-	const { addDownload } = useDownloadActions();
-	const { realDebrid, torBox } = useAccountServices();
+	// const { addDownload } = useDownloadActions();
 	const { settings } = useSettings();
 
 	const isDeal = (item: SourceCardProps["source"]): item is Deal =>
 		"price" in item && "shop" in item;
 
-	const handleClick = useCallback(async () => {
-		if (isDeal(source)) {
-			openLink(source.url);
-			return;
-		}
-
-		if (!props.pluginId) return;
-
-		const { multiple_choice: multipleChoice, pluginId } = props;
-		const { return: returned_url, password, type } = source;
-
-		let url = returned_url;
-
-		try {
-			if (multipleChoice) {
-				const data = await invoke<string[], string>(
-					"plugins:use:get-multiple-choice-download",
-					pluginId,
-					returned_url,
-				);
-				if (!data?.length) return;
-				url = data[0];
-			}
-
-			if (settings.useAccountsForDownloads && (realDebrid || torBox)) {
-				if (realDebrid) {
-					url =
-						type === "ddl"
-							? await realDebrid.downloadFromFileHost(url, password)
-							: await realDebrid.downloadTorrentFromMagnet(url, password);
-
-					if (props.game_data) {
-						addDownload({
-							type: "http",
-							url,
-							name: props.game_data.name,
-							path: settings.downloadsPath,
-						});
-					}
-				} else if (torBox) {
-					url =
-						type === "ddl"
-							? await torBox.downloadFromFileHost(url, password)
-							: await torBox.downloadTorrentFromMagnet(url);
-					if (props.game_data) {
-						const fileName = await torBox.getDownloadName(returned_url, type);
-						addDownload({
-							type: "http",
-							url,
-							name: fileName,
-							path: `${settings.downloadsPath}/${sanitizeFilename(props.game_data.name)}`,
-						});
-					}
-				}
-				return;
-			}
-
-			if (type === "ddl" && props.game_data) {
-				addDownload({
-					type: "http",
-					url,
-					name: props.game_data.name,
-					path: settings.downloadsPath,
-				});
-				return;
-			}
-
-			if (props.game_data) {
-				addDownload({
-					type: "torrent",
-					url,
-					name: props.game_data.name,
-					path: settings.downloadsPath,
-				});
-			}
-		} catch (error) {
-			toast.error("Error downloading file", {
-				description:
-					error instanceof Error
-						? error.message
-						: typeof error === "string"
-							? error
-							: "Unknown error",
-			});
-			console.error("Error handling download:", error);
-		}
-	}, [addDownload, realDebrid, torBox, settings, source, props]);
 
 	return (
 		<Card className="h-28 w-full overflow-hidden rounded-2xl border-none p-2.5">
@@ -130,7 +38,7 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 						<Button
 							className="w-full items-center gap-3 rounded-full font-bold"
 							variant="success"
-							onClick={handleClick}
+							// onClick={handleClick}
 						>
 							<ShoppingCart size={18} fill="currentColor" />
 							{source.price.currency} {source.price.amount}
@@ -142,7 +50,7 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 						<Button
 							className="w-full items-center gap-3 rounded-full font-bold capitalize"
 							variant="success"
-							onClick={handleClick}
+							// onClick={handleClick}
 						>
 							<CloudDownload
 								size={18}

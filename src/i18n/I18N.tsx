@@ -1,6 +1,6 @@
 import type { i18n as i18next } from "i18next";
 import type React from "react";
-import { type PropsWithChildren, createContext, useContext } from "react";
+import { createContext, type PropsWithChildren, useContext } from "react";
 import { useTranslation } from "react-i18next";
 
 interface LanguageContextProps {
