@@ -34,7 +34,8 @@
 		"rebuild": "electron-rebuild -f -w better-sqlite3",
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
-		"check:write": "biome check --write ."
+		"check:write": "biome check --write .",
+    "db:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.0.1",
