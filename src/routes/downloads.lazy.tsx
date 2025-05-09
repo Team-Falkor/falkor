@@ -1,6 +1,15 @@
-import { Downloads } from "@/features/downloads/components/Downloads";
+import { DownloadList } from "@/features/downloads/components/DownloadList";
 import { createLazyFileRoute } from "@tanstack/react-router";
 
 export const Route = createLazyFileRoute("/downloads")({
-  component: Downloads,
+	component: RouteComponent,
 });
+
+function RouteComponent() {
+	return (
+		<div className="container space-y-6 py-6">
+			<h1 className="font-bold text-3xl">Downloads</h1>
+			<DownloadList />
+		</div>
+	);
+}

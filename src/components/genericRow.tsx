@@ -1,42 +1,32 @@
-import { igdb } from "@/lib";
-import { useQuery } from "@tanstack/react-query";
+import { trpc } from "@/lib";
 import DefaultCard from "./cards/defaultCard";
 import GenericRowSkeleton from "./skeletons/genericRow";
 import { CarouselContent, CarouselItem } from "./ui/carousel";
 
 interface GenericRowProps {
-  dataToFetch: "mostAnticipated" | "topRated" | "newReleases";
-  fetchKey: string[];
+	dataToFetch: "most_anticipated" | "top_rated" | "new_releases";
 }
 
-const GenericRow = ({ dataToFetch, fetchKey }: GenericRowProps) => {
-  const fetcher = async () => {
-    const data = await igdb[dataToFetch]();
-    return data;
-  };
+const GenericRow = ({ dataToFetch }: GenericRowProps) => {
+	const { data, isPending, error } = trpc.igdb[dataToFetch].useQuery({});
 
-  const { data, isPending, error } = useQuery({
-    queryKey: ["igdb", ...fetchKey],
-    queryFn: fetcher,
-  });
+	if (isPending) return <GenericRowSkeleton />;
+	if (error || !data?.length) return null;
 
-  if (isPending) return <GenericRowSkeleton />;
-  if (error) return null;
-
-  return (
-    <CarouselContent className="px-3">
-      {!!data?.length &&
-        data?.map((game) => (
-          <CarouselItem
-            key={game.id}
-            className="px-2 basis-auto"
-            id={`carousel-item`}
-          >
-            <DefaultCard key={game.id} {...game} />
-          </CarouselItem>
-        ))}
-    </CarouselContent>
-  );
+	return (
+		<CarouselContent className="px-3">
+			{!!data?.length &&
+				data?.map((game) => (
+					<CarouselItem
+						key={game.id}
+						className="basis-auto px-2"
+						id={"carousel-item"}
+					>
+						<DefaultCard key={game.id} {...game} />
+					</CarouselItem>
+				))}
+		</CarouselContent>
+	);
 };
 
 export default GenericRow;

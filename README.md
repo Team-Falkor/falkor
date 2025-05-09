@@ -1,110 +1,91 @@
-<div align="center">
- <img alt="falkor" height="150px" src="public/icon.png">
-</div>
+# electron-vite-react
 
-# Falkor: Your Ultimate Gaming Hub
+[![awesome-vite](https://awesome.re/mentioned-badge.svg)](https://github.com/vitejs/awesome-vite)
+![GitHub stars](https://img.shields.io/github/stars/caoxiemeihao/vite-react-electron?color=fa6470)
+![GitHub issues](https://img.shields.io/github/issues/caoxiemeihao/vite-react-electron?color=d8b22d)
+![GitHub license](https://img.shields.io/github/license/caoxiemeihao/vite-react-electron)
+[![Required Node.JS >= 14.18.0 || >=16.0.0](https://img.shields.io/static/v1?label=node&message=14.18.0%20||%20%3E=16.0.0&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
 
-Dive into Falkor, where you'll discover a vast selection of games coupled with community-driven enhancements. Experience seamless and secure gaming within a single, universal hub.
+English | [简体中文](README.zh-CN.md)
 
-Built with the cutting-edge technology of Electron and React, Falkor offers an unparalleled gaming experience that's fast, secure, and cross-platform.
+## 👀 Overview
 
-## Features
+📦 Ready out of the box  
+🎯 Based on the official [template-react-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts), project structure will be familiar to you  
+🌱 Easily extendable and customizable  
+💪 Supports Node.js API in the renderer process  
+🔩 Supports C/C++ native addons  
+🐞 Debugger configuration included  
+🖥 Easy to implement multiple windows  
 
-As the project continues to evolve, we have an exciting lineup of features in development, including:
+## 🛫 Quick Setup
 
-- Comprehensive tools to help you organize and manage your game collection effortlessly (W.I.P).
-- An integrated torrent client for seamless game downloads (W.I.P).
-- A release calendar to keep you updated on upcoming game launches.
-- A powerful API that allows the community to create third-party plugins (currently limited to providers, but with plans to expand soon).
-- And much more on the horizon...
+```sh
+# clone the project
+git clone https://github.com/electron-vite/electron-vite-react.git
 
-Stay tuned—there’s plenty more to come!
+# enter the project directory
+cd electron-vite-react
 
-## Getting Started
+# install dependency
+npm install
 
-To get started with Falkor, follow these steps:
-
-1. Ensure that you have Yarn installed on your system. You can find installation instructions [here](https://classic.yarnpkg.com/en/docs/install).
-
-2. Navigate to the main directory and execute `yarn install`. This command will install all dependencies required for the project.
-
-3. Set up the necessary environment variables by duplicating the file `.env.example` and renaming it to `.env`. Then, fill in the required information.
-
-4. Run `yarn dev` to kick off the development server and watch your changes in real-time.
-
-### IGDB (Twitch)
-
-- `VITE_TWITCH_CLIENT_ID`: Twitch client ID (https://api-docs.igdb.com/#getting-started)
-- `VITE_TWITCH_CLIENT_SECRET`: Twitch client secret (https://api-docs.igdb.com/#getting-started)
-
-### ITAD (IsThereAnyDeal)
-
-- `VITE_ITAD_API_KEY`: ITAD API key (https://docs.isthereanydeal.com/#section/Access)
-
-### RD (Real Debrid)
-
-- `VITE_RD_CLIENT_ID`: Open source app RD client ID found in the Real Debrid documentation (https://api.real-debrid.com/)
-
-### NixOS Flakes
-
-```nix
-# flake.nix
-
-{
-  inputs.falkor.url = "github:Team-Falkor/app";
-  # ...
-
-  outputs = {nixpkgs, falkor, ...} @ inputs: {
-    nixosConfigurations.HOSTNAME = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit inputs; }; # this is the important part
-      modules = [
-        ./configuration.nix
-      ];
-    };
-  }
-}
-
-# configuration.nix
-
-{inputs, pkgs, ...}: {
-  environment.systemPackages = with pkgs; [
-    inputs.falkor.packages.${pkgs.system}.default
-    # ...
-  ];
-}
+# develop
+npm run dev
 ```
 
-## Contributing
+## 🐞 Debug
 
-We welcome contributions to Falkor! If you are looking for ways to contribute, here are some options:
+![electron-vite-react-debug.gif](/electron-vite-react-debug.gif)
 
-- Assisting in writing and enhancing the documentation.
-- Contributing code that you believe could enhance the project.
-- Aiding in bug testing on pre-releases.
-- Adding i18n translations for multiple languages.
+## 📂 Directory structure
 
-If you're unable to assist with any of these, no worries! We simply appreciate your presence and support on this journey! 😄
+Familiar React application structure, just with `electron` folder on the top :wink:  
+*Files in this folder will be separated from your React application and built into `dist-electron`*  
 
-## i18n Translations
+```tree
+├── electron                                 Electron-related code
+│   ├── main                                 Main-process source code
+│   └── preload                              Preload-scripts source code
+│
+├── release                                  Generated after production build, contains executables
+│   └── {version}
+│       ├── {os}-{os_arch}                   Contains unpacked application executable
+│       └── {app_name}_{version}.{ext}       Installer for the application
+│
+├── public                                   Static assets
+└── src                                      Renderer source code, your React application
+```
 
-We welcome you to contribute translations to Falkor! Here are some steps to help you get started with translating the app 😀
+<!--
+## 🚨 Be aware
 
-1. Navigate to the `src/i18n/translations` folder and duplicate the `english.json` file.
-2. Translate all the values, ensuring that you keep the keys the same.
-3. Go back to the `src/i18n` folder and open `index.tsx`. Import your new translation JSON file and add it to the `resources` object.
+This template integrates Node.js API to the renderer process by default. If you want to follow **Electron Security Concerns** you might want to disable this feature. You will have to expose needed API by yourself.  
 
-That's it! Thank you for helping make Falkor accessible to more users.
+To get started, remove the option as shown below. This will [modify the Vite configuration and disable this feature](https://github.com/electron-vite/vite-plugin-electron-renderer#config-presets-opinionated).
 
-## Acknowledgments
+```diff
+# vite.config.ts
 
-- Built with [Electron](https://www.electronjs.org) and [React](https://react.dev/).
+export default {
+  plugins: [
+    ...
+-   // Use Node.js API in the Renderer-process
+-   renderer({
+-     nodeIntegration: true,
+-   }),
+    ...
+  ],
+}
+```
+-->
 
-- All game data comes from the following APIs: [IGDB](https://www.igdb.com/), [ITAD](https://isthereanydeal.com/), and [Steam](https://store.steampowered.com/). We are not affiliated with any of these services; we simply utilize their APIs for data.
+## 🔧 Additional features
 
-Thanks to everyone who helps us make this possible. A list of contributors can be found [here](https://github.com/team-Falkor/app/graphs/contributors).
+1. electron-updater 👉 [see docs](src/components/update/README.md)
+1. playwright
 
-<br />
+## ❔ FAQ
 
-# ❤️
-
-Reminder that <strong><i>you are great, you are enough, and your presence is valued.</i></strong> If you are struggling with your mental health, please reach out to someone you love and consult a professional. You are not alone; there is a large range of resources online for support and guidance.
+- [C/C++ addons, Node.js modules - Pre-Bundling](https://github.com/electron-vite/vite-plugin-electron-renderer#dependency-pre-bundling)
+- [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)

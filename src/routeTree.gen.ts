@@ -15,18 +15,13 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as SettingsImport } from './routes/settings'
 import { Route as IndexImport } from './routes/index'
-import { Route as ThemeThemeIdImport } from './routes/theme/$themeId'
-import { Route as SectionsTopRatedImport } from './routes/sections/topRated'
-import { Route as GenreGenreIdImport } from './routes/genre/$genreId'
+import { Route as FilterIndexImport } from './routes/filter/index'
 
 // Create Virtual Routes
 
 const LibraryLazyImport = createFileRoute('/library')()
 const DownloadsLazyImport = createFileRoute('/downloads')()
-const SectionsNewReleasesLazyImport = createFileRoute('/sections/newReleases')()
-const SectionsMostAnticipatedLazyImport = createFileRoute(
-  '/sections/mostAnticipated',
-)()
+const CalendarLazyImport = createFileRoute('/calendar')()
 const InfoIdLazyImport = createFileRoute('/info/$id')()
 
 // Create/Update Routes
@@ -43,6 +38,12 @@ const DownloadsLazyRoute = DownloadsLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/downloads.lazy').then((d) => d.Route))
 
+const CalendarLazyRoute = CalendarLazyImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/calendar.lazy').then((d) => d.Route))
+
 const SettingsRoute = SettingsImport.update({
   id: '/settings',
   path: '/settings',
@@ -55,46 +56,17 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const SectionsNewReleasesLazyRoute = SectionsNewReleasesLazyImport.update({
-  id: '/sections/newReleases',
-  path: '/sections/newReleases',
+const FilterIndexRoute = FilterIndexImport.update({
+  id: '/filter/',
+  path: '/filter/',
   getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import('./routes/sections/newReleases.lazy').then((d) => d.Route),
-)
-
-const SectionsMostAnticipatedLazyRoute =
-  SectionsMostAnticipatedLazyImport.update({
-    id: '/sections/mostAnticipated',
-    path: '/sections/mostAnticipated',
-    getParentRoute: () => rootRoute,
-  } as any).lazy(() =>
-    import('./routes/sections/mostAnticipated.lazy').then((d) => d.Route),
-  )
+} as any)
 
 const InfoIdLazyRoute = InfoIdLazyImport.update({
   id: '/info/$id',
   path: '/info/$id',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/info/$id.lazy').then((d) => d.Route))
-
-const ThemeThemeIdRoute = ThemeThemeIdImport.update({
-  id: '/theme/$themeId',
-  path: '/theme/$themeId',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const SectionsTopRatedRoute = SectionsTopRatedImport.update({
-  id: '/sections/topRated',
-  path: '/sections/topRated',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const GenreGenreIdRoute = GenreGenreIdImport.update({
-  id: '/genre/$genreId',
-  path: '/genre/$genreId',
-  getParentRoute: () => rootRoute,
-} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -114,6 +86,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsImport
       parentRoute: typeof rootRoute
     }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/downloads': {
       id: '/downloads'
       path: '/downloads'
@@ -128,27 +107,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryLazyImport
       parentRoute: typeof rootRoute
     }
-    '/genre/$genreId': {
-      id: '/genre/$genreId'
-      path: '/genre/$genreId'
-      fullPath: '/genre/$genreId'
-      preLoaderRoute: typeof GenreGenreIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/sections/topRated': {
-      id: '/sections/topRated'
-      path: '/sections/topRated'
-      fullPath: '/sections/topRated'
-      preLoaderRoute: typeof SectionsTopRatedImport
-      parentRoute: typeof rootRoute
-    }
-    '/theme/$themeId': {
-      id: '/theme/$themeId'
-      path: '/theme/$themeId'
-      fullPath: '/theme/$themeId'
-      preLoaderRoute: typeof ThemeThemeIdImport
-      parentRoute: typeof rootRoute
-    }
     '/info/$id': {
       id: '/info/$id'
       path: '/info/$id'
@@ -156,18 +114,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfoIdLazyImport
       parentRoute: typeof rootRoute
     }
-    '/sections/mostAnticipated': {
-      id: '/sections/mostAnticipated'
-      path: '/sections/mostAnticipated'
-      fullPath: '/sections/mostAnticipated'
-      preLoaderRoute: typeof SectionsMostAnticipatedLazyImport
-      parentRoute: typeof rootRoute
-    }
-    '/sections/newReleases': {
-      id: '/sections/newReleases'
-      path: '/sections/newReleases'
-      fullPath: '/sections/newReleases'
-      preLoaderRoute: typeof SectionsNewReleasesLazyImport
+    '/filter/': {
+      id: '/filter/'
+      path: '/filter'
+      fullPath: '/filter'
+      preLoaderRoute: typeof FilterIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -178,41 +129,32 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
-  '/genre/$genreId': typeof GenreGenreIdRoute
-  '/sections/topRated': typeof SectionsTopRatedRoute
-  '/theme/$themeId': typeof ThemeThemeIdRoute
   '/info/$id': typeof InfoIdLazyRoute
-  '/sections/mostAnticipated': typeof SectionsMostAnticipatedLazyRoute
-  '/sections/newReleases': typeof SectionsNewReleasesLazyRoute
+  '/filter': typeof FilterIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
-  '/genre/$genreId': typeof GenreGenreIdRoute
-  '/sections/topRated': typeof SectionsTopRatedRoute
-  '/theme/$themeId': typeof ThemeThemeIdRoute
   '/info/$id': typeof InfoIdLazyRoute
-  '/sections/mostAnticipated': typeof SectionsMostAnticipatedLazyRoute
-  '/sections/newReleases': typeof SectionsNewReleasesLazyRoute
+  '/filter': typeof FilterIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
-  '/genre/$genreId': typeof GenreGenreIdRoute
-  '/sections/topRated': typeof SectionsTopRatedRoute
-  '/theme/$themeId': typeof ThemeThemeIdRoute
   '/info/$id': typeof InfoIdLazyRoute
-  '/sections/mostAnticipated': typeof SectionsMostAnticipatedLazyRoute
-  '/sections/newReleases': typeof SectionsNewReleasesLazyRoute
+  '/filter/': typeof FilterIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -220,65 +162,50 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
+    | '/calendar'
     | '/downloads'
     | '/library'
-    | '/genre/$genreId'
-    | '/sections/topRated'
-    | '/theme/$themeId'
     | '/info/$id'
-    | '/sections/mostAnticipated'
-    | '/sections/newReleases'
+    | '/filter'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/settings'
+    | '/calendar'
     | '/downloads'
     | '/library'
-    | '/genre/$genreId'
-    | '/sections/topRated'
-    | '/theme/$themeId'
     | '/info/$id'
-    | '/sections/mostAnticipated'
-    | '/sections/newReleases'
+    | '/filter'
   id:
     | '__root__'
     | '/'
     | '/settings'
+    | '/calendar'
     | '/downloads'
     | '/library'
-    | '/genre/$genreId'
-    | '/sections/topRated'
-    | '/theme/$themeId'
     | '/info/$id'
-    | '/sections/mostAnticipated'
-    | '/sections/newReleases'
+    | '/filter/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRoute
+  CalendarLazyRoute: typeof CalendarLazyRoute
   DownloadsLazyRoute: typeof DownloadsLazyRoute
   LibraryLazyRoute: typeof LibraryLazyRoute
-  GenreGenreIdRoute: typeof GenreGenreIdRoute
-  SectionsTopRatedRoute: typeof SectionsTopRatedRoute
-  ThemeThemeIdRoute: typeof ThemeThemeIdRoute
   InfoIdLazyRoute: typeof InfoIdLazyRoute
-  SectionsMostAnticipatedLazyRoute: typeof SectionsMostAnticipatedLazyRoute
-  SectionsNewReleasesLazyRoute: typeof SectionsNewReleasesLazyRoute
+  FilterIndexRoute: typeof FilterIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
+  CalendarLazyRoute: CalendarLazyRoute,
   DownloadsLazyRoute: DownloadsLazyRoute,
   LibraryLazyRoute: LibraryLazyRoute,
-  GenreGenreIdRoute: GenreGenreIdRoute,
-  SectionsTopRatedRoute: SectionsTopRatedRoute,
-  ThemeThemeIdRoute: ThemeThemeIdRoute,
   InfoIdLazyRoute: InfoIdLazyRoute,
-  SectionsMostAnticipatedLazyRoute: SectionsMostAnticipatedLazyRoute,
-  SectionsNewReleasesLazyRoute: SectionsNewReleasesLazyRoute,
+  FilterIndexRoute: FilterIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -293,14 +220,11 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/settings",
+        "/calendar",
         "/downloads",
         "/library",
-        "/genre/$genreId",
-        "/sections/topRated",
-        "/theme/$themeId",
         "/info/$id",
-        "/sections/mostAnticipated",
-        "/sections/newReleases"
+        "/filter/"
       ]
     },
     "/": {
@@ -309,29 +233,20 @@ export const routeTree = rootRoute
     "/settings": {
       "filePath": "settings.tsx"
     },
+    "/calendar": {
+      "filePath": "calendar.lazy.tsx"
+    },
     "/downloads": {
       "filePath": "downloads.lazy.tsx"
     },
     "/library": {
       "filePath": "library.lazy.tsx"
     },
-    "/genre/$genreId": {
-      "filePath": "genre/$genreId.tsx"
-    },
-    "/sections/topRated": {
-      "filePath": "sections/topRated.tsx"
-    },
-    "/theme/$themeId": {
-      "filePath": "theme/$themeId.tsx"
-    },
     "/info/$id": {
       "filePath": "info/$id.lazy.tsx"
     },
-    "/sections/mostAnticipated": {
-      "filePath": "sections/mostAnticipated.lazy.tsx"
-    },
-    "/sections/newReleases": {
-      "filePath": "sections/newReleases.lazy.tsx"
+    "/filter/": {
+      "filePath": "filter/index.tsx"
     }
   }
 }

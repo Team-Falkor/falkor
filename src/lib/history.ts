@@ -2,10 +2,10 @@
 import { createMemoryHistory } from "@tanstack/react-router";
 
 export const memoryHistory = createMemoryHistory({
-  initialEntries: ["/"],
+	initialEntries: ["/"],
 });
 
 // Helper function to go back in history
 export const goBack = () => {
-  memoryHistory.go(-1);
+	memoryHistory.go(-1);
 };

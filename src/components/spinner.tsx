@@ -1,18 +1,12 @@
-import { Loader } from "lucide-react";
+import { Disc3 } from "lucide-react";
 
 interface SpinnerProps {
-  size?: number; // Allow customization of the size
-  className?: string; // Additional custom styling
+	size?: number;
+	className?: string;
 }
 
-const Spinner = ({ size = 24, className = "" }: SpinnerProps) => {
-  return (
-    <Loader
-      className={`animate-spin ${className}`}
-      width={size}
-      height={size}
-    />
-  );
-};
+const GameLoader = ({ size = 24, className = "" }: SpinnerProps) => (
+	<Disc3 className={`animate-spin ${className}`} width={size} height={size} />
+);
 
-export default Spinner;
+export default GameLoader;

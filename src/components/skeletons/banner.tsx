@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 const BannerSkeleton = () => {
-  return <Skeleton className="w-full rounded-lg h-80" />;
+	return <Skeleton className="h-80 w-full rounded-lg" />;
 };
 
 export default BannerSkeleton;

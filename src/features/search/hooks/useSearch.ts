@@ -1,64 +1,45 @@
-import { igdb } from "@/lib";
-import { IGDBReturnDataType } from "@/lib/api/igdb/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import type { IGDBReturnDataType } from "@/@types";
+import { trpc } from "@/lib/trpc";
+import { useEffect, useState } from "react";
+import useRecentSearches from "./useRecentSearches";
 
-// Define the type for the hook's return value
 interface UseSearchResult {
   results: IGDBReturnDataType[];
   loading: boolean;
   error: string | null;
+  recentSearches: string[];
+  clearRecent: () => void;
 }
 
-// Create the custom hook
-function useSearch(query: string, limit?: number): UseSearchResult {
-  const [results, setResults] = useState<IGDBReturnDataType[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Debounce delay
-  const debounceDelay = 300; // Adjust as needed
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // Debounced search function
-  const debouncedSearch = useCallback(
-    (searchQuery: string) => {
-      if (!searchQuery) {
-        setResults([]);
-        return;
-      }
-
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-
-      debounceTimeoutRef.current = setTimeout(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-          const searchResults = await igdb.search(searchQuery, limit);
-          setResults(searchResults);
-        } catch (err) {
-          setError("Failed to fetch search results.");
-        } finally {
-          setLoading(false);
-        }
-      }, debounceDelay);
-    },
-    [limit]
-  );
+export default function useSearch(
+  query: string,
+  limit?: number,
+): UseSearchResult {
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const { recentSearches, addSearch, clearSearches } = useRecentSearches("recentSearches", 10);
 
   useEffect(() => {
-    debouncedSearch(query);
+    const handler = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(handler);
+  }, [query]);
 
-    // Cleanup function to cancel the debounce on unmount or query change
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [query, debouncedSearch]);
+  const { data, isLoading, error } = trpc.igdb.search.useQuery(
+    { query: debouncedQuery, limit },
+    { enabled: Boolean(debouncedQuery) },
+  );
 
-  return { results, loading, error };
+  // Record successful searches
+  useEffect(() => {
+    if (debouncedQuery && data && data.length > 0 && recentSearches[0] !== debouncedQuery) {
+      addSearch(debouncedQuery);
+    }
+  }, [debouncedQuery, data, addSearch, recentSearches]); 
+
+  return {
+    results: data ?? [],
+    loading: isLoading,
+    error: error?.message ?? null,
+    recentSearches,
+    clearRecent: clearSearches,
+  };
 }
-
-export default useSearch;
