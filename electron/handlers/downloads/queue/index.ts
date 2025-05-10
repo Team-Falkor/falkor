@@ -73,7 +73,13 @@ class DownloadQueue extends EventEmitter {
 		);
 	}
 
-	private setupEventListeners(): void {}
+	private setupEventListeners(): void {
+		// Set up error event listener to prevent unhandled promise rejections
+		this.on("error", (id, errorMessage) => {
+			console.error(`Download error for ${id}: ${errorMessage}`);
+			// Error is already handled in handleDownloadError, this just prevents unhandled rejections
+		});
+	}
 
 	public registerHandler(
 		type: "http" | "torrent",
@@ -92,7 +98,7 @@ class DownloadQueue extends EventEmitter {
 			url: options.url,
 			type: options.type,
 			name: options.name || `Download-${id.substring(0, 8)}`,
-			path: options.path || downloadsPath,
+			path: options.path || downloadsPath?.toString(),
 			status: DownloadStatus.QUEUED,
 			progress: 0,
 			speed: 0,
@@ -327,9 +333,27 @@ class DownloadQueue extends EventEmitter {
 			status: DownloadStatus.FAILED,
 			timestamp: new Date(),
 		};
-		this.emit("error", id, errorMessage);
+		// Emit error event with proper error handling
+		try {
+			this.emit("error", id, errorMessage);
+		} catch (err) {
+			console.error(
+				`Error while emitting error event: ${err instanceof Error ? err.message : String(err)}`,
+			);
+		}
 		this.emitStateChange(id, previousStatus, DownloadStatus.FAILED);
-		this.processQueue();
+		// Process queue with error handling
+		try {
+			this.processQueue().catch((err) => {
+				console.error(
+					`Error processing queue after download error: ${err instanceof Error ? err.message : String(err)}`,
+				);
+			});
+		} catch (err) {
+			console.error(
+				`Error initiating queue processing: ${err instanceof Error ? err.message : String(err)}`,
+			);
+		}
 	}
 
 	private emitStateChange(

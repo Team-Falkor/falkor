@@ -1,3 +1,6 @@
+import { httpDownloadHandler } from "@backend/handlers/downloads/http";
+import { torrentDownloadHandler } from "@backend/handlers/downloads/torrent";
+import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -8,6 +11,10 @@ import {
 import { publicProcedure, router } from "../../../api/trpc";
 import { downloadQueue } from "../../../handlers/downloads/queue";
 import { emitOnce } from "../../../utils/emit-once";
+import { pluginIdSchema } from "../plugins/providers";
+
+downloadQueue.registerHandler("http", httpDownloadHandler);
+downloadQueue.registerHandler("torrent", torrentDownloadHandler);
 
 const gameDataSchema = z.object({
 	id: z.number(),
@@ -17,7 +24,9 @@ const gameDataSchema = z.object({
 });
 
 const addDownloadSchema = z.object({
-	url: z.string().url(),
+	url: z.string(),
+	multiple_choice: z.boolean().default(false),
+	pluginId: pluginIdSchema.optional(),
 	type: z.enum(["http", "torrent"]),
 	name: z.string().optional(),
 	path: z.string().optional(),
@@ -45,7 +54,20 @@ const configSchema = z.object({
 export const downloadQueueRouter = router({
 	add: publicProcedure.input(addDownloadSchema).mutation(async ({ input }) => {
 		try {
-			const id = await downloadQueue.addDownload(input);
+			let url = input.url;
+			if (input.multiple_choice && input.pluginId) {
+				const plugin = await pluginProviderHandler.get(input.pluginId);
+
+				const res = await fetch(`${plugin?.api_url}/return/${input.url}`);
+				const data: string[] = await res.json();
+				if (res.ok && data?.length > 0) url = data[0];
+			}
+
+			const id = await downloadQueue.addDownload({
+				...input,
+				url,
+			});
+
 			return { id };
 		} catch (err) {
 			throw new TRPCError({
