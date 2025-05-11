@@ -4,7 +4,6 @@ import type { ReleaseDate } from "@/@types";
 // TODO: Port over components from old codebase
 // import AchievementContainer from "@/features/achievements/components/container";
 import { InfoBar } from "@/features/info/info-bar";
-// TODO: Port over components from old codebase
 import SimilarGames from "@/features/info/similar";
 import InfoTop from "@/features/info/top";
 import { getSteamIdFromWebsites, trpc } from "@/lib";

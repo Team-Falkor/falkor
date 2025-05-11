@@ -1,12 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { DownloadList } from "@/features/downloads/components/DownloadList";
 
-/**
- * TODO:
- * [x] - fix memory leak in this route because the subscription is sent too often (throttle subscription)
- * [ ] - fix ui to new design and remove this placeholder ui
- */
-
 export const Route = createLazyFileRoute("/downloads")({
 	component: RouteComponent,
 });
