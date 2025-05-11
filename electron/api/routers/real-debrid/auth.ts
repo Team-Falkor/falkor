@@ -1,11 +1,11 @@
 import { EventEmitter } from "node:events";
-import { z } from "zod";
-import { publicProcedure, router } from "../../../api/trpc";
+import { RealDebridAuthService } from "@backend/handlers/api-wrappers/real-debrid";
 import type {
 	RealDebridDeviceCode,
 	RealDebridToken,
-} from "../../../handlers/api-wrappers/real-debrid/@types";
-import { RealDebridAuthService } from "../../../handlers/api-wrappers/real-debrid/services/auth";
+} from "@backend/handlers/api-wrappers/real-debrid/@types";
+import { z } from "zod";
+import { publicProcedure, router } from "../../../api/trpc";
 import { emitOnce } from "../../../utils/emit-once";
 
 const authService = new RealDebridAuthService();

@@ -45,21 +45,36 @@ export class RealDebridAuthService extends EventEmitter {
 	}
 
 	/**
-	 * Performs OAuth form-encoded POST and parses errors, returning typed response.
+	 * Performs OAuth request with proper method handling and parses errors, returning typed response.
 	 */
 	private async oauthRequest<T>(
 		path: string,
 		params: Record<string, string>,
+		method: "POST" | "GET" | "PUT" | "DELETE" = "POST",
 	): Promise<T> {
-		const body = new URLSearchParams({
+		const allParams = {
 			client_id: RealDebridAuthService.CLIENT_ID,
 			...params,
-		}).toString();
-		const res = await fetch(`${RealDebridAuthService.OAUTH_BASE}${path}`, {
-			method: "POST",
+		};
+
+		// For GET requests, append parameters to URL instead of using body
+		const requestOptions: RequestInit = {
+			method,
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			body,
-		});
+		};
+
+		let url = `${RealDebridAuthService.OAUTH_BASE}${path}`;
+
+		if (method === "GET") {
+			const queryParams = new URLSearchParams(allParams).toString();
+			url = `${url}?${queryParams}`;
+		} else {
+			// For non-GET requests, include parameters in the body
+			requestOptions.body = new URLSearchParams(allParams).toString();
+		}
+
+		const res = await fetch(url, requestOptions);
+
 		const data = await res.json();
 		if (!res.ok) {
 			const msg = data.error_description ?? data.message ?? res.statusText;
@@ -73,10 +88,14 @@ export class RealDebridAuthService extends EventEmitter {
 	/**
 	 * Step 1: Get a new device code.
 	 */
-	public getDeviceCode(): Promise<RealDebridDeviceCode> {
-		return this.oauthRequest<RealDebridDeviceCode>("/device/code", {
-			new_credentials: "yes",
-		});
+	public async getDeviceCode(): Promise<RealDebridDeviceCode> {
+		return await this.oauthRequest<RealDebridDeviceCode>(
+			"/device/code",
+			{
+				new_credentials: "yes",
+			},
+			"GET",
+		);
 	}
 
 	/**
