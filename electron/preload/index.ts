@@ -23,6 +23,14 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 	},
 });
 
+contextBridge.exposeInMainWorld("env", {
+	NODE_ENV: process.env.NODE_ENV,
+	IS_DEV: process.env.NODE_ENV !== "production",
+	IS_PROD: process.env.NODE_ENV === "production",
+	CUSTOM_VAR: process.env.CUSTOM_VAR,
+	APP_VERSION: process.env.npm_package_version,
+});
+
 process.on("loaded", async () => {
 	exposeElectronTRPC();
 });

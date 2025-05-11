@@ -13,8 +13,10 @@ export const Route = createLazyFileRoute("/downloads")({
 
 function RouteComponent() {
 	return (
-		<div className="container space-y-6 py-6">
-			<h1 className="font-bold text-3xl">Downloads</h1>
+		<div className="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
+			<div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+				<h1 className="font-bold text-2xl sm:text-3xl">Downloads</h1>
+			</div>
 			<DownloadList />
 		</div>
 	);

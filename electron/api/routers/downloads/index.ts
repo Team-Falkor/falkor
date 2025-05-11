@@ -3,14 +3,8 @@ import { torrentDownloadHandler } from "@backend/handlers/downloads/torrent";
 import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import {
-	type DownloadProgress,
-	type DownloadStateChange,
-	DownloadStatus,
-} from "@/@types/download/queue";
 import { publicProcedure, router } from "../../../api/trpc";
 import { downloadQueue } from "../../../handlers/downloads/queue";
-import { emitOnce } from "../../../utils/emit-once";
 import { pluginIdSchema } from "../plugins/providers";
 
 downloadQueue.registerHandler("http", httpDownloadHandler);
@@ -155,50 +149,5 @@ export const downloadQueueRouter = router({
 	updateConfig: publicProcedure.input(configSchema).mutation(({ input }) => {
 		downloadQueue.updateConfig(input);
 		return { success: true };
-	}),
-
-	subscribeToProgress: publicProcedure
-		.input(downloadIdSchema)
-		.subscription(async function* ({ input }) {
-			try {
-				while (true) {
-					const download = await emitOnce<DownloadProgress>(
-						downloadQueue,
-						"progress",
-					);
-					if (download.id === input.id) {
-						yield {
-							id: download.id,
-							progress: download.progress,
-							speed: download.speed,
-							timeRemaining: download.timeRemaining,
-							status: download.status,
-						};
-						if (
-							download.status === DownloadStatus.COMPLETED ||
-							download.status === DownloadStatus.FAILED ||
-							download.status === DownloadStatus.CANCELLED
-						) {
-							break;
-						}
-					}
-				}
-			} finally {
-				downloadQueue.removeAllListeners("progress");
-			}
-		}),
-
-	subscribeToStateChanges: publicProcedure.subscription(async function* () {
-		try {
-			while (true) {
-				const download = await emitOnce<DownloadStateChange>(
-					downloadQueue,
-					"stateChange",
-				);
-				yield download;
-			}
-		} finally {
-			downloadQueue.removeAllListeners("stateChange");
-		}
 	}),
 });
