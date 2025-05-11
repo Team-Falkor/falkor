@@ -37,10 +37,39 @@ export function DownloadItem(
 		onSuccess: () => utils.downloads.getAll.invalidate(),
 	});
 
-	const handlePause = () => pauseMutation.mutate({ id: initalData.id });
-	const handleResume = () => resumeMutation.mutate({ id: initalData.id });
-	const handleCancel = () => cancelMutation.mutate({ id: initalData.id });
-	const handleRemove = () => removeMutation.mutate({ id: initalData.id });
+	const invalidateGetAll = () => {
+		utils.downloads.getAll.invalidate();
+		utils.downloads.getById.invalidate();
+	};
+
+	const handlePause = () =>
+		pauseMutation.mutate(
+			{ id: initalData.id },
+			{
+				onSuccess: () => invalidateGetAll,
+			},
+		);
+	const handleResume = () =>
+		resumeMutation.mutate(
+			{ id: initalData.id },
+			{
+				onSuccess: () => invalidateGetAll,
+			},
+		);
+	const handleCancel = () =>
+		cancelMutation.mutate(
+			{ id: initalData.id },
+			{
+				onSuccess: () => invalidateGetAll,
+			},
+		);
+	const handleRemove = () =>
+		removeMutation.mutate(
+			{ id: initalData.id },
+			{
+				onSuccess: () => invalidateGetAll,
+			},
+		);
 
 	const { data: liveData } = trpc.downloads.getById.useQuery(
 		{ id: initalData.id },

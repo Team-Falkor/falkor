@@ -61,9 +61,9 @@ export const useDownloadActions = () => {
 	// Remove download
 	const { mutate: removeDownload, isPending: isRemovingDownload } =
 		trpc.downloads.remove.useMutation({
-			onSuccess: () => {
+			onSuccess: async () => {
+				await utils.downloads.getAll.invalidate();
 				toast.success("Download removed");
-				utils.downloads.getAll.invalidate();
 			},
 			onError: (error) => {
 				toast.error(`Failed to remove download: ${error.message}`);

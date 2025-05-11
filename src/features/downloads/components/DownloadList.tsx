@@ -27,18 +27,24 @@ export function DownloadList() {
 	);
 	const failed = all.filter((item) => item.status === DownloadStatus.FAILED);
 
+	const renderEmptyTag = (text: string) => {
+		return (
+			<p className="w-full py-12 text-left text-muted-foreground">{text}</p>
+		);
+	};
+
 	const renderTab = (downloads: typeof all) => {
 		if (!downloads?.length) {
-			return (
-				<div className="flex h-[50vh] items-center justify-center">
-					<p className="text-muted-foreground">No downloads</p>
-				</div>
-			);
+			return renderEmptyTag("Nothing here yet. Start downloading something!");
 		}
 
-		return downloads.map((download) => (
-			<DownloadItem key={download.id} {...download} />
-		));
+		return (
+			<div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3">
+				{downloads.map((download) => (
+					<DownloadItem key={download.id} {...download} />
+				))}
+			</div>
+		);
 	};
 
 	return (
@@ -52,36 +58,11 @@ export function DownloadList() {
 				</TabsTrigger>
 				<TabsTrigger value="failed">Failed {failed?.length ?? 0}</TabsTrigger>
 			</TabsList>
-			<TabsContent
-				value="all"
-				className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3"
-			>
-				{renderTab(all)}
-			</TabsContent>
-			<TabsContent
-				value="active"
-				className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3"
-			>
-				{renderTab(active)}
-			</TabsContent>
-			<TabsContent
-				value="queued"
-				className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3"
-			>
-				{renderTab(queued)}
-			</TabsContent>
-			<TabsContent
-				value="completed"
-				className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3"
-			>
-				{renderTab(completed)}
-			</TabsContent>
-			<TabsContent
-				value="failed"
-				className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3"
-			>
-				{renderTab(failed)}
-			</TabsContent>
+			<TabsContent value="all">{renderTab(all)}</TabsContent>
+			<TabsContent value="active">{renderTab(active)}</TabsContent>
+			<TabsContent value="queued">{renderTab(queued)}</TabsContent>
+			<TabsContent value="completed">{renderTab(completed)}</TabsContent>
+			<TabsContent value="failed">{renderTab(failed)}</TabsContent>
 		</Tabs>
 	);
 }
