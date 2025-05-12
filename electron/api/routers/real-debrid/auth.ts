@@ -1,14 +1,14 @@
 import { EventEmitter } from "node:events";
+import { publicProcedure, router } from "@backend/api/trpc";
 import { RealDebridAuthService } from "@backend/handlers/api-wrappers/real-debrid";
 import type {
 	RealDebridDeviceCode,
 	RealDebridToken,
 } from "@backend/handlers/api-wrappers/real-debrid/@types";
+import { emitOnce } from "@backend/utils/emit-once";
 import { z } from "zod";
-import { publicProcedure, router } from "../../../api/trpc";
-import { emitOnce } from "../../../utils/emit-once";
 
-const authService = new RealDebridAuthService();
+const authService = RealDebridAuthService.getInstance();
 
 const emitter = new EventEmitter();
 
@@ -25,11 +25,10 @@ export const realDebridAuthRouter = router({
 		.input(
 			z.object({
 				deviceCode: z.string(),
-				interval: z.number().optional().default(5000),
 			}),
 		)
 		.subscription(async function* ({ input }) {
-			const { deviceCode, interval } = input;
+			const { deviceCode } = input;
 
 			// Forward authService events to our emitter
 			const onToken = (payload: { token: RealDebridToken }) =>

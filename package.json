@@ -35,7 +35,7 @@
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
 		"check:write": "biome check --write .",
-    "db:generate": "drizzle-kit generate"
+		"db:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.0.1",
@@ -93,7 +93,7 @@
 		"zustand": "^5.0.4"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.0.0-beta.2",
+		"@biomejs/biome": "^2.0.0-beta.3",
 		"@playwright/test": "^1.52.0",
 		"@tanstack/router-plugin": "^1.120.2",
 		"@types/auto-launch": "^5.0.5",

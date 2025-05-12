@@ -1,3 +1,4 @@
+import { DebridManager } from "@backend/handlers/debrid-manager";
 import { httpDownloadHandler } from "@backend/handlers/downloads/http";
 import { torrentDownloadHandler } from "@backend/handlers/downloads/torrent";
 import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
@@ -45,6 +46,8 @@ const configSchema = z.object({
 	persistQueue: z.boolean().optional(),
 });
 
+const debridManager = DebridManager.getInstance();
+
 export const downloadQueueRouter = router({
 	add: publicProcedure.input(addDownloadSchema).mutation(async ({ input }) => {
 		try {
@@ -56,11 +59,26 @@ export const downloadQueueRouter = router({
 				const data: string[] = await res.json();
 				if (res.ok && data?.length > 0) url = data[0];
 			}
-
-			const id = await downloadQueue.addDownload({
+			let payload: z.infer<typeof addDownloadSchema> = {
 				...input,
 				url,
-			});
+			};
+
+			const debrid = await debridManager.download(
+				input.url,
+				input.type === "http" ? "ddl" : "torrent",
+				undefined,
+			);
+
+			if (debrid) {
+				payload = {
+					...payload,
+					url: debrid.url,
+					type: "http",
+				};
+			}
+
+			const id = await downloadQueue.addDownload(payload);
 
 			return { id };
 		} catch (err) {

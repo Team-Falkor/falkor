@@ -67,6 +67,9 @@ const AddAccountButton = () => {
 				<RealDebridDialogContent
 					setOpen={setIsRealDebridDialogOpen}
 					open={isRealDebridDialogOpen}
+					onAuthenticated={(token) => {
+						console.log("token", token);
+					}}
 				/>
 			</Dialog>
 

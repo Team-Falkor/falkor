@@ -80,8 +80,8 @@ class RealDebridClient {
 
 	public async downloadTorrentFromMagnet(
 		magnetLink: string,
-		password?: string,
-		fileSelection: string | "all" = "all",
+		_password?: string,
+		_fileSelection: string | "all" = "all",
 	): Promise<string> {
 		const torrentId = await this.getOrCreateTorrent(
 			decodeURIComponent(magnetLink),

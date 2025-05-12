@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { P, TypographyMuted } from "@/components/ui/typography";
 import { trpc } from "@/lib";
@@ -28,7 +29,6 @@ const RealDebridDialogContent = ({
 		trpc.realdebrid.auth.startPolling.useSubscription(
 			{
 				deviceCode: deviceCodeInfo?.device_code ?? "",
-				interval: 5000,
 			},
 			{
 				enabled: !!deviceCodeInfo,
@@ -37,8 +37,10 @@ const RealDebridDialogContent = ({
 						// Authenticated successfully
 						onAuthenticated?.(result.token.access_token);
 						setOpen(false);
-					} else if ("error" in result) {
+						toast.success("Real Debrid authenticated successfully");
+					} else if ("error" in result && result.error?.message?.length) {
 						console.error("Polling error:", result.error);
+						toast.error("Real Debrid authentication failed");
 					}
 				},
 			},
