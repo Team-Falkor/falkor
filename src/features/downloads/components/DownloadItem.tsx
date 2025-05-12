@@ -92,7 +92,7 @@ export function DownloadItem(
 			<CardHeader className="pb-2">
 				<div className="flex flex-wrap items-start justify-between gap-2">
 					<CardTitle className="mr-2 break-words text-lg">
-						{download?.name ?? "Untitled Download"}
+						{decodeURIComponent(download?.name ?? "Untitled Download")}
 					</CardTitle>
 
 					<div className="flex flex-shrink-0 space-x-1">
