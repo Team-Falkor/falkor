@@ -25,49 +25,44 @@ export function DownloadItem(
 ) {
 	const utils = trpc.useUtils();
 	const pauseMutation = trpc.downloads.pause.useMutation({
-		onSuccess: () => utils.downloads.getAll.invalidate(),
+		onSuccess: async () => await utils.downloads.invalidate(),
 	});
 	const resumeMutation = trpc.downloads.resume.useMutation({
-		onSuccess: () => utils.downloads.getAll.invalidate(),
+		onSuccess: async () => await utils.downloads.invalidate(),
 	});
 	const cancelMutation = trpc.downloads.cancel.useMutation({
-		onSuccess: () => utils.downloads.getAll.invalidate(),
+		onSuccess: async () => await utils.downloads.invalidate(),
 	});
 	const removeMutation = trpc.downloads.remove.useMutation({
-		onSuccess: () => utils.downloads.getAll.invalidate(),
+		onSuccess: async () => await utils.downloads.invalidate(),
 	});
-
-	const invalidateGetAll = () => {
-		utils.downloads.getAll.invalidate();
-		utils.downloads.getById.invalidate();
-	};
 
 	const handlePause = () =>
 		pauseMutation.mutate(
 			{ id: initalData.id },
 			{
-				onSuccess: () => invalidateGetAll,
+				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 	const handleResume = () =>
 		resumeMutation.mutate(
 			{ id: initalData.id },
 			{
-				onSuccess: () => invalidateGetAll,
+				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 	const handleCancel = () =>
 		cancelMutation.mutate(
 			{ id: initalData.id },
 			{
-				onSuccess: () => invalidateGetAll,
+				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 	const handleRemove = () =>
 		removeMutation.mutate(
 			{ id: initalData.id },
 			{
-				onSuccess: () => invalidateGetAll,
+				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 
