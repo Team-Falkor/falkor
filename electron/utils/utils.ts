@@ -228,3 +228,28 @@ export const getInfoHashFromMagnet = (magnetURI: string): string | null => {
 	const match = magnetURI.match(/xt=urn:btih:([a-fA-F0-9]{40,})/);
 	return match ? match[1] : null;
 };
+
+export const normalizeGameIcon = (
+	url: string | undefined | null,
+): string | null => {
+	if (!url || typeof url !== "string") return null;
+
+	// Trim and normalize slashes
+	const trimmed = url.trim();
+
+	if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+		return trimmed;
+	}
+
+	if (trimmed.startsWith("//")) {
+		return `https:${trimmed}`;
+	}
+
+	// If it's a bare domain without protocol
+	if (/^[a-zA-Z0-9.-]+\.[a-z]{2,}.*$/.test(trimmed)) {
+		return `https://${trimmed}`;
+	}
+
+	// Probably a relative path or invalid URL
+	return trimmed;
+};

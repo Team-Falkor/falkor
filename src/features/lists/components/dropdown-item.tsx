@@ -6,7 +6,7 @@ import Confirmation from "@/components/confirmation";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { P } from "@/components/ui/typography";
-import { trpc } from "@/lib";
+import { getSteamIdFromWebsites, trpc } from "@/lib";
 
 interface CollectionDropdownItemProps extends PropsWithChildren {
 	listId: number;
@@ -60,6 +60,9 @@ const ListsDropdownItem = ({
 			addGameToList.mutate({
 				listId: listId,
 				gameId: game.id,
+				gameName: game.name,
+				gameIcon: game.cover?.url,
+				gameSteamId: getSteamIdFromWebsites(game.websites),
 			});
 		}
 	}, [games, listId, game, addGameToList, removeGameFromList]);

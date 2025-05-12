@@ -7,9 +7,7 @@ type ListCardProps =
 	RouterOutputs["lists"]["getByIdWithGames"]["games"][number];
 
 const ListCard = ({ gameName, gameId, gameIcon: image }: ListCardProps) => {
-	const imageId = image
-		? `https:${image.replace("t_thumb", "t_cover_big")}`
-		: "";
+	const imageId = image ? image.replace("t_thumb", "t_cover_big") : "";
 
 	return (
 		<Link to={"/info/$id"} params={{ id: gameId.toString() }}>

@@ -11,14 +11,14 @@ export function useLists() {
 
 	const { mutate: deleteList } = trpc.lists.delete.useMutation({
 		onSuccess: () => {
-			utils.lists.getAll.invalidate();
+			utils.lists.invalidate();
 		},
 	});
 
 	const { mutate: createList, isPending: isCreating } =
 		trpc.lists.create.useMutation({
 			onSuccess: () => {
-				utils.lists.getAll.invalidate();
+				utils.lists.invalidate();
 			},
 		});
 

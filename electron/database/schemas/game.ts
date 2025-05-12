@@ -10,7 +10,7 @@ export const libraryGames = sqliteTable(
 	{
 		id: integer("id").primaryKey({ autoIncrement: true }),
 		gameName: text("game_name").notNull(),
-		gamePath: text("game_path").notNull(),
+		gamePath: text("game_path"),
 		gameId: text("game_id").notNull(),
 		gameSteamId: text("game_steam_id"),
 		gameIcon: text("game_icon"),

@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	DialogClose,
@@ -23,6 +23,9 @@ export const NewListDialogContent = ({ open, setOpen }: NewListDialogProps) => {
 	const { t } = useLanguageContext();
 	const { createList, isCreating } = useLists();
 
+	const listNameRef = useRef<HTMLInputElement>(null);
+	const listDescriptionRef = useRef<HTMLTextAreaElement>(null);
+
 	return (
 		<DialogContent className="max-w-[425px]">
 			<DialogHeader>
@@ -35,7 +38,7 @@ export const NewListDialogContent = ({ open, setOpen }: NewListDialogProps) => {
 			<div className="grid gap-4 pt-2">
 				<Label htmlFor="collectionName">Name</Label>
 				<Input
-					// ref={listNameRef}
+					ref={listNameRef}
 					id="listName"
 					placeholder={t("enter_list_name")}
 					type="text"
@@ -50,6 +53,7 @@ export const NewListDialogContent = ({ open, setOpen }: NewListDialogProps) => {
 			<div className="grid gap-4 pt-2">
 				<Label htmlFor="collectionDescription">Description</Label>
 				<Textarea
+					ref={listDescriptionRef}
 					id="listDescription"
 					placeholder={t("enter_list_description")}
 					className="field-sizing-content w-full resize-none"
@@ -66,9 +70,10 @@ export const NewListDialogContent = ({ open, setOpen }: NewListDialogProps) => {
 				<Button
 					onClick={async () => {
 						if (!open) return;
+						if (!listNameRef.current?.value) return;
 						await createList({
-							name: "test",
-							description: "test",
+							name: listNameRef.current.value,
+							description: listDescriptionRef.current?.value ?? "",
 						});
 
 						setOpen(false);
