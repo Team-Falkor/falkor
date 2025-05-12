@@ -70,8 +70,7 @@ class RealDebridClient {
 		}
 
 		// If torrent does not exist, add it and return the new ID
-		const addedTorrent = await this.torrents.addTorrent(magnetLink);
-		console.log(addedTorrent);
+		const addedTorrent = await this.torrents.addTorrentOrMagnet(magnetLink);
 		if (!addedTorrent?.id) {
 			throw new Error("Failed to add torrent. No ID returned.");
 		}

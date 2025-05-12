@@ -1,5 +1,5 @@
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
-import { ExternalAccountType, type SettingsConfig } from "@/@types";
+import type { SettingsConfig } from "@/@types";
 import { SettingsManager } from "../settings/settings";
 import { debridProviders } from "./map";
 
@@ -19,9 +19,9 @@ export class DebridManager {
 		url: string,
 		type: PluginSearchResponse["type"],
 		_password?: string,
-	): Promise<Return> => {
+	): Promise<Return | null> => {
 		const client = debridProviders.get("real-debrid");
-		if (!client) return;
+		if (!client) return null;
 
 		const donwloadURL =
 			type === "ddl"
@@ -38,9 +38,9 @@ export class DebridManager {
 		url: string,
 		type: PluginSearchResponse["type"],
 		_password?: string,
-	): Promise<Return | false> {
+	): Promise<Return | null> {
 		const account = settings.get("useAccountsForDownloads");
-		if (!account) return false;
+		if (!account) return null;
 
 		// check prefered debrid service first if not set use first added service
 		const preferedDebridService = settings.get(
@@ -48,18 +48,18 @@ export class DebridManager {
 		) as SettingsConfig["preferredDebridService"];
 
 		switch (preferedDebridService) {
-			case ExternalAccountType["real-debrid"]: {
+			case "real-debrid": {
 				const result = await this.realDebrid(url, type, _password);
 				return result;
 			}
-			case ExternalAccountType.torbox: {
+			case "torbox": {
 				// TODO: torbox
-				return false;
+				return null;
 			}
 
 			default: {
 				// TODO: default use first debrid service from the map
-				return false;
+				return null;
 			}
 		}
 	}

@@ -11,6 +11,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DeleteAccount } from "../delete";
+import { SetAsPreferred } from "../setPreferred";
 
 type ExternalAccountColumn = RouterOutputs["accounts"]["getAll"][number];
 
@@ -79,15 +81,20 @@ export const columns: ColumnDef<ExternalAccountColumn>[] = [
 						</Button>
 					</DropdownMenuTrigger>
 
-					<DropdownMenuContent align="end">
+					<DropdownMenuContent align="end" className="max-w-40">
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
 
 						<DropdownMenuSeparator />
 
 						{/* TODO: create custom components for these so i can use the trpc hooks */}
-						<DropdownMenuItem>Set as preferred</DropdownMenuItem>
-						<DropdownMenuItem>Renew</DropdownMenuItem>
-						<DropdownMenuItem>Delete</DropdownMenuItem>
+						{!!original?.type && (
+							<DropdownMenuItem asChild>
+								<SetAsPreferred type={original.type} />
+							</DropdownMenuItem>
+						)}
+						<DropdownMenuItem asChild>
+							<DeleteAccount id={original.id} />
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);

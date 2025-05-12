@@ -29,7 +29,7 @@ export interface SettingsConfig {
 	maxUploadSpeed: number;
 	notifications: boolean;
 	api_base_url: string;
-	preferredDebridService?: ExternalAccountType;
+	preferredDebridService?: "real-debrid" | "torbox";
 	maxConcurrentDownloads?: number;
 
 	downloadConfig: {

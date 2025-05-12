@@ -51,26 +51,35 @@ const debridManager = DebridManager.getInstance();
 export const downloadQueueRouter = router({
 	add: publicProcedure.input(addDownloadSchema).mutation(async ({ input }) => {
 		try {
-			let url = input.url;
-			if (input.multiple_choice && input.pluginId) {
+			let finalUrl = input.url;
+
+			const isPluginLookupRequired = input.multiple_choice;
+			if (isPluginLookupRequired && input.pluginId) {
 				const plugin = await pluginProviderHandler.get(input.pluginId);
 
-				const res = await fetch(`${plugin?.api_url}/return/${input.url}`);
-				const data: string[] = await res.json();
-				if (res.ok && data?.length > 0) url = data[0];
+				if (plugin?.api_url) {
+					const response = await fetch(`${plugin.api_url}/return/${input.url}`);
+					const resolvedUrls: string[] = await response.json();
+
+					if (response.ok && resolvedUrls.length > 0) {
+						finalUrl = resolvedUrls[0];
+					}
+				}
 			}
+
 			let payload: z.infer<typeof addDownloadSchema> = {
 				...input,
-				url,
+				url: finalUrl,
 			};
 
+			const isDirectHttp = input.type === "http";
 			const debrid = await debridManager.download(
-				input.url,
-				input.type === "http" ? "ddl" : "torrent",
+				finalUrl,
+				isDirectHttp ? "ddl" : "torrent",
 				undefined,
 			);
 
-			if (debrid) {
+			if (debrid?.url) {
 				payload = {
 					...payload,
 					url: debrid.url,
@@ -79,7 +88,6 @@ export const downloadQueueRouter = router({
 			}
 
 			const id = await downloadQueue.addDownload(payload);
-
 			return { id };
 		} catch (err) {
 			throw new TRPCError({

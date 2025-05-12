@@ -6,19 +6,19 @@ export class RealDebridTorrentService {
 		private readonly accessToken: string,
 	) {}
 
-	public async addTorrent(torrentFile: File | string): Promise<{ id: string }> {
+	private get authHeaders() {
+		return {
+			Authorization: `Bearer ${this.accessToken}`,
+		};
+	}
+
+	public async addTorrent(file: File): Promise<{ id: string }> {
 		const formData = new FormData();
-		if (typeof torrentFile === "string") {
-			formData.append("magnet", torrentFile);
-		} else {
-			formData.append("torrent", torrentFile);
-		}
+		formData.append("torrent", file);
 
 		const response = await fetch(`${this.baseUrl}/torrents/addTorrent`, {
 			method: "PUT",
-			headers: {
-				Authorization: `Bearer ${this.accessToken}`,
-			},
+			headers: this.authHeaders,
 			body: formData,
 		});
 
@@ -29,11 +29,41 @@ export class RealDebridTorrentService {
 		return response.json();
 	}
 
+	public async addMagnet(
+		magnetUri: string,
+	): Promise<{ id: string; uri: string }> {
+		const formData = new URLSearchParams();
+		formData.append("magnet", magnetUri);
+
+		const response = await fetch(`${this.baseUrl}/torrents/addMagnet`, {
+			method: "POST",
+			headers: {
+				...this.authHeaders,
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+			body: formData.toString(),
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to add magnet: ${response.statusText}`);
+		}
+
+		return response.json();
+	}
+
+	public async addTorrentOrMagnet(
+		input: File | string,
+	): Promise<{ id: string; uri?: string }> {
+		if (typeof input === "string") {
+			return this.addMagnet(input);
+		}
+
+		return this.addTorrent(input);
+	}
+
 	public async getTorrents(): Promise<RealDebridTorrent[]> {
 		const response = await fetch(`${this.baseUrl}/torrents`, {
-			headers: {
-				Authorization: `Bearer ${this.accessToken}`,
-			},
+			headers: this.authHeaders,
 		});
 
 		if (!response.ok) {
@@ -45,9 +75,7 @@ export class RealDebridTorrentService {
 
 	public async getTorrentInfo(id: string): Promise<RealDebridTorrentInfo> {
 		const response = await fetch(`${this.baseUrl}/torrents/info/${id}`, {
-			headers: {
-				Authorization: `Bearer ${this.accessToken}`,
-			},
+			headers: this.authHeaders,
 		});
 
 		if (!response.ok) {
@@ -60,9 +88,7 @@ export class RealDebridTorrentService {
 	public async deleteTorrent(id: string): Promise<void> {
 		const response = await fetch(`${this.baseUrl}/torrents/delete/${id}`, {
 			method: "DELETE",
-			headers: {
-				Authorization: `Bearer ${this.accessToken}`,
-			},
+			headers: this.authHeaders,
 		});
 
 		if (!response.ok) {
@@ -74,7 +100,7 @@ export class RealDebridTorrentService {
 		const response = await fetch(`${this.baseUrl}/torrents/selectFiles/${id}`, {
 			method: "POST",
 			headers: {
-				Authorization: `Bearer ${this.accessToken}`,
+				...this.authHeaders,
 				"Content-Type": "application/x-www-form-urlencoded",
 			},
 			body: `files=${fileIds.join(",")}`,
@@ -86,13 +112,8 @@ export class RealDebridTorrentService {
 	}
 
 	public async selectAllFiles(id: string): Promise<void> {
-		// First get the torrent info to retrieve all file IDs
 		const torrentInfo = await this.getTorrentInfo(id);
-
-		// Extract all file IDs
 		const fileIds = torrentInfo.files.map((file) => file.id);
-
-		// Use the existing selectFiles method to select all files
 		await this.selectFiles(id, fileIds);
 	}
 }

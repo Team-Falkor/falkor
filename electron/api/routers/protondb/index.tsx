@@ -15,7 +15,6 @@ export const protonDbRouter = router({
 				`https://www.protondb.com/api/v1/reports/summaries/${appId}.json`,
 			);
 
-			console.log({ response: fetched });
 			if (!fetched?.ok) return null;
 
 			const response = (await fetched.json()) as ProtonDBSummary;

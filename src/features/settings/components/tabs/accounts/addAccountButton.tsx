@@ -15,6 +15,7 @@ import RealDebridDialogContent from "@/features/debrid/components/real-debrid/re
 import { cn, trpc } from "@/lib";
 
 const AddAccountButton = () => {
+	const utils = trpc.useUtils();
 	const [isRealDebridDialogOpen, setIsRealDebridDialogOpen] = useState(false);
 	const [isTorBoxDialogOpen, setIsTorBoxDialogOpen] = useState(false);
 	const [open, setOpen] = useState(false);
@@ -24,6 +25,10 @@ const AddAccountButton = () => {
 		(account) => account.type === "real-debrid",
 	);
 	const torBox = accounts?.find((account) => account.type === "torbox");
+
+	const handleAuthenticated = async () => {
+		await utils.accounts.invalidate();
+	};
 
 	return (
 		<DropdownMenu open={open} onOpenChange={setOpen}>
@@ -67,9 +72,7 @@ const AddAccountButton = () => {
 				<RealDebridDialogContent
 					setOpen={setIsRealDebridDialogOpen}
 					open={isRealDebridDialogOpen}
-					onAuthenticated={(token) => {
-						console.log("token", token);
-					}}
+					onAuthenticated={handleAuthenticated}
 				/>
 			</Dialog>
 

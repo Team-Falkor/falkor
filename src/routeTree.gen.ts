@@ -8,209 +8,209 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as FilterIndexImport } from "./routes/filter/index";
-import { Route as IndexImport } from "./routes/index";
-import { Route as SettingsImport } from "./routes/settings";
+import { Route as rootRoute } from './routes/__root'
+import { Route as SettingsImport } from './routes/settings'
+import { Route as IndexImport } from './routes/index'
+import { Route as FilterIndexImport } from './routes/filter/index'
 
 // Create Virtual Routes
 
-const LibraryLazyImport = createFileRoute("/library")();
-const DownloadsLazyImport = createFileRoute("/downloads")();
-const CalendarLazyImport = createFileRoute("/calendar")();
-const InfoIdLazyImport = createFileRoute("/info/$id")();
+const LibraryLazyImport = createFileRoute('/library')()
+const DownloadsLazyImport = createFileRoute('/downloads')()
+const CalendarLazyImport = createFileRoute('/calendar')()
+const InfoIdLazyImport = createFileRoute('/info/$id')()
 
 // Create/Update Routes
 
 const LibraryLazyRoute = LibraryLazyImport.update({
-	id: "/library",
-	path: "/library",
-	getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/library.lazy").then((d) => d.Route));
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/library.lazy').then((d) => d.Route))
 
 const DownloadsLazyRoute = DownloadsLazyImport.update({
-	id: "/downloads",
-	path: "/downloads",
-	getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/downloads.lazy").then((d) => d.Route));
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/downloads.lazy').then((d) => d.Route))
 
 const CalendarLazyRoute = CalendarLazyImport.update({
-	id: "/calendar",
-	path: "/calendar",
-	getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/calendar.lazy").then((d) => d.Route));
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/calendar.lazy').then((d) => d.Route))
 
 const SettingsRoute = SettingsImport.update({
-	id: "/settings",
-	path: "/settings",
-	getParentRoute: () => rootRoute,
-} as any);
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
-	id: "/",
-	path: "/",
-	getParentRoute: () => rootRoute,
-} as any);
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const FilterIndexRoute = FilterIndexImport.update({
-	id: "/filter/",
-	path: "/filter/",
-	getParentRoute: () => rootRoute,
-} as any);
+  id: '/filter/',
+  path: '/filter/',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const InfoIdLazyRoute = InfoIdLazyImport.update({
-	id: "/info/$id",
-	path: "/info/$id",
-	getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/info/$id.lazy").then((d) => d.Route));
+  id: '/info/$id',
+  path: '/info/$id',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/info/$id.lazy').then((d) => d.Route))
 
 // Populate the FileRoutesByPath interface
 
-declare module "@tanstack/react-router" {
-	interface FileRoutesByPath {
-		"/": {
-			id: "/";
-			path: "/";
-			fullPath: "/";
-			preLoaderRoute: typeof IndexImport;
-			parentRoute: typeof rootRoute;
-		};
-		"/settings": {
-			id: "/settings";
-			path: "/settings";
-			fullPath: "/settings";
-			preLoaderRoute: typeof SettingsImport;
-			parentRoute: typeof rootRoute;
-		};
-		"/calendar": {
-			id: "/calendar";
-			path: "/calendar";
-			fullPath: "/calendar";
-			preLoaderRoute: typeof CalendarLazyImport;
-			parentRoute: typeof rootRoute;
-		};
-		"/downloads": {
-			id: "/downloads";
-			path: "/downloads";
-			fullPath: "/downloads";
-			preLoaderRoute: typeof DownloadsLazyImport;
-			parentRoute: typeof rootRoute;
-		};
-		"/library": {
-			id: "/library";
-			path: "/library";
-			fullPath: "/library";
-			preLoaderRoute: typeof LibraryLazyImport;
-			parentRoute: typeof rootRoute;
-		};
-		"/info/$id": {
-			id: "/info/$id";
-			path: "/info/$id";
-			fullPath: "/info/$id";
-			preLoaderRoute: typeof InfoIdLazyImport;
-			parentRoute: typeof rootRoute;
-		};
-		"/filter/": {
-			id: "/filter/";
-			path: "/filter";
-			fullPath: "/filter";
-			preLoaderRoute: typeof FilterIndexImport;
-			parentRoute: typeof rootRoute;
-		};
-	}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsImport
+      parentRoute: typeof rootRoute
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/info/$id': {
+      id: '/info/$id'
+      path: '/info/$id'
+      fullPath: '/info/$id'
+      preLoaderRoute: typeof InfoIdLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/filter/': {
+      id: '/filter/'
+      path: '/filter'
+      fullPath: '/filter'
+      preLoaderRoute: typeof FilterIndexImport
+      parentRoute: typeof rootRoute
+    }
+  }
 }
 
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-	"/": typeof IndexRoute;
-	"/settings": typeof SettingsRoute;
-	"/calendar": typeof CalendarLazyRoute;
-	"/downloads": typeof DownloadsLazyRoute;
-	"/library": typeof LibraryLazyRoute;
-	"/info/$id": typeof InfoIdLazyRoute;
-	"/filter": typeof FilterIndexRoute;
+  '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
+  '/calendar': typeof CalendarLazyRoute
+  '/downloads': typeof DownloadsLazyRoute
+  '/library': typeof LibraryLazyRoute
+  '/info/$id': typeof InfoIdLazyRoute
+  '/filter': typeof FilterIndexRoute
 }
 
 export interface FileRoutesByTo {
-	"/": typeof IndexRoute;
-	"/settings": typeof SettingsRoute;
-	"/calendar": typeof CalendarLazyRoute;
-	"/downloads": typeof DownloadsLazyRoute;
-	"/library": typeof LibraryLazyRoute;
-	"/info/$id": typeof InfoIdLazyRoute;
-	"/filter": typeof FilterIndexRoute;
+  '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
+  '/calendar': typeof CalendarLazyRoute
+  '/downloads': typeof DownloadsLazyRoute
+  '/library': typeof LibraryLazyRoute
+  '/info/$id': typeof InfoIdLazyRoute
+  '/filter': typeof FilterIndexRoute
 }
 
 export interface FileRoutesById {
-	__root__: typeof rootRoute;
-	"/": typeof IndexRoute;
-	"/settings": typeof SettingsRoute;
-	"/calendar": typeof CalendarLazyRoute;
-	"/downloads": typeof DownloadsLazyRoute;
-	"/library": typeof LibraryLazyRoute;
-	"/info/$id": typeof InfoIdLazyRoute;
-	"/filter/": typeof FilterIndexRoute;
+  __root__: typeof rootRoute
+  '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
+  '/calendar': typeof CalendarLazyRoute
+  '/downloads': typeof DownloadsLazyRoute
+  '/library': typeof LibraryLazyRoute
+  '/info/$id': typeof InfoIdLazyRoute
+  '/filter/': typeof FilterIndexRoute
 }
 
 export interface FileRouteTypes {
-	fileRoutesByFullPath: FileRoutesByFullPath;
-	fullPaths:
-		| "/"
-		| "/settings"
-		| "/calendar"
-		| "/downloads"
-		| "/library"
-		| "/info/$id"
-		| "/filter";
-	fileRoutesByTo: FileRoutesByTo;
-	to:
-		| "/"
-		| "/settings"
-		| "/calendar"
-		| "/downloads"
-		| "/library"
-		| "/info/$id"
-		| "/filter";
-	id:
-		| "__root__"
-		| "/"
-		| "/settings"
-		| "/calendar"
-		| "/downloads"
-		| "/library"
-		| "/info/$id"
-		| "/filter/";
-	fileRoutesById: FileRoutesById;
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/calendar'
+    | '/downloads'
+    | '/library'
+    | '/info/$id'
+    | '/filter'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/settings'
+    | '/calendar'
+    | '/downloads'
+    | '/library'
+    | '/info/$id'
+    | '/filter'
+  id:
+    | '__root__'
+    | '/'
+    | '/settings'
+    | '/calendar'
+    | '/downloads'
+    | '/library'
+    | '/info/$id'
+    | '/filter/'
+  fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-	IndexRoute: typeof IndexRoute;
-	SettingsRoute: typeof SettingsRoute;
-	CalendarLazyRoute: typeof CalendarLazyRoute;
-	DownloadsLazyRoute: typeof DownloadsLazyRoute;
-	LibraryLazyRoute: typeof LibraryLazyRoute;
-	InfoIdLazyRoute: typeof InfoIdLazyRoute;
-	FilterIndexRoute: typeof FilterIndexRoute;
+  IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
+  CalendarLazyRoute: typeof CalendarLazyRoute
+  DownloadsLazyRoute: typeof DownloadsLazyRoute
+  LibraryLazyRoute: typeof LibraryLazyRoute
+  InfoIdLazyRoute: typeof InfoIdLazyRoute
+  FilterIndexRoute: typeof FilterIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-	IndexRoute: IndexRoute,
-	SettingsRoute: SettingsRoute,
-	CalendarLazyRoute: CalendarLazyRoute,
-	DownloadsLazyRoute: DownloadsLazyRoute,
-	LibraryLazyRoute: LibraryLazyRoute,
-	InfoIdLazyRoute: InfoIdLazyRoute,
-	FilterIndexRoute: FilterIndexRoute,
-};
+  IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
+  CalendarLazyRoute: CalendarLazyRoute,
+  DownloadsLazyRoute: DownloadsLazyRoute,
+  LibraryLazyRoute: LibraryLazyRoute,
+  InfoIdLazyRoute: InfoIdLazyRoute,
+  FilterIndexRoute: FilterIndexRoute,
+}
 
 export const routeTree = rootRoute
-	._addFileChildren(rootRouteChildren)
-	._addFileTypes<FileRouteTypes>();
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
 
 /* ROUTE_MANIFEST_START
 {
