@@ -20,6 +20,7 @@ export const libraryGames = sqliteTable(
 		gamePlaytime: integer("game_playtime").notNull().default(0),
 		gameLastPlayed: integer("game_last_played", { mode: "timestamp" }),
 		igdbId: integer("igdb_id"),
+		installed: integer("installed", { mode: "boolean" }).default(false),
 	},
 	(table) => [
 		uniqueIndex("library_games_game_name_unique").on(table.gameName),

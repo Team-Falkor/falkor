@@ -1,6 +1,6 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames } from "@backend/database/schemas";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const libraryGamesRouter = router({
@@ -16,7 +16,8 @@ export const libraryGamesRouter = router({
 				.select()
 				.from(libraryGames)
 				.limit(input.limit)
-				.offset(input.offset);
+				.offset(input.offset)
+				.where(eq(libraryGames.installed, true));
 		}),
 
 	getById: publicProcedure
@@ -25,7 +26,9 @@ export const libraryGamesRouter = router({
 			const rows = await ctx.db
 				.select()
 				.from(libraryGames)
-				.where(eq(libraryGames.id, input.id));
+				.where(
+					and(eq(libraryGames.id, input.id), eq(libraryGames.installed, true)),
+				);
 			return rows[0] || null;
 		}),
 

@@ -15,6 +15,13 @@
       "when": 1747063002211,
       "tag": "0001_wonderful_puppet_master",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1747086025768,
+      "tag": "0002_pink_beyonder",
+      "breakpoints": true
     }
   ]
 }
