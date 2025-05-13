@@ -10,10 +10,15 @@ export const SettingsItem = ({ title, children }: PropsWithChildren<Props>) => {
 	const { t } = useLanguageContext();
 
 	return (
-		<div className="flex items-center justify-between gap-4">
-			<Label htmlFor={title}>{t(`settings.settings.${title}`)}</Label>
+		<div className="flex items-center justify-between gap-6">
+			<Label
+				htmlFor={title}
+				className="flex-shrink-0 font-medium text-foreground text-sm"
+			>
+				{t(`settings.settings.${title}`)}
+			</Label>
 
-			{children}
+			<div className="flex items-center justify-end">{children}</div>
 		</div>
 	);
 };

@@ -40,7 +40,8 @@
 			"max_speed_description": "The maximum speed for the downloads to be throttled to (-1 for unlimited)",
 			"toggle-notifications": "Enable Notifications",
 			"title-bar-style": "Change the style of the title bar",
-			"language": "Change the language of the application"
+			"language": "Change the language of the application",
+			"change-api-url": "Change the api url"
 		}
 	},
 	"view_more": "View More",

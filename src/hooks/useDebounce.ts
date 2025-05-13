@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useRef } from "react";
 
-export const useDebounce = (
-	callback: (...args: any[]) => void,
+/**
+ * Creates a debounced version of a callback function
+ * @template Args - The argument types of the callback function
+ * @param callback - The function to debounce
+ * @param delay - Delay in milliseconds
+ * @returns Debounced version of the callback function
+ */
+export const useDebounce = <Args extends unknown[]>(
+	callback: (...args: Args) => void,
 	delay: number,
-) => {
-	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+): ((...args: Args) => void) => {
+	const timer = useRef<NodeJS.Timeout | null>(null);
 
 	const debouncedCallback = useCallback(
-		(...args: any[]) => {
+		(...args: Args) => {
 			if (timer.current) {
 				clearTimeout(timer.current);
 			}

@@ -27,7 +27,7 @@ const TorrentSettings = () => {
 	);
 
 	const debouncedUpdateSetting = useDebounce(
-		(key: keyof SettingsConfig, value: any, cb?: () => void) => {
+		(key: keyof SettingsConfig, value: number, cb?: () => void) => {
 			updateSetting({
 				path: key?.toString(),
 				value,

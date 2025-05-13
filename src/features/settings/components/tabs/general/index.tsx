@@ -5,6 +5,7 @@ import { SettingsSection } from "../../section";
 import { SettingsItem } from "../../settingsItem";
 import SettingTitle from "../../title";
 import SettingsContainer from "../container";
+import { ChangeApiUrl } from "./settings/change-api-url";
 import LanguageDropdown from "./settings/language";
 import TitleBarDropdown from "./settings/title-bar";
 
@@ -18,6 +19,10 @@ const GeneralSetting = () => {
 
 			<SettingsContainer>
 				<SettingsSection title="update_settings">
+					<SettingsItem title="change-api-url">
+						<ChangeApiUrl />
+					</SettingsItem>
+
 					<SettingsItem title="check-for-plugin-updates-on-startup">
 						<Switch
 							id="check-for-plugin-updates-on-startup"
