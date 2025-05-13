@@ -20,7 +20,7 @@ const UpdateGameForm = ({ onSubmit, defaultValues }: UpdateGameFormProps) => {
 	const { t } = useLanguageContext();
 	const form = useForm<NewGameFormSchema>({
 		resolver: zodResolver(newGameFormSchema),
-		defaultValues: defaultValues as any,
+		defaultValues: defaultValues,
 	});
 
 	useEffect(() => {

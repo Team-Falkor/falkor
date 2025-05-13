@@ -20,7 +20,7 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 	const utils = trpc.useUtils();
 	const { mutate: updateGame } = trpc.library.update.useMutation({
 		onSuccess: () => {
-			utils.library.list.invalidate();
+			utils.library.invalidate();
 		},
 	});
 
@@ -60,7 +60,7 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 						gameArgs: game.gameArgs ?? undefined,
 						gameCommand: game.gameCommand ?? undefined,
 						gameName: game.gameName,
-						gamePath: game.gamePath,
+						gamePath: game.gamePath ?? undefined,
 						gameIcon: game.gameIcon ?? undefined,
 						igdbId: game.igdbId?.toString() ?? undefined,
 						winePrefixFolder: game.winePrefixFolder ?? undefined,

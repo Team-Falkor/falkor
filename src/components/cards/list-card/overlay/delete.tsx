@@ -12,7 +12,7 @@ const DeleteDialog = ({ gameId }: DeleteDialogProps) => {
 	const utils = trpc.useUtils();
 	const { mutate: deleteGame } = trpc.library.delete.useMutation({
 		onSuccess: () => {
-			utils.library.list.invalidate();
+			utils.library.invalidate();
 		},
 	});
 

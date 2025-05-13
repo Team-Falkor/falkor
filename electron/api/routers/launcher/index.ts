@@ -30,6 +30,8 @@ export const gameLauncherRouter = router({
 				.get();
 
 			if (!game) return { success: false, error: "Game not found" };
+			if (!game.gamePath)
+				return { success: false, error: "Game path not found" };
 
 			const launcher = new GameProcessLauncher({
 				gameId: game.gameId,

@@ -1,7 +1,6 @@
 // src/components/active-library/active-library-content.tsx
 
 import { useMemo } from "react";
-import ContinuePlayingCard from "@/components/cards/continue-playing";
 import ListCard from "@/components/cards/list-card";
 import { H5, P } from "@/components/ui/typography";
 import { trpc } from "@/lib";
@@ -13,12 +12,7 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 	const { type } = props;
 
 	// === Hooks ===
-	const {
-		fetchGames,
-		deleteGame: deleteGameMutation,
-		updateGame: updateGameMutation,
-		games: gamesMap,
-	} = useGames(true);
+	const { games: gamesMap } = useGames(true);
 	const gamesList = useMemo(() => Object.values(gamesMap), [gamesMap]);
 
 	// For the list query, pass a dummy ID when we’re not in “list” mode,
@@ -38,16 +32,7 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 		return (
 			<div className="flex flex-wrap gap-4">
 				{gamesList.map((game) => (
-					<ContinuePlayingCard
-						key={game.id}
-						bg_image={game.gameIcon ?? ""}
-						game={game}
-						fetchGames={fetchGames}
-						deleteGame={(gameId: string) =>
-							deleteGameMutation({ id: Number(gameId) })
-						}
-						updateGame={(updates) => updateGameMutation(updates)}
-					/>
+					<ListCard key={game.id} {...game} />
 				))}
 			</div>
 		);

@@ -156,3 +156,6 @@ export type NotificationType = "download_completed" | "achievement_unlocked";
 export type ReactQueryOptions = inferReactQueryProcedureOptions<AppRouter>;
 export type RouterInputs = inferRouterInputs<AppRouter>;
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
+
+export type LibraryGame =
+	RouterOutputs["lists"]["getByIdWithGames"]["games"][number];

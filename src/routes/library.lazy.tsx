@@ -81,10 +81,9 @@ function Library() {
 				>
 					<CarouselContent>
 						{tabs.map((tab, i) => (
-							<CarouselItem key={i} className="basis-auto ">
+							<CarouselItem key={tab.name} className="basis-auto ">
 								<Button
 									variant={activeTab?.name === tab.name ? "active" : "default"}
-									key={i}
 									className={cn(
 										"gap-1.5 rounded-full font-semibold transition-all duration-75",
 									)}

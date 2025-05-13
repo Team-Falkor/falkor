@@ -1,5 +1,5 @@
 import { Ellipsis } from "lucide-react";
-import type { RouterInputs, RouterOutputs } from "@/@types";
+import type { RouterOutputs } from "@/@types";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -16,17 +16,9 @@ type LibraryGame = RouterOutputs["library"]["list"][number];
 
 interface ContinuePlayingCardOverlayProps {
 	game: LibraryGame;
-	fetchGames: () => void;
-	deleteGame: (gameId: string) => void;
-	updateGame: (updates: RouterInputs["library"]["update"]) => void;
 }
 
-const ContinuePlayingCardOverlay = ({
-	game,
-	fetchGames,
-	deleteGame,
-	updateGame,
-}: ContinuePlayingCardOverlayProps) => {
+export const EditGameOverlay = ({ game }: ContinuePlayingCardOverlayProps) => {
 	const { t } = useLanguageContext();
 
 	return (
@@ -51,5 +43,3 @@ const ContinuePlayingCardOverlay = ({
 		</DropdownMenu>
 	);
 };
-
-export default ContinuePlayingCardOverlay;
