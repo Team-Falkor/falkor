@@ -42,8 +42,8 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 * Apply throttling settings from user configuration
 	 */
 	private applyThrottlingSettings(): void {
-		const maxDownloadSpeed = settings.get("maxDownloadSpeed");
-		const maxUploadSpeed = settings.get("maxUploadSpeed");
+		const maxDownloadSpeed: number = settings.get("maxDownloadSpeed") as number;
+		const maxUploadSpeed: number = settings.get("maxUploadSpeed") as number;
 
 		if (maxDownloadSpeed && maxDownloadSpeed > 0) {
 			console.log(

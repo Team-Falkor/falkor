@@ -3,6 +3,8 @@ import { z } from "zod";
 import { publicProcedure, router } from "../../../api/trpc";
 import { accounts } from "../../../database/schemas";
 
+const typeSchema = z.enum(["real-debrid", "torbox"]);
+
 export const externalAccountsRouter = router({
 	getAll: publicProcedure.query(async ({ ctx }) => {
 		return await ctx.db.select().from(accounts);
@@ -23,7 +25,7 @@ export const externalAccountsRouter = router({
 				accessToken: z.string(),
 				refreshToken: z.string(),
 				expiresIn: z.number(),
-				type: z.string(),
+				type: typeSchema,
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -48,7 +50,7 @@ export const externalAccountsRouter = router({
 				accessToken: z.string().optional(),
 				refreshToken: z.string().optional(),
 				expiresIn: z.number().optional(),
-				type: z.string().optional(),
+				type: typeSchema.optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {

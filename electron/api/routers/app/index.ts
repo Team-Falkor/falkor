@@ -1,6 +1,10 @@
+import { existsSync } from "node:fs";
+import { constants } from "@backend/utils/constants";
+import { playSound } from "@backend/utils/playsound";
 import AutoLaunch from "auto-launch";
 import { app, BrowserWindow } from "electron";
 import { z } from "zod";
+import { Sound } from "@/@types";
 import { downloadQueue } from "../../../handlers/downloads/queue";
 import { gamesLaunched } from "../../../handlers/launcher/games-launched";
 import { SettingsManager } from "../../../handlers/settings/settings";
@@ -116,4 +120,53 @@ export const appFunctionsRouter = router({
 
 		return success();
 	}),
+
+	testSound: publicProcedure
+		.input(z.object({ sound: z.nativeEnum<typeof Sound>(Sound) }))
+		.mutation(async ({ input }) => {
+			try {
+				console.log("Current platform:", process.platform);
+				console.log("Process permissions:", {
+					uid: process.getuid?.() || "N/A",
+					gid: process.getgid?.() || "N/A",
+				});
+
+				// Get the sound file path from constants using the enum value
+				const soundPath = constants.assets.sounds[input.sound];
+
+				// Debug logging
+				console.log(`Attempting to play sound: ${input.sound}`);
+				console.log(`Sound path: ${soundPath}`);
+
+				// Verify file exists before playing
+				if (!soundPath || !existsSync(soundPath)) {
+					console.error(`Sound file does not exist at path: ${soundPath}`);
+					return {
+						success: false,
+						message: `Sound file not found: ${soundPath}`,
+					};
+				}
+
+				// Add some volume to make sure it's audible
+				const result = await playSound(soundPath, {
+					volume: 1.0,
+					silent: false,
+				});
+
+				console.log("Play sound result:", result);
+
+				return {
+					success: result.success,
+					message: result.success
+						? `Playing sound: ${input.sound}`
+						: `Failed to play sound: ${result.error || "unknown error"}`,
+				};
+			} catch (error) {
+				console.error("Sound playback error:", error);
+				return {
+					success: false,
+					message: `Error playing sound: ${error instanceof Error ? error.message : String(error)}`,
+				};
+			}
+		}),
 });

@@ -159,3 +159,8 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 export type LibraryGame =
 	RouterOutputs["lists"]["getByIdWithGames"]["games"][number];
+
+export enum Sound {
+	Complete = "complete",
+	AchievementUnlocked = "achievement_unlocked",
+}

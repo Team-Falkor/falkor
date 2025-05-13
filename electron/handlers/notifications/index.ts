@@ -3,7 +3,6 @@ import https from "node:https";
 import { join } from "node:path";
 import { constants } from "@backend/utils/constants";
 import { playSound } from "@backend/utils/playsound";
-import { getSoundPath } from "@backend/utils/utils";
 import { Notification, type NotificationConstructorOptions } from "electron";
 import type { NotificationType } from "@/@types";
 import logger from "../logging";
@@ -12,6 +11,8 @@ import { SettingsManager } from "../settings/settings";
 const settings = SettingsManager.getInstance();
 
 class NotificationsHandler {
+	private constructor() {}
+
 	public static constructNotification = (
 		options?: NotificationConstructorOptions & {
 			notificationType?: NotificationType;
@@ -44,14 +45,14 @@ class NotificationsHandler {
 			let soundPath: string | null = null;
 			switch (options?.notificationType) {
 				case "download_completed":
-					soundPath = getSoundPath("complete.wav");
+					soundPath = constants.assets.sounds.complete;
 					console.log(
 						"Notification type: download_completed. Sound path:",
 						soundPath,
 					);
 					break;
 				case "achievement_unlocked":
-					soundPath = getSoundPath("achievement_unlock.wav");
+					soundPath = constants.assets.sounds.achievement_unlocked;
 					console.log(
 						"Notification type: achievement_unlocked. Sound path:",
 						soundPath,
@@ -71,7 +72,7 @@ class NotificationsHandler {
 			}
 
 			console.log("Playing sound:", soundPath);
-			playSound(soundPath, options?.volume);
+			playSound(soundPath, { volume: options?.volume });
 		} catch (error) {
 			console.error("Error creating notification:", error);
 		}

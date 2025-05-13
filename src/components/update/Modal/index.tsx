@@ -49,8 +49,12 @@ const ModalTemplate: React.FC<
 					<div className="content__body">{children}</div>
 					{typeof footer !== "undefined" ? (
 						<div className="content__footer">
-							<button onClick={onCancel}>{cancelText}</button>
-							<button onClick={onOk}>{okText}</button>
+							<button type="button" onClick={onCancel}>
+								{cancelText}
+							</button>
+							<button type="button" onClick={onOk}>
+								{okText}
+							</button>
 						</div>
 					) : (
 						footer
@@ -66,7 +70,7 @@ const Modal = (
 ) => {
 	const { open, ...omit } = props;
 
-	return createPortal(open ? ModalTemplate(omit) : null, document.body);
+	return createPortal(open ? <ModalTemplate {...omit} /> : null, document.body);
 };
 
 export default Modal;

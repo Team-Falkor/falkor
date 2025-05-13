@@ -1,8 +1,7 @@
 import { existsSync } from "node:fs";
 import os from "node:os";
-import path, { join } from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { app } from "electron";
 import type { Response } from "@/@types";
 
 /**
@@ -156,39 +155,6 @@ export const createResponse = <T>(
 };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-/**
- * Gets the absolute path to a sound file
- * @param soundPath Relative path to the sound file
- * @returns Absolute path to the sound file or empty string on error
- */
-export const getSoundPath = (soundPath: string): string => {
-	if (!soundPath || typeof soundPath !== "string") {
-		console.log("error", "Invalid sound path provided");
-		return "";
-	}
-
-	try {
-		// Determine the base path based on whether the app is packaged
-		const basePath = app.isPackaged
-			? join(process.resourcesPath, "sounds")
-			: join(__dirname, "..", "resources", "sounds");
-
-		// Construct the full path
-		const fullPath = join(basePath, soundPath);
-
-		// Verify the file exists
-		if (!existsSync(fullPath)) {
-			console.log("warn", `Sound file not found: ${fullPath}`);
-		}
-
-		return fullPath;
-	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		console.log("error", `Error getting sound path: ${errorMessage}`);
-		return "";
-	}
-};
 
 /**
  * Checks if a path exists and is accessible
