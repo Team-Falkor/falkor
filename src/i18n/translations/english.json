@@ -41,7 +41,8 @@
 			"toggle-notifications": "Enable Notifications",
 			"title-bar-style": "Change the style of the title bar",
 			"language": "Change the language of the application",
-			"change-api-url": "Change the api url"
+			"change-api-url": "Change the api url",
+			"change-api-url-description": "Do not change this unless you know what you are doing"
 		}
 	},
 	"view_more": "View More",

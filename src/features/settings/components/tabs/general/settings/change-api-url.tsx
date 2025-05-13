@@ -23,7 +23,7 @@ export const ChangeApiUrl = () => {
 
 	return (
 		<Input
-			className="bg min-w-80"
+			className="bg min-w-72"
 			placeholder="Enter API URL"
 			value={inputValue}
 			onChange={handleInputChange}
