@@ -7,7 +7,7 @@ export const trpc = createTRPCReact<AppRouter>();
 export const trpcClient = trpc.createClient({
 	links: [
 		loggerLink({
-			enabled: (opts) => {
+			enabled: () => {
 				return window.env.IS_DEV === true && process.env.NODE_ENV !== "test";
 			},
 		}),
