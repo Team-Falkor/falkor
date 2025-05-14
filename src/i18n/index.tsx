@@ -1,23 +1,22 @@
 import i18next, { type Resource } from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
-
+import German from "./translations/de.json";
+import English from "./translations/en.json";
+import Spanish from "./translations/es.json";
+import French from "./translations/fr.json";
+import Hindi from "./translations/hi.json";
+import Indonesian from "./translations/id.json";
+import Italian from "./translations/it.json";
+import Japanese from "./translations/ja.json";
+import Korean from "./translations/ko.json";
+import Malay from "./translations/ms.json";
+import Portuguese from "./translations/pt.json";
+import Thai from "./translations/th.json";
+import Urdu from "./translations/ur.json";
+import Vietnamese from "./translations/vi.json";
 //Import all translation files
-import ChineseSimplified from "./translations/chinese-simplified.json";
-import English from "./translations/english.json";
-import French from "./translations/french.json";
-import German from "./translations/german.json";
-import Hindi from "./translations/hindi.json";
-import Indonesian from "./translations/indonesian.json";
-import Italian from "./translations/italian.json";
-import japanese from "./translations/japanese.json";
-import Korean from "./translations/korean.json";
-import Malay from "./translations/malay.json";
-import Portuguese from "./translations/portuguese.json";
-import Spanish from "./translations/spanish.json";
-import Thai from "./translations/thai.json";
-import Urdu from "./translations/urdu.json";
-import Vietnamese from "./translations/vietnamese.json";
+import ChineseSimplified from "./translations/zh-CN.json";
 
 /**
  * Resources for i18n
@@ -30,7 +29,7 @@ const resources: Resource = {
 	fr: { translation: French },
 	de: { translation: German },
 	cn: { translation: ChineseSimplified },
-	ja: { translation: japanese },
+	ja: { translation: Japanese },
 	ko: { translation: Korean },
 	vi: { translation: Vietnamese },
 	th: { translation: Thai },
