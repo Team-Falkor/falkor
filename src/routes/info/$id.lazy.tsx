@@ -1,6 +1,7 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import type { ReleaseDate } from "@/@types";
+import AchievementContainer from "@/features/achievements/components/container";
 // TODO: Port over components from old codebase
 // import AchievementContainer from "@/features/achievements/components/container";
 import { InfoBar } from "@/features/info/info-bar";
@@ -74,7 +75,7 @@ function Info() {
 					itadPending={itadQuery.isPending}
 				/>
 
-				{/* {!!steam_id && <AchievementContainer steamId={steam_id} gameId={id} />} */}
+				{!!steam_id && <AchievementContainer steamId={steam_id} gameId={id} />}
 
 				<SimilarGames data={data?.similar_games ?? []} />
 			</div>

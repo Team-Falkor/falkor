@@ -73,12 +73,12 @@ export const achievementsRouter = router({
 	 * Combines unlocked achievements with game data for a given Steam ID.
 	 */
 	getUnlockedWithGameData: publicProcedure
-		.input(z.object({ steamId: z.string() }))
+		.input(z.object({ steamId: z.string(), gameId: z.string() }))
 		.query(async ({ input, ctx }) => {
 			try {
 				const [achievementsData, unlockedAchievements] = await Promise.all([
 					getAchievementsDataFromApi(input.steamId),
-					getUnlocked(ctx.db, input.steamId),
+					getUnlocked(ctx.db, input.gameId),
 				]);
 
 				const dataWithUnlocked = achievementsData
