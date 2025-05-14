@@ -10,11 +10,12 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-electron
+release
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode/.debug.env
 .idea
 .DS_Store
 *.suo
@@ -23,14 +24,13 @@ dist-ssr
 *.sln
 *.sw?
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
+#lockfile
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+/test-results/
+/playwright-report/
+/playwright/.cache/
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -129,6 +129,12 @@ dist
 .temp
 .cache
 
+# vitepress build output
+**/.vitepress/dist
+
+# vitepress cache directory
+**/.vitepress/cache
+
 # Docusaurus cache and generated files
 .docusaurus
 
@@ -154,11 +160,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-/dist-electron
-/release
 
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
-dev-app-update.yml
-backend/handlers/downloads/plan.md
-download-bugs.md
+todo.md

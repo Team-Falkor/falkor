@@ -1,0 +1,65 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "moe.falkor",
+  "asar": true,
+  "productName": "Falkor",
+  "icon": "./build/icons/256x256.png",
+  "protocols": [
+    {
+      "name": "falkor",
+      "schemes": ["falkor"]
+    }
+  ],
+  "directories": {
+    "output": "release/"
+  },
+  "extraResources": [
+    {
+      "from": "./resources",
+      "to": "resources",
+      "filter": ["**/*"]
+    }
+  ],
+  "appImage": {},
+  "files": ["dist", "dist-electron"],
+  "mac": {
+    "target": ["dmg"],
+    "artifactName": "${productName}.${ext}"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "artifactName": "${productName}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": true,
+    "shortcutName": "${productName}",
+    "createDesktopShortcut": true,
+    "uninstallDisplayName": "${productName} ${version}",
+    "installerIcon": "./build/icon.ico",
+    "uninstallerIcon": "./build/icon.ico"
+  },
+  "linux": {
+    "target": ["AppImage", "deb", "pacman", "rpm", "tar.gz"],
+    "artifactName": "${productName}.${ext}",
+    "category": "Game",
+    "maintainer": "team-falkor",
+    "mimeTypes": ["x-scheme-handler/falkor"],
+    "publish": ["github"]
+  },
+  "publish": {
+    "provider": "github",
+    "repo": "falkor",
+    "owner": "team-falkor",
+    "private": false,
+    "publishAutoUpdate": true,
+    "releaseType": "draft"
+  }
+}

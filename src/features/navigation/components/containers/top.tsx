@@ -1,57 +1,53 @@
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useLanguageContext } from "@/contexts/I18N";
-import Search from "@/features/search/components/search";
+import logo from "@resources/icon.png";
 import { Link } from "@tanstack/react-router";
-import { HomeIcon, LibraryIcon, SearchIcon } from "lucide-react";
+import { CalendarDays, HomeIcon, LibraryIcon } from "lucide-react";
 import { useState } from "react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import Search from "@/features/search/components/search";
+
+import { useLanguageContext } from "@/i18n/I18N";
 import NavItem from "../item";
 
-import logo from "@/assets/icon.png";
-
 const NavBarTop = () => {
-  const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(false);
 
-  const { t } = useLanguageContext();
-  return (
-    <>
-      <div className="pt-2 pb-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link aria-label="Home" className="group" to="/">
-              <img
-                src={logo}
-                alt="logo"
-                className="transition-all size-11 object-contain group-hover:opacity-80"
-              />
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right">{t("logo_hover")}</TooltipContent>
-        </Tooltip>
-      </div>
+	const { t } = useLanguageContext();
+	return (
+		<>
+			<div className="pt-2 pb-2">
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Link aria-label="Home" className="group" to="/">
+							<img
+								src={logo}
+								alt="logo"
+								className="size-11 object-contain transition-all group-hover:opacity-80"
+							/>
+						</Link>
+					</TooltipTrigger>
+					<TooltipContent side="right">{t("logo_hover")}</TooltipContent>
+				</Tooltip>
+			</div>
 
-      <div className="grid gap-2 pb-4">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-lg">
-              <SearchIcon className="size-5" />
-            </Button>
-          </PopoverTrigger>
+			<div className="grid gap-2 pb-4">
+				<Search />
 
-          <Search setOpen={setOpen} />
-        </Popover>
+				<NavItem href="/" title={t("home")} icon={<HomeIcon />} />
 
-        <NavItem href="/" title={t("home")} icon={<HomeIcon />} />
+				<NavItem
+					href="/calendar"
+					title={t("calendar")}
+					icon={<CalendarDays />}
+				/>
 
-        <NavItem href="/library" title={t("my_games")} icon={<LibraryIcon />} />
-      </div>
-    </>
-  );
+				<NavItem href="/library" title={t("my_games")} icon={<LibraryIcon />} />
+			</div>
+		</>
+	);
 };
 
 export default NavBarTop;

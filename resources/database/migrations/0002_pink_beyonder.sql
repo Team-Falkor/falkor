@@ -1,0 +1,1 @@
+ALTER TABLE `library_games` ADD `installed` integer DEFAULT false;

@@ -1,13 +1,15 @@
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  readonly VITE_TWITCH_CLIENT_ID: string;
-  readonly VITE_TWITCH_CLIENT_SECRET: string;
-  readonly VITE_ITAD_API_KEY: string;
-  readonly VITE_RD_CLIENT_ID: string;
-  readonly VITE_STEAMGRIDDB_API_KEY: string;
-}
+interface Window {
+	// expose in the `electron/preload/index.ts`
+	ipcRenderer: import("electron").IpcRenderer;
 
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
+	// Add type definitions for the environment variables
+	env: {
+		NODE_ENV: string | undefined;
+		IS_DEV: boolean;
+		IS_PROD: boolean;
+		CUSTOM_VAR: string | undefined;
+		APP_VERSION: string | undefined;
+	};
 }

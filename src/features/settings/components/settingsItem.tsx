@@ -1,19 +1,53 @@
+import type { PropsWithChildren } from "react";
 import { Label } from "@/components/ui/label";
-import { useLanguageContext } from "@/contexts/I18N";
-import { PropsWithChildren } from "react";
+import { TypographyMuted } from "@/components/ui/typography";
+import { useLanguageContext } from "@/i18n/I18N";
+import { cn } from "@/lib/utils"; // Assuming you have a className utility
 
-type Props = {
-  title: string;
+type SettingsItemProps = {
+	title: string;
+	className?: string;
+	id?: string;
+	fullWidth?: boolean;
 };
 
-export const SettingsItem = ({ title, children }: PropsWithChildren<Props>) => {
-  const { t } = useLanguageContext();
+export const SettingsItem = ({
+	title,
+	children,
+	className,
+	id,
+}: PropsWithChildren<SettingsItemProps>) => {
+	const { t } = useLanguageContext();
 
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <Label htmlFor={title}>{t(`settings.settings.${title}`)}</Label>
+	const titleKey = `settings.settings.${title}`;
+	const description = t(`${titleKey}-description`);
+	const isDescriptionEmpty = description === `${titleKey}-description`;
+	const itemId = id || title;
 
-      {children}
-    </div>
-  );
+	return (
+		<div
+			className={cn(
+				"flex w-full max-w-full flex-col items-start justify-between gap-2 py-2 sm:flex-row sm:items-center sm:gap-6",
+				className,
+			)}
+		>
+			<Label
+				htmlFor={itemId}
+				className="mb-1 font-medium text-foreground text-sm sm:mb-0"
+			>
+				<div className="flex flex-col">
+					<span>{t(titleKey)}</span>
+					{!isDescriptionEmpty && (
+						<TypographyMuted className="mt-0.5 max-w-md text-xs">
+							{description}
+						</TypographyMuted>
+					)}
+				</div>
+			</Label>
+
+			<div className="flex w-full items-center justify-end sm:w-auto">
+				{children}
+			</div>
+		</div>
+	);
 };

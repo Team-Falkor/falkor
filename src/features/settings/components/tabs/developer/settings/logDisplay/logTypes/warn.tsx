@@ -1,29 +1,29 @@
-import { LogEntry } from "@/@types/logs";
 import { CircleAlert } from "lucide-react";
-import { JSX } from "react";
-import { BaseLog } from "./base";
+import type { JSX } from "react";
+import type { LogEntry } from "@/@types/logs";
 import { TypographyMuted } from "@/components/ui/typography";
+import { BaseLog } from "./base";
 
 interface ConsoleWarningDisplayProps {
-  customIcon?: JSX.Element;
-  // title: string;
-  description: string;
-  timestamp?: LogEntry["timestamp"];
+	customIcon?: JSX.Element;
+	// title: string;
+	description: string;
+	timestamp?: LogEntry["timestamp"];
 }
 
 const ConsoleWarningDisplay = ({
-  description,
-  customIcon,
-  timestamp,
+	description,
+	customIcon,
+	timestamp,
 }: ConsoleWarningDisplayProps) => {
-  return (
-    <BaseLog timestamp={timestamp}>
-      <div className="text-yellow-400">
-        {customIcon ? customIcon : <CircleAlert />}
-      </div>
-      <TypographyMuted>{description}</TypographyMuted>
-    </BaseLog>
-  );
+	return (
+		<BaseLog timestamp={timestamp}>
+			<div className="text-yellow-400">
+				{customIcon ? customIcon : <CircleAlert />}
+			</div>
+			<TypographyMuted>{description}</TypographyMuted>
+		</BaseLog>
+	);
 };
 
 export { ConsoleWarningDisplay };

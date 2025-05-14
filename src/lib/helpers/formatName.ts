@@ -1,39 +1,48 @@
 type StringTransformer = (input: string) => string;
 
+/** Utility: Compose a sequence of string transformers */
 export const pipe =
-  <T>(...fns: Array<(arg: T) => T>) =>
-  (arg: T): T =>
-    fns.reduce((prev, fn) => fn(prev), arg);
+	<T>(...fns: Array<(arg: T) => T>) =>
+	(arg: T): T =>
+		fns.reduce((prev, fn) => fn(prev), arg);
 
-export const removeReleaseYearFromName: StringTransformer = (name) =>
-  name.replace(/\(\d{4}\)/g, "");
+/** Remove "(YYYY)" release year patterns */
+export const removeReleaseYear: StringTransformer = (str) =>
+	str.replace(/\(\d{4}\)/g, "");
 
-export const removeSymbolsFromName: StringTransformer = (name) =>
-  name.replace(/[^A-Za-z0-9À-ÖØ-öø-ÿ ]+/g, ""); // Allow letters with accents
+/** Remove special/edition keywords like GOTY, Deluxe, etc. */
+export const removeEditionKeywords: StringTransformer = (str) =>
+	str.replace(
+		/\b(The |Digital )?(GOTY|Deluxe|Standard|Ultimate|Definitive|Enhanced|Collector's|Premium|Digital|Limited|Game of the Year|Reloaded) Edition\b/gi,
+		"",
+	);
 
-export const removeSpecialEditionFromName: StringTransformer = (name) =>
-  name.replace(
-    /\b(The |Digital )?(GOTY|Deluxe|Standard|Ultimate|Definitive|Enhanced|Collector's|Premium|Digital|Limited|Game of the Year|Reloaded) Edition\b/gi,
-    ""
-  );
+/** Remove "Director's Cut" mention */
+export const removeDirectorsCut: StringTransformer = (str) =>
+	str.replace(/Director's Cut/gi, "");
 
-export const removeDuplicateSpaces: StringTransformer = (name) =>
-  name.replace(/\s{2,}/g, " ");
+/** Replace underscores with spaces */
+export const underscoresToSpaces: StringTransformer = (str) =>
+	str.replace(/_/g, " ");
 
-export const replaceUnderscoreWithSpace: StringTransformer = (name) =>
-  name.replace(/_/g, " ");
+/** Remove non-alphanumeric characters (preserve accents) */
+export const removeSymbols: StringTransformer = (str) =>
+	str.replace(/[^A-Za-z0-9À-ÖØ-öø-ÿ ]+/g, "");
 
-export const removeDirectorsCut: StringTransformer = (name) =>
-  name.replace(/Director's Cut/gi, ""); // Case-insensitive match
+/** Collapse multiple spaces into one */
+export const collapseSpaces: StringTransformer = (str) =>
+	str.replace(/\s{2,}/g, " ");
 
-export const trimName: StringTransformer = (name) => name.trim();
+/** Trim leading/trailing whitespace */
+export const trim: StringTransformer = (str) => str.trim();
 
-export const formatName = pipe<string>(
-  removeReleaseYearFromName,
-  removeSpecialEditionFromName,
-  replaceUnderscoreWithSpace,
-  removeDirectorsCut,
-  removeSymbolsFromName,
-  removeDuplicateSpaces,
-  trimName
+/** Normalizes a game title into a clean, searchable format */
+export const normalizeName = pipe<string>(
+	removeReleaseYear,
+	removeEditionKeywords,
+	removeDirectorsCut,
+	underscoresToSpaces,
+	removeSymbols,
+	collapseSpaces,
+	trim,
 );

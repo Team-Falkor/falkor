@@ -1,100 +1,84 @@
-import { InfoBar } from "@/components/info/infoBar";
-import SimilarGames from "@/components/info/similar";
-import InfoTop from "@/components/info/top";
-import AchievementContainer from "@/features/achievements/components/container";
-import {
-  getSteamIdFromWebsites,
-  getUserCountry,
-  igdb,
-  itad,
-  Mapping,
-} from "@/lib";
-import { ReleaseDate } from "@/lib/api/igdb/types";
-import { goBack } from "@/lib/history";
-import { useQuery } from "@tanstack/react-query";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
+import type { ReleaseDate } from "@/@types";
+import AchievementContainer from "@/features/achievements/components/container";
+// TODO: Port over components from old codebase
+// import AchievementContainer from "@/features/achievements/components/container";
+import { InfoBar } from "@/features/info/info-bar";
+import SimilarGames from "@/features/info/similar";
+import InfoTop from "@/features/info/top";
+import { getSteamIdFromWebsites, trpc } from "@/lib";
+import { goBack } from "@/lib/history";
 
 export const Route = createLazyFileRoute("/info/$id")({ component: Info });
 
 function Info() {
-  const { id } = Route.useParams();
+	const { id } = Route.useParams();
 
-  const { isPending, error, data } = useQuery({
-    queryKey: ["igdb", "info", id],
-    queryFn: async () => await igdb.info(id),
-    enabled: !!id,
-  });
+	const { isPending, error, data } = trpc.igdb.info.useQuery({
+		id: id,
+	});
 
-  const releaseDate = useMemo(
-    () =>
-      data
-        ? (data.release_dates?.find(
-            (item: ReleaseDate) => item.platform === 6
-          ) ?? data.release_dates?.[0])
-        : null,
-    [data]
-  );
+	const releaseDate = useMemo(
+		() =>
+			data
+				? (data.release_dates?.find(
+						(item: ReleaseDate) => item.platform === 6,
+					) ?? data.release_dates?.[0])
+				: null,
+		[data],
+	);
 
-  const isReleased = useMemo(
-    () =>
-      !releaseDate
-        ? false
-        : !releaseDate?.date || releaseDate.date < Date.now() / 1000,
-    [releaseDate]
-  );
+	const isReleased = useMemo(
+		() =>
+			!releaseDate
+				? false
+				: !releaseDate?.date || releaseDate.date < Date.now() / 1000,
+		[releaseDate],
+	);
 
-  const itadQuery = useQuery({
-    queryKey: ["itad", "prices", id],
-    queryFn: async () => {
-      if (!data) return;
+	const itadQuery = trpc.itad.pricesByName.useQuery(
+		{
+			name: data?.name ?? "",
+		},
+		{
+			enabled: !!id && isReleased,
+		},
+	);
 
-      const itadSearch = await itad.gameSearch(data?.name);
-      const mapping = new Mapping<any>(data?.name, itadSearch);
-      const result = await mapping.compare();
+	const steam_id = useMemo(
+		() => getSteamIdFromWebsites(data?.websites ?? []),
+		[data?.websites],
+	);
 
-      if (result) {
-        const local = await getUserCountry();
-        const itadPrices = await itad.gamePrices([result.id], local);
-        return itadPrices;
-      }
-    },
-    enabled: !!id && isReleased,
-  });
+	if (error) return null;
 
-  const steam_id = useMemo(
-    () => getSteamIdFromWebsites(data?.websites ?? []),
-    [data?.websites]
-  );
+	return (
+		<div className="relative h-full w-full max-w-[100vw] overflow-x-hidden pb-20">
+			{/* TOP BAR */}
+			<InfoBar
+				data={data}
+				titleText={data?.name ?? ""}
+				onBack={() => goBack()}
+				isPending={isPending}
+			/>
+			<div className="mx-auto mt-4 flex flex-col gap-12 overflow-hidden px-5">
+				<InfoTop
+					data={data}
+					isReleased={isReleased}
+					error={error}
+					isPending={isPending}
+					releaseDate={releaseDate}
+					steamID={steam_id}
+					itadData={itadQuery.data}
+					itadError={itadQuery.error?.message}
+					itadPending={itadQuery.isPending}
+				/>
 
-  if (error) return null;
+				{!!steam_id && <AchievementContainer steamId={steam_id} gameId={id} />}
 
-  return (
-    <div className="relative w-full h-full pb-20 overflow-x-hidden max-w-[100vw]">
-      {/* TOP BAR */}
-      <InfoBar
-        data={data}
-        titleText={data?.name ?? ""}
-        onBack={() => goBack()}
-        isPending={isPending}
-      />
-      <div className="flex flex-col gap-12 px-5 mx-auto mt-4 overflow-hidden">
-        <InfoTop
-          data={data}
-          isReleased={isReleased}
-          error={error}
-          isPending={isPending}
-          releaseDate={releaseDate}
-          itadData={itadQuery.data}
-          itadError={itadQuery.error}
-          itadPending={itadQuery.isPending}
-          steamID={steam_id}
-        />
-
-        {!!steam_id && <AchievementContainer steamId={steam_id} gameId={id} />}
-
-        <SimilarGames data={data?.similar_games ?? []} />
-      </div>
-    </div>
-  );
+				<SimilarGames data={data?.similar_games ?? []} />
+			</div>
+		</div>
+	);
 }

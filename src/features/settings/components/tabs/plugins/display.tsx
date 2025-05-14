@@ -1,112 +1,112 @@
+import type { PluginSetupJSONDisabled } from "@team-falkor/shared-types";
+import { useCallback, useMemo } from "react";
 import UnifiedPluginCard from "@/components/cards/unified-plugin-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { H5 } from "@/components/ui/typography";
-import UsePlugins from "@/hooks/usePlugins";
+import { usePluginsProviders } from "@/features/plugins/providers/hooks/usePluginsProviders";
 import { cn } from "@/lib";
-import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
-import { SortBy } from "./sort";
-import { PluginSetupJSONDisabled } from "@team-falkor/shared-types";
+import type { SortBy } from "./sort";
 
 interface Props {
-  showRows: boolean;
-  setShowRows: (showRows: boolean) => void;
+	showRows: boolean;
+	setShowRows: (showRows: boolean) => void;
 
-  sortBy: SortBy;
-  showEnabledOnly: boolean;
-  search: string;
+	sortBy: SortBy;
+	showEnabledOnly: boolean;
+	search: string;
 }
 
 const PluginDisplay = ({
-  showRows,
-  sortBy,
-  showEnabledOnly,
-  search,
+	showRows,
+	sortBy,
+	showEnabledOnly,
+	search,
 }: Props) => {
-  const { getPlugins, needsUpdate } = UsePlugins();
+	const {
+		getPlugins,
+		needsUpdate,
+		plugins,
+		isErrorPlugins,
+		errorPlugins,
+		isLoadingPlugins,
+	} = usePluginsProviders();
 
-  const { data, isPending, error } = useQuery({
-    queryKey: ["plugins", "all"],
-    queryFn: async () => {
-      const plugins = await getPlugins(true);
+	const onSearch = useCallback(
+		(search: string, toSearch?: PluginSetupJSONDisabled[] | null) => {
+			const realData = toSearch ?? plugins;
+			if (!search) return realData;
+			return realData?.filter(
+				(plugin) =>
+					plugin?.name?.toLowerCase()?.includes(search?.toLowerCase()) ||
+					plugin?.id?.toLowerCase()?.includes(search?.toLowerCase()),
+			);
+		},
+		[plugins],
+	);
 
-      return plugins?.data;
-    },
-  });
+	const sortedPlugins = useMemo(() => {
+		let sorted = plugins;
+		if (showEnabledOnly) {
+			sorted = sorted?.filter((plugin) => !plugin?.disabled);
+		}
 
-  const onSearch = useCallback(
-    (search: string, toSearch?: PluginSetupJSONDisabled[] | null) => {
-      const realData = toSearch ?? data;
-      if (!search) return realData;
-      return realData?.filter(
-        (plugin) =>
-          plugin?.name?.toLowerCase()?.includes(search?.toLowerCase()) ||
-          plugin?.id?.toLowerCase()?.includes(search?.toLowerCase())
-      );
-    },
-    [data]
-  );
+		if (sortBy === "alphabetic-asc") {
+			sorted = sorted?.sort((a, b) => a?.name?.localeCompare(b?.name));
+		} else if (sortBy === "alphabetic-desc") {
+			sorted = sorted?.sort((a, b) => b?.name?.localeCompare(a?.name));
+		}
 
-  const sortedPlugins = useMemo(() => {
-    let sorted = data;
-    if (showEnabledOnly) {
-      sorted = sorted?.filter((plugin) => !plugin?.disabled);
-    }
+		if (search?.length > 0) {
+			sorted = onSearch(search, sorted);
+		}
+		return sorted;
+	}, [plugins, onSearch, search, showEnabledOnly, sortBy]);
 
-    if (sortBy === "alphabetic-asc") {
-      sorted = sorted?.sort((a, b) => a?.name?.localeCompare(b?.name));
-    } else if (sortBy === "alphabetic-desc") {
-      sorted = sorted?.sort((a, b) => b?.name?.localeCompare(a?.name));
-    }
+	if (isLoadingPlugins) return <div>Loading...</div>;
+	if (isErrorPlugins) {
+		console.error(errorPlugins);
+		return <div>Error</div>;
+	}
 
-    if (search?.length > 0) {
-      sorted = onSearch(search, sorted);
-    }
-    return sorted;
-  }, [data, onSearch, search, showEnabledOnly, sortBy]);
+	if (!plugins) return null;
 
-  if (isPending) return <div>Loading...</div>;
-  if (error) return <div>Error</div>;
-
-  if (!data) return null;
-
-  return (
-    <ScrollArea className="w-full">
-      <div
-        className={cn([
-          {
-            "grid grid-cols-2 gap-4": showRows,
-            "grid grid-cols-1 gap-4": !showRows,
-            flex: !sortedPlugins?.length,
-          },
-        ])}
-      >
-        {sortedPlugins?.length ? (
-          sortedPlugins?.map((plugin: PluginSetupJSONDisabled) => (
-            <UnifiedPluginCard
-              key={plugin.id}
-              id={plugin.id}
-              name={plugin.name}
-              description={plugin.description}
-              version={plugin.version}
-              image={plugin.logo}
-              banner={plugin.banner}
-              isInstalled={true}
-              disabled={plugin.disabled}
-              author={plugin.author}
-              needsUpdate={!!needsUpdate?.get(plugin.id)}
-            />
-          ))
-        ) : (
-          <div className="flex items-center justify-start w-full py-2">
-            <H5 className="w-full text-left">
-              {search?.length ? `No results for "${search}"` : "No plugins"}
-            </H5>
-          </div>
-        )}
-      </div>
-    </ScrollArea>
-  );
+	return (
+		<ScrollArea className="w-full">
+			<div
+				className={cn([
+					{
+						"grid grid-cols-2 gap-4": showRows,
+						"grid grid-cols-1 gap-4": !showRows,
+						flex: !sortedPlugins?.length,
+					},
+				])}
+			>
+				{sortedPlugins?.length ? (
+					sortedPlugins?.map((plugin: PluginSetupJSONDisabled) => (
+						<UnifiedPluginCard
+							key={plugin.id}
+							id={plugin.id}
+							name={plugin.name}
+							description={plugin.description}
+							version={plugin.version}
+							image={plugin.logo}
+							banner={plugin.banner}
+							isInstalled={true}
+							disabled={plugin.disabled}
+							author={plugin.author}
+							needsUpdate={!!needsUpdate?.find((plugin) => plugin.id)}
+						/>
+					))
+				) : (
+					<div className="flex w-full items-center justify-start py-2">
+						<H5 className="w-full text-left">
+							{search?.length ? `No results for "${search}"` : "No plugins"}
+						</H5>
+					</div>
+				)}
+			</div>
+		</ScrollArea>
+	);
 };
 
 export default PluginDisplay;
