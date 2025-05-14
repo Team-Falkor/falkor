@@ -144,5 +144,6 @@
 	"update_description": "A new update is available for Falkor. Do you want to update now?",
 	"update_now": "Update Now",
 	"later": "Later",
-	"changelog": "Changelog"
+	"changelog": "Changelog",
+	"no_games_installed": "You have not installed any games yet"
 }

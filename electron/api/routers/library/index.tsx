@@ -1,6 +1,6 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames } from "@backend/database/schemas";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const libraryGamesRouter = router({
@@ -11,25 +11,27 @@ export const libraryGamesRouter = router({
 				offset: z.number().min(0).default(0),
 			}),
 		)
-		.query(({ input, ctx }) => {
-			return ctx.db
+		.query(async ({ input, ctx }) => {
+			return await ctx.db
 				.select()
 				.from(libraryGames)
 				.limit(input.limit)
 				.offset(input.offset)
-				.where(eq(libraryGames.installed, true));
+				.where(eq(libraryGames.installed, true))
+				.orderBy(desc(libraryGames.gamePlaytime));
 		}),
 
 	getById: publicProcedure
 		.input(z.object({ id: z.number() }))
 		.query(async ({ input, ctx }) => {
-			const rows = await ctx.db
+			const row = ctx.db
 				.select()
 				.from(libraryGames)
 				.where(
 					and(eq(libraryGames.id, input.id), eq(libraryGames.installed, true)),
-				);
-			return rows[0] || null;
+				)
+				.get();
+			return row;
 		}),
 
 	create: publicProcedure
@@ -57,10 +59,11 @@ export const libraryGamesRouter = router({
 				...input,
 				gameLastPlayed: input.gameLastPlayed ?? null,
 			};
-			const [created] = await ctx.db
+			const created = ctx.db
 				.insert(libraryGames)
 				.values([toInsert])
-				.returning();
+				.returning()
+				.get();
 			return created;
 		}),
 
@@ -92,21 +95,23 @@ export const libraryGamesRouter = router({
 				...input.data,
 				gameLastPlayed: input.data.gameLastPlayed ?? undefined,
 			};
-			const [updated] = await ctx.db
+			const updated = await ctx.db
 				.update(libraryGames)
 				.set(updates)
 				.where(eq(libraryGames.id, input.id))
-				.returning();
+				.returning()
+				.get();
 			return updated;
 		}),
 
 	delete: publicProcedure
 		.input(z.object({ id: z.number() }))
 		.mutation(async ({ input, ctx }) => {
-			const [deleted] = await ctx.db
+			const deleted = ctx.db
 				.delete(libraryGames)
 				.where(eq(libraryGames.id, input.id))
-				.returning();
+				.returning()
+				.get();
 			return deleted;
 		}),
 });

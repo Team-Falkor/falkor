@@ -3,12 +3,14 @@
 import { useMemo } from "react";
 import ListCard from "@/components/cards/list-card";
 import { H5, P } from "@/components/ui/typography";
+import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
-
 import { useGames } from "../hooks/use-games";
 import type { ActiveLibraryProps } from "./active-library";
 
 const ActiveLibraryContent = (props: ActiveLibraryProps) => {
+	const { t } = useLanguageContext();
+
 	const { type } = props;
 
 	// === Hooks ===
@@ -27,15 +29,8 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 	// === Render branches ===
 	if (type === "game") {
 		if (gamesList.length === 0) {
-			return <H5>You have not added any games to continue playing.</H5>;
+			return <H5>{t("no_games_installed")}</H5>;
 		}
-		return (
-			<div className="flex flex-wrap gap-4">
-				{gamesList.map((game) => (
-					<ListCard key={game.id} {...game} />
-				))}
-			</div>
-		);
 	}
 
 	if (type === "list") {
