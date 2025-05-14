@@ -13,7 +13,6 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 
 	const { type } = props;
 
-	// === Hooks ===
 	const { games: gamesMap } = useGames(true);
 	const gamesList = useMemo(() => Object.values(gamesMap), [gamesMap]);
 
@@ -26,7 +25,6 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 	);
 	const listGames = listQuery.data?.games ?? [];
 
-	// === Render branches ===
 	if (type === "game") {
 		if (gamesList.length === 0) {
 			return <H5>{t("no_games_installed")}</H5>;
@@ -54,7 +52,6 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 		return (
 			<div className="flex flex-wrap gap-4">
 				{listGames.map((game) => (
-					// Assuming ListCard expects a full `LibraryGame` object:
 					<ListCard key={game.id} {...game} />
 				))}
 			</div>
