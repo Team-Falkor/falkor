@@ -1,55 +1,47 @@
 import type { UseFormReturn } from "react-hook-form";
+import { trpc } from "@/lib";
 import type { NewGameFormSchema } from "../components/modals/new-game/schema";
 
 export const useFormActions = (form: UseFormReturn<NewGameFormSchema>) => {
+	const openDialog = trpc.app.openDialog.useMutation();
+
 	const handlePathButton = async () => {
-		const selected: any = await window.ipcRenderer.invoke(
-			"generic:open-dialog",
-			{
-				properties: ["openFile"],
-				filters: [{ name: "Executable", extensions: ["exe", "sh"] }],
-			},
-		);
+		const selected = await openDialog.mutateAsync({
+			properties: ["openFile"],
+			filters: [{ name: "Executable", extensions: ["exe", "sh"] }],
+		});
 
-		if (selected.canceled) return;
-		if (!selected.filePaths.length) return;
+		if (!selected.success || !selected.result) return;
+		if (selected.result.canceled) return;
+		if (!selected.result.filePaths.length) return;
 
-		const selectedPath = selected.filePaths[0];
-
+		const selectedPath = selected.result.filePaths[0];
 		form.setValue("gamePath", selectedPath.replace(/\\/g, "//"));
 	};
 
 	const handleWinePrefixButton = async () => {
-		const selected: any = await window.ipcRenderer.invoke(
-			"generic:open-dialog",
-			{
-				properties: ["openDirectory"],
-			},
-		);
+		const selected = await openDialog.mutateAsync({
+			properties: ["openDirectory"],
+		});
+		if (!selected.success || !selected.result) return;
+		if (selected.result.canceled) return;
+		if (!selected.result.filePaths.length) return;
 
-		if (selected.canceled) return;
-		if (!selected.filePaths.length) return;
-
-		const selectedPath = selected.filePaths[0];
-
+		const selectedPath = selected.result.filePaths[0];
 		form.setValue("winePrefixFolder", selectedPath.replace(/\\/g, "//"));
 	};
 
 	const handleIconButton = async () => {
-		const selected: any = await window.ipcRenderer.invoke(
-			"generic:open-dialog",
-			{
-				properties: ["openFile"],
-				filters: [
-					{ name: "Images", extensions: ["jpg", "png", "jpeg", "webp"] },
-				],
-			},
-		);
+		const selected = await openDialog.mutateAsync({
+			properties: ["openFile"],
+			filters: [{ name: "Images", extensions: ["jpg", "png", "jpeg", "webp"] }],
+		});
 
-		if (selected.canceled) return;
-		if (!selected.filePaths.length) return;
+		if (!selected.success || !selected.result) return;
+		if (selected.result.canceled) return;
+		if (!selected.result.filePaths.length) return;
 
-		const selectedPath = selected.filePaths[0];
+		const selectedPath = selected.result.filePaths[0];
 		form.setValue("gameIcon", selectedPath.replace(/\\/g, "//"));
 	};
 
@@ -77,5 +69,6 @@ export const useFormActions = (form: UseFormReturn<NewGameFormSchema>) => {
 		handleIconButton,
 		handleShuffleButton,
 		handleWinePrefixButton,
+		openDialog,
 	};
 };

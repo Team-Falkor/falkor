@@ -76,6 +76,9 @@ export async function createWindow(
 			show: options.showOnStartup ?? true,
 		});
 
+		// TODO: add a setting for this
+		win.maximize();
+
 		// Load the app URL
 		if (VITE_DEV_SERVER_URL) {
 			await win.loadURL(VITE_DEV_SERVER_URL);

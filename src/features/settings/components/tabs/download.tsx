@@ -16,6 +16,8 @@ const TorrentSettings = () => {
 	const { t } = useLanguageContext();
 	const { data: settings } = trpc.settings.read.useQuery();
 	const { mutate: updateSetting } = trpc.settings.update.useMutation();
+	const openDialogMutation = trpc.app.openDialog.useMutation();
+
 	const [downloadPath, setDownloadPath] = useState(
 		settings?.downloadsPath ?? "",
 	);
@@ -65,13 +67,18 @@ const TorrentSettings = () => {
 	};
 
 	const openDialog = async () => {
-		const selected: { canceled: boolean; filePaths: string[] } =
-			await window.ipcRenderer.invoke("generic:open-dialog", {
-				properties: ["openDirectory"],
-			});
+		const selected = await openDialogMutation.mutateAsync({
+			properties: ["openDirectory"],
+		});
 
-		if (!selected.canceled && selected.filePaths.length > 0) {
-			setDownloadPath(selected.filePaths[0]);
+		// Consistent return shape: check for success and result
+		if (!selected.success || !selected.result) {
+			if (selected.message) toast.error(selected.message);
+			return;
+		}
+
+		if (!selected.result.canceled && selected.result.filePaths.length > 0) {
+			setDownloadPath(selected.result.filePaths[0]);
 		}
 	};
 
@@ -105,6 +112,7 @@ const TorrentSettings = () => {
 								className="rounded-lg rounded-l-none bg-muted hover:bg-muted"
 								onClick={openDialog}
 								aria-label="Select Folder"
+								disabled={openDialogMutation.isPending}
 							>
 								<Folder />
 							</Button>

@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { constants } from "@backend/utils/constants";
 import { playSound } from "@backend/utils/playsound";
 import AutoLaunch from "auto-launch";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, dialog } from "electron";
 import { z } from "zod";
 import { Sound } from "@/@types";
 import { downloadQueue } from "../../../handlers/downloads/queue";
@@ -26,6 +26,35 @@ const getMainWindow = (): BrowserWindow | null => {
 // Helper to return standard responses
 const success = (message?: string) => ({ success: true, message });
 const failure = (message: string) => ({ success: false, message });
+
+const openDialogOptionsSchema = z.object({
+	title: z.string().optional(),
+	defaultPath: z.string().optional(),
+	buttonLabel: z.string().optional(),
+	filters: z
+		.array(
+			z.object({
+				name: z.string(),
+				extensions: z.array(z.string()),
+			}),
+		)
+		.optional(),
+	properties: z
+		.array(
+			z.enum([
+				"openFile",
+				"openDirectory",
+				"multiSelections",
+				"showHiddenFiles",
+				"createDirectory",
+				"promptToCreate",
+				"noResolveAliases",
+				"treatPackageAsDirectory",
+				"dontAddToRecent",
+			]),
+		)
+		.optional(),
+});
 
 export const appFunctionsRouter = router({
 	autoLaunch: publicProcedure
@@ -69,9 +98,9 @@ export const appFunctionsRouter = router({
 			const win = getMainWindow();
 			const closeToTray = settings.get("closeToTray");
 
-			if (!closeToTray) {
-				win?.close();
-				console.log("[App] Hidden to tray (closeToTray=false).");
+			if (closeToTray) {
+				win?.hide();
+				console.log("[App] Hidden to tray (closeToTray=true).");
 				return success("App hidden to tray.");
 			}
 
@@ -166,6 +195,26 @@ export const appFunctionsRouter = router({
 				return {
 					success: false,
 					message: `Error playing sound: ${error instanceof Error ? error.message : String(error)}`,
+				};
+			}
+		}),
+
+	openDialog: publicProcedure
+		.input(openDialogOptionsSchema)
+		.mutation(async ({ input }) => {
+			try {
+				const result = await dialog.showOpenDialog(input);
+				return {
+					success: true,
+					result,
+					message: null,
+				};
+			} catch (error) {
+				console.error("[openDialog] Error:", error);
+				return {
+					success: false,
+					message: error instanceof Error ? error.message : String(error),
+					result: null,
 				};
 			}
 		}),
