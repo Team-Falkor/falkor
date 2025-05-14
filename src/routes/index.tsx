@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import MainContainer from "@/components/containers/mainContainer";
-import FeaturedGames from "@/features/home/components/featuredGames";
+import FeaturedGames from "@/features/home/components/FeaturedGames";
 import GameCategories from "@/features/home/components/GameCategories";
 import GameRows from "@/features/home/components/GameRows";
 import HeroSection from "@/features/home/components/HeroSection";
