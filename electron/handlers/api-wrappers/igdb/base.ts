@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@backend/utils/utils";
 import type { IGDBAccessTokenResponse } from "@/@types";
 import { defaultFields } from "./constants";
 
@@ -139,9 +140,9 @@ class IGDBApiBase {
 			return (await res.json()) as T;
 		} catch (error) {
 			console.error("IGDB API request failed:", error);
-			throw error instanceof Error
-				? error
-				: new Error("Failed to fetch data from IGDB API");
+			throw new Error(
+				getErrorMessage(error, "Failed to fetch data from IGDB API"),
+			);
 		}
 	}
 }

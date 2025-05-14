@@ -1,4 +1,5 @@
 import { EventEmitter } from "node:events";
+import { getErrorMessage } from "@backend/utils/utils";
 import {
 	type AddDownloadOptions,
 	type DownloadError,
@@ -173,10 +174,7 @@ class DownloadQueue extends EventEmitter {
 		try {
 			await handler.startDownload(download);
 		} catch (error) {
-			this.handleDownloadError(
-				id,
-				error instanceof Error ? error.message : "Unknown error",
-			);
+			this.handleDownloadError(id, getErrorMessage(error));
 		}
 	}
 

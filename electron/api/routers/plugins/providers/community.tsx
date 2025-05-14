@@ -1,5 +1,6 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { createApiUrl } from "@backend/utils/createApiUrl";
+import { getErrorMessage } from "@backend/utils/utils";
 import type {
 	ApiResponse,
 	PluginProvider,
@@ -35,12 +36,10 @@ export const communityProvidersRouter = router({
 				);
 				return await response.json();
 			} catch (err) {
-				let message = "unknown error";
-				if (err instanceof Error) message = err.message;
 				return {
 					success: false,
 					error: true,
-					message,
+					message: getErrorMessage(err),
 				};
 			}
 		}),
@@ -58,12 +57,10 @@ export const communityProvidersRouter = router({
 				});
 				return await response.json();
 			} catch (err) {
-				let message = "unknown error";
-				if (err instanceof Error) message = err.message;
 				return {
 					success: false,
 					error: true,
-					message,
+					message: getErrorMessage(err),
 				};
 			}
 		}),

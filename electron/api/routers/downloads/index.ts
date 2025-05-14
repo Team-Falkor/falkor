@@ -2,6 +2,7 @@ import { DebridManager } from "@backend/handlers/debrid-manager";
 import { httpDownloadHandler } from "@backend/handlers/downloads/http";
 import { torrentDownloadHandler } from "@backend/handlers/downloads/torrent";
 import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
+import { getErrorMessage } from "@backend/utils/utils";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, router } from "../../../api/trpc";
@@ -92,7 +93,7 @@ export const downloadQueueRouter = router({
 		} catch (err) {
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
-				message: err instanceof Error ? err.message : "Failed to add download",
+				message: getErrorMessage(err, "Failed to add download"),
 			});
 		}
 	}),

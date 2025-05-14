@@ -4,6 +4,7 @@ import * as http from "node:http";
 import * as https from "node:https";
 import * as path from "node:path";
 import { URL } from "node:url";
+import { getErrorMessage } from "@backend/utils/utils";
 import {
 	type DownloadItem,
 	type DownloadProgress,
@@ -56,10 +57,7 @@ export class HttpDownloadHandler extends EventEmitter {
 			// Start the download
 			this.initiateDownload(item);
 		} catch (error) {
-			this.handleError(
-				item.id,
-				error instanceof Error ? error.message : "Unknown error",
-			);
+			this.handleError(item.id, getErrorMessage(error));
 		}
 	}
 
