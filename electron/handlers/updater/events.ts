@@ -74,7 +74,8 @@ const checkForUpdate = async (_event: Electron.IpcMainInvokeEvent) => {
 const installUpdate = async (_event: Electron.IpcMainInvokeEvent) => {
 	console.log("Installing update...");
 	try {
-		return await updater.update();
+		updater.installUpdate();
+		return { success: true };
 	} catch (error) {
 		console.error("Error installing update: ", error);
 		return { success: false, error };

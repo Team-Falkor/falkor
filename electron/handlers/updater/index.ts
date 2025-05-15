@@ -42,6 +42,7 @@ class Updater {
 		});
 		autoUpdater.on("error", (error) => {
 			console.error("Error checking for updates: ", error);
+			emitToFrontend("updater:error", error);
 		});
 		autoUpdater.on("checking-for-update", () => {
 			console.log("Checking for updates...");
@@ -49,19 +50,12 @@ class Updater {
 		autoUpdater.on("update-downloaded", () => {
 			console.log("Update downloaded.");
 			this.updateAvailable = false;
+			// No auto call to quitAndInstall here!
 		});
 		autoUpdater.on("download-progress", (progressObj) => {
 			console.log("Download progress: ", progressObj);
 
 			emitToFrontend("updater:download-progress", progressObj.percent);
-		});
-
-		autoUpdater.on("update-downloaded", () => {
-			autoUpdater.quitAndInstall();
-		});
-
-		autoUpdater.on("error", (error) => {
-			emitToFrontend("updater:error", error);
 		});
 	}
 
@@ -85,16 +79,8 @@ class Updater {
 		return await autoUpdater.downloadUpdate();
 	}
 
-	public async update() {
-		try {
-			const check = await autoUpdater.checkForUpdatesAndNotify();
-			if (!check) return false;
-			if (check?.updateInfo?.version <= app.getVersion()) return false;
-
-			await autoUpdater.downloadUpdate();
-		} catch (error) {
-			console.error("Error updating app: ", error);
-		}
+	public installUpdate() {
+		autoUpdater.quitAndInstall();
 	}
 }
 
