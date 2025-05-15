@@ -58,14 +58,16 @@ export async function createWindow(
 			console.warn(`Icon not found at path: ${iconPath}`);
 		}
 
+		const devToolsOverride = import.meta.env.VITE_DEVTOOLS_OVERRIDE === "true";
+
 		// Create the browser window
 		win = new BrowserWindow({
 			title: "Falkor",
 			icon: iconExists ? iconPath : undefined,
 			webPreferences: {
 				preload: PRELOAD_PATH,
-				// devTools: options.enableDevTools ?? !app.isPackaged,
-				devTools: true,
+				devTools: devToolsOverride || options.enableDevTools || !app.isPackaged,
+				// devTools: true,
 				contextIsolation: true,
 				nodeIntegration: false,
 			},
