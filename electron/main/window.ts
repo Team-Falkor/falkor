@@ -101,10 +101,12 @@ export async function createWindow(
 			},
 		});
 
-		// Initialize tray if needed
-		if (options.createTray ?? true) {
-			createTray();
-		}
+		app.whenReady().then(() => {
+			// Initialize tray if needed
+			if (options.createTray ?? true) {
+				createTray();
+			}
+		});
 
 		console.log("Main window created successfully");
 		return win;
@@ -159,12 +161,13 @@ export function createTray(): Tray | null {
 			return null;
 		}
 
-		// Create tray with icon and optimize for better quality
 		const trayImage = nativeImage.createFromPath(trayIconPath).resize({
 			width: 16,
 			height: 16,
 			quality: "best",
 		});
+
+		console.log("Tray image empty?", trayImage.isEmpty());
 
 		tray = new Tray(trayImage);
 		tray.setToolTip("Falkor");
