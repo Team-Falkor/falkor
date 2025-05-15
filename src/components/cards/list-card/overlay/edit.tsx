@@ -51,6 +51,7 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 									: undefined,
 								winePrefixFolder: values.winePrefixFolder,
 								gameSteamId: values.steamId,
+								installed: values.installed,
 							},
 						});
 						utils.library.list.invalidate();
@@ -66,6 +67,7 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 						winePrefixFolder: game.winePrefixFolder ?? undefined,
 						steamId: game.gameSteamId ?? undefined,
 						gameId: game.gameId,
+						installed: game.installed ?? undefined,
 					}}
 				/>
 			</DialogContent>

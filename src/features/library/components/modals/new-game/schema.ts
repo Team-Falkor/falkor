@@ -13,6 +13,7 @@ export const newGameFormSchema = z.object({
 	igdbId: z.string().optional(),
 	steamId: z.string().optional(),
 	winePrefixFolder: z.string().optional(),
+	installed: z.boolean().optional(),
 });
 
 export type NewGameFormSchema = z.infer<typeof newGameFormSchema>;

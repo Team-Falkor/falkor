@@ -13,7 +13,6 @@ const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 	const { isRunning, initializing, isMutating, toggleGameState } =
 		useGameLauncher(game);
 
-	// Don't render if game isn't installed
 	if (!game.installed || !game.gamePath) return null;
 
 	const buttonTitle = initializing
@@ -24,7 +23,11 @@ const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 
 	return (
 		<button
-			onClick={toggleGameState}
+			onClick={(e) => {
+				toggleGameState();
+				e.stopPropagation();
+				e.preventDefault();
+			}}
 			disabled={initializing || isMutating}
 			type="button"
 			title={buttonTitle}
