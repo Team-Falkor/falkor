@@ -255,3 +255,33 @@ export function cleanup(): void {
 		tray = null;
 	}
 }
+
+export const emitToFrontend = <TData>(
+	channel: string,
+	data?: TData,
+): boolean => {
+	if (!channel || typeof channel !== "string") {
+		console.log("error", "Invalid channel name for IPC communication");
+		return false;
+	}
+
+	if (!win || win.isDestroyed()) {
+		console.log(
+			"warn",
+			`Cannot emit to frontend (${channel}): window does not exist or is destroyed`,
+		);
+		return false;
+	}
+
+	try {
+		win.webContents.send(channel, data);
+		return true;
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.log(
+			"error",
+			`Failed to emit to frontend (${channel}): ${errorMessage}`,
+		);
+		return false;
+	}
+};

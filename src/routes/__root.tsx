@@ -1,9 +1,9 @@
-// import Updater from "@/features/updater/components/updater";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import TitleBar from "@/components/title-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NavBar from "@/features/navigation/components/navbar";
 import { useSettings } from "@/features/settings/hooks/useSettings";
+import Updater from "@/features/updater/components/updater";
 import { useGamepadNavigation } from "@/hooks/use-gamepad-navigation";
 import { cn, shouldHideTitleBar } from "@/lib";
 
@@ -24,7 +24,7 @@ function Root() {
 				<TitleBar />
 
 				{/* Wrapper for Updater and main content */}
-				{/* <Updater /> */}
+				<Updater />
 				<div
 					className={cn("relative flex min-h-screen w-full bg-muted/40", {
 						"pt-8": !shouldHideTitleBar(titleBarStyle),
