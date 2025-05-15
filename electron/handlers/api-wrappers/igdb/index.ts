@@ -342,8 +342,6 @@ export class IGDBWrapper extends IGDBApiBase {
 		const whereClause = conditions.join(" & ");
 		const sortClause = sort ?? "popularity desc";
 
-		console.log({ whereClause, filters });
-
 		return this.makeReq<IGDBReturnDataType[]>("games", {
 			where: whereClause,
 			sort: sortClause,

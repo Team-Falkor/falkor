@@ -131,7 +131,11 @@ const Updater = () => {
 						<Button variant="destructive">{t("later")}</Button>
 					</DialogClose>
 					<Button
-						onClick={installUpdate}
+						onClick={(e) => {
+							e.preventDefault();
+							setOpen(true);
+							installUpdate();
+						}}
 						disabled={progress !== undefined && progress > 0}
 					>
 						{t("update_now")}
