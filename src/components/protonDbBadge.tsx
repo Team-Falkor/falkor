@@ -1,5 +1,6 @@
 import { ProtonDBTierColor } from "@/@types";
 import { trpc } from "@/lib";
+import protondb from "/protondb.png";
 
 interface Props {
 	appId: string;
@@ -26,7 +27,7 @@ const ProtonDbBadge = ({ appId }: Props) => {
 			style={{ backgroundColor: color }}
 		>
 			<img
-				src="/protondb.png"
+				src={protondb}
 				className="size-full object-contain"
 				alt="Proton Db Badge"
 				aria-label="Proton Db Badge"

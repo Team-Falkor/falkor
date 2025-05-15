@@ -61,7 +61,8 @@ export async function createWindow(
 			icon: iconExists ? iconPath : undefined,
 			webPreferences: {
 				preload: PRELOAD_PATH,
-				devTools: options.enableDevTools ?? !app.isPackaged,
+				// devTools: options.enableDevTools ?? !app.isPackaged,
+				devTools: true,
 				contextIsolation: true,
 				nodeIntegration: false,
 			},
