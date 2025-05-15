@@ -48,7 +48,10 @@ export async function createWindow(
 		const frame = titleBarStyle === "native" || titleBarStyle === "none";
 
 		// Resolve icon path
-		const iconPath = path.join(process.env.VITE_PUBLIC ?? "", "icon.png");
+		const iconPath = path.join(
+			process.env.VITE_PUBLIC ?? "",
+			"icon-256x256.png",
+		);
 		const iconExists = existsSync(iconPath);
 
 		if (!iconExists) {
@@ -154,7 +157,10 @@ export function createTray(): Tray | null {
 
 	try {
 		// Resolve tray icon path
-		const trayIconPath = path.join(process.env.VITE_PUBLIC ?? "", "icon.png");
+		const trayIconPath = path.join(
+			process.env.VITE_PUBLIC ?? "",
+			"icon-16x16.png",
+		);
 
 		// Verify icon exists
 		if (!existsSync(trayIconPath)) {
@@ -162,11 +168,7 @@ export function createTray(): Tray | null {
 			return null;
 		}
 
-		const trayImage = nativeImage.createFromPath(trayIconPath).resize({
-			width: 16,
-			height: 16,
-			quality: "best",
-		});
+		const trayImage = nativeImage.createFromPath(trayIconPath);
 
 		tray = new Tray(trayImage);
 		tray.setToolTip("Falkor");

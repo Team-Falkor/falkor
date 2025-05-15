@@ -17,12 +17,12 @@ export function useSettings() {
 
 	// Update a setting and invalidate cache on success
 	const updateSettingMutation = trpc.settings.update.useMutation({
-		onSuccess: () => utils.settings.invalidate(),
+		onSuccess: () => utils.invalidate(),
 	});
 
 	// Reset all settings and invalidate cache on success
 	const resetSettingsMutation = trpc.settings.reset.useMutation({
-		onSuccess: () => utils.settings.invalidate(),
+		onSuccess: () => utils.invalidate(),
 	});
 
 	return {
