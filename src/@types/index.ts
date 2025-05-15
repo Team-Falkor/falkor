@@ -6,3 +6,4 @@ export * from "./itad";
 export * from "./logs";
 export * from "./settings";
 export * from "./types";
+export * from "./updater";

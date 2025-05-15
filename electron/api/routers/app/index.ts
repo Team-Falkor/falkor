@@ -218,4 +218,12 @@ export const appFunctionsRouter = router({
 				};
 			}
 		}),
+
+	appInfo: publicProcedure.query(() => {
+		return {
+			appName: app.getName(),
+			appVersion: app.getVersion(),
+			isPackaged: app.isPackaged,
+		};
+	}),
 });

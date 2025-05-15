@@ -1,24 +1,22 @@
-import { createRequire } from "node:module";
 import { TRPCError } from "@trpc/server";
 import { app } from "electron";
 import type { UpdateInfo } from "electron-updater";
+import electronUpdater from "electron-updater";
+import {
+	DownloadEventType,
+	type DownloadProgressPayload,
+	type UpdateAvailabilityPayload,
+} from "@/@types";
 import { publicProcedure, router } from "../../../api/trpc";
 import { emitOnce } from "../../../utils/emit-once";
 
-const { autoUpdater } = createRequire(import.meta.url)("electron-updater");
-
-type UpdateAvailabilityPayload = {
-	update: boolean;
-	version: string;
-	newVersion: string;
-};
-
-type DownloadProgressPayload = {
-	bytesPerSecond: number;
-	percent: number;
-	transferred: number;
-	total: number;
-};
+const { autoUpdater } = electronUpdater;
+// Configure updater
+autoUpdater.allowDowngrade = true;
+autoUpdater.autoInstallOnAppQuit = false;
+autoUpdater.autoDownload = false;
+autoUpdater.forceDevUpdateConfig = true;
+autoUpdater.fullChangelog = false;
 
 export const updateRouter = router({
 	/**
@@ -36,6 +34,7 @@ export const updateRouter = router({
 			// This will emit "update-available" or "update-not-available"
 			return await autoUpdater.checkForUpdatesAndNotify();
 		} catch (err) {
+			console.error(err);
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
 				message: "Failed to check for updates",
@@ -47,12 +46,12 @@ export const updateRouter = router({
 	 * Subscription: emits once when an update is available or not
 	 */
 	subscribeAvailability: publicProcedure.subscription(async function* () {
-		if (!app.isPackaged) {
-			yield {
-				error: "Updates unavailable in development",
-			};
-			return;
-		}
+		// if (!app.isPackaged) {
+		// 	yield {
+		// 		error: "Updates unavailable in development",
+		// 	};
+		// 	return;
+		// }
 
 		try {
 			// Race between available / not-available
@@ -88,11 +87,6 @@ export const updateRouter = router({
 	 * Subscription: starts download and streams progress until complete or error
 	 */
 	startDownload: publicProcedure.subscription(async function* () {
-		// Configure updater
-		autoUpdater.autoDownload = false;
-		autoUpdater.allowDowngrade = false;
-		autoUpdater.disableWebInstaller = false;
-
 		// Kick off
 		autoUpdater.downloadUpdate();
 
@@ -100,30 +94,36 @@ export const updateRouter = router({
 			let done = false;
 			while (!done) {
 				const ev = await Promise.race<
-					| { type: "download-progress"; info: DownloadProgressPayload }
-					| { type: "update-downloaded" }
-					| { type: "error"; err: Error }
+					| {
+							type: DownloadEventType.DownloadProgress;
+							info: DownloadProgressPayload;
+					  }
+					| { type: DownloadEventType.UpdateDownloaded }
+					| { type: DownloadEventType.Error; err: Error }
 				>([
 					emitOnce<DownloadProgressPayload>(
 						autoUpdater,
 						"download-progress",
-					).then((info) => ({ type: "download-progress" as const, info })),
+					).then((info) => ({
+						type: DownloadEventType.DownloadProgress,
+						info,
+					})),
 					emitOnce<void>(autoUpdater, "update-downloaded").then(() => ({
-						type: "update-downloaded" as const,
+						type: DownloadEventType.UpdateDownloaded,
 					})),
 					emitOnce<Error>(autoUpdater, "error").then((err) => ({
-						type: "error" as const,
+						type: DownloadEventType.Error,
 						err,
 					})),
 				]);
 
-				if (ev.type === "download-progress") {
-					yield { type: "download-progress", info: ev.info };
-				} else if (ev.type === "update-downloaded") {
-					yield { type: "update-downloaded" };
+				if (ev.type === DownloadEventType.DownloadProgress) {
+					yield { type: DownloadEventType.DownloadProgress, info: ev.info };
+				} else if (ev.type === DownloadEventType.UpdateDownloaded) {
+					yield { type: DownloadEventType.UpdateDownloaded };
 					done = true;
 				} else {
-					yield { type: "error", error: ev.err.message };
+					yield { type: DownloadEventType.Error, error: ev.err.message };
 					done = true;
 				}
 			}

@@ -3,7 +3,7 @@ import { FaDiscord, FaGithub } from "react-icons/fa6";
 import { SiKofi } from "react-icons/si";
 import type { LinkItemType } from "@/@types";
 // import { useUpdater } from "@/hooks/useUpdater";
-import { H3 } from "@/components/ui/typography";
+import { H3, H4, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
 import { cn, shouldHideTitleBar, trpc } from "@/lib";
 import SettingsLinkGroup from "./linkGroup";
@@ -38,14 +38,7 @@ const SettingsSidebar = ({
 	const { t } = useLanguageContext();
 	const { data: settings } = trpc.settings.read.useQuery();
 
-	// const { data, isPending, isError } = useQuery({
-	//   queryKey: ["app", "info"],
-
-	//   queryFn: async () => {
-	//     const response = await invoke<AppInfo>("generic:get-app-info");
-	//     return response;
-	//   },
-	// });
+	const { data, isPending, isError } = trpc.app.appInfo.useQuery();
 
 	return (
 		<div
@@ -61,11 +54,11 @@ const SettingsSidebar = ({
 			</div>
 			<nav className="flex-1 space-y-1 ">{settingsTabs}</nav>
 			<div className="mt-auto flex flex-col gap-2 p-1 px-4">
-				{/* {!isPending && !isError && (
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-3">
-              <P className="font-bold capitalize">{t("falkor")}</P>
-              {updateAvailable && (
+				{!isPending && !isError && (
+					<div className="flex flex-col gap-0.5">
+						<div className="flex items-center gap-3">
+							<H4>{t("falkor")}</H4>
+							{/* {updateAvailable && (
                 <Button
                   variant={"ghost"}
                   size={"icon"}
@@ -74,13 +67,13 @@ const SettingsSidebar = ({
                 >
                   <DownloadCloud className="size-5" />
                 </Button>
-              )}
-            </div>
-            <TypographyMuted>
-              {t("version")}: {data?.app_version}
-            </TypographyMuted>
-          </div>
-        )} */}
+              )} */}
+						</div>
+						<TypographyMuted>
+							{t("version")}: {data?.appVersion}
+						</TypographyMuted>
+					</div>
+				)}
 				<div className="flex shrink-0 grow-0 justify-between">
 					<SettingsLinkGroup links={LINKS} />
 					<SettingsLinkGroup links={LINKS_RIGHT} />

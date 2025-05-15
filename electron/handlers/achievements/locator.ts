@@ -19,6 +19,8 @@ interface FilePath {
 }
 
 class AchievementFileLocator {
+	private constructor() {}
+
 	private static isWindows = process.platform === "win32";
 	private static user = this.isWindows
 		? undefined
