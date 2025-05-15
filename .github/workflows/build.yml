@@ -6,7 +6,34 @@ on:
       - testing
 
 jobs:
+  prebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Prebuild (tsc & vite)
+        run: yarn run prebuild
+
+      - name: Upload prebuild artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuild
+          path: |
+            dist
+            dist-electron
+
   build:
+    needs: prebuild
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -31,7 +58,12 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Download prebuild artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: prebuild
 
       - name: Build on Linux
         if: matrix.os == 'ubuntu-latest'
@@ -40,11 +72,11 @@ jobs:
           sudo apt-get install -y libarchive-tools fakeroot dpkg snapd flatpak flatpak-builder rpm
           sudo ln -s /snap/bin/snapcraft /usr/local/bin/snapcraft
           sudo snap install snapcraft --classic
-          yarn run prebuild && yarn run build:linux
+          yarn run build:linux
 
       - name: Build on Windows
         if: matrix.os == 'windows-latest'
-        run: yarn run prebuild && yarn run build:win
+        run: yarn run build:win
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
