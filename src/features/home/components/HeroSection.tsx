@@ -19,7 +19,7 @@ const HeroSection = () => {
 				</TypographyMuted>
 				<div className="mt-2 flex gap-4">
 					<Link
-						to="/"
+						to="/library"
 						className={buttonVariants({
 							variant: "active",
 						})}
