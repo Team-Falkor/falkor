@@ -18,27 +18,6 @@ jobs:
           node-version: 22
           cache: yarn
 
-      - name: Get Electron version from package.json
-        id: electron_version
-        run: |
-          echo "ELECTRON_VERSION=$(node -p "require('./package.json').devDependencies['electron'] || require('./package.json').dependencies['electron']")" >> $GITHUB_ENV
-
-      - name: Cache node_modules and Electron native deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.cache/electron
-            ~/.cache/electron-builder
-            .yarn/cache
-            .yarn/unplugged
-            .yarn/build-state.yml
-            .yarn/install-state.gz
-          key: ubuntu-latest-electron${{ env.ELECTRON_VERSION }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ubuntu-latest-electron${{ env.ELECTRON_VERSION }}-
-            ubuntu-latest-
-
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
@@ -72,26 +51,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get Electron version from package.json
-        id: electron_version
-        run: |
-          echo "ELECTRON_VERSION=$(node -p "require('./package.json').devDependencies['electron'] || require('./package.json').dependencies['electron']")" >> $GITHUB_ENV
-
-      - name: Cache node_modules and Electron native deps
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: |
-            node_modules
-            ~/.cache/electron
-            ~/.cache/electron-builder
-            .yarn/cache
-            .yarn/unplugged
-            .yarn/build-state.yml
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-electron${{ env.ELECTRON_VERSION }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-electron${{ env.ELECTRON_VERSION }}-
-            ${{ runner.os }}-
+          node-version: 22
+          cache: yarn
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
