@@ -4,7 +4,16 @@ import { trpc } from "@/lib/trpc";
 import { DownloadItem } from "./DownloadItem";
 
 export function DownloadList() {
-	const { data: downloads } = trpc.downloads.getAll.useQuery();
+	const { data: downloads } = trpc.downloads.getAll.useQuery(undefined, {
+		refetchInterval: 2500, // 2.5 seconds
+		refetchIntervalInBackground: true,
+		refetchOnMount: true,
+		refetchOnReconnect: true,
+		refetchOnWindowFocus: true,
+		retry: 3,
+		staleTime: 1000, // 1 second
+		enabled: true,
+	});
 
 	// if (!downloads?.length) {
 	// 	return (

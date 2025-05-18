@@ -10,9 +10,9 @@ export const useDownloadActions = () => {
 		isPending: isAddingDownload,
 		error: addDownloadError,
 	} = trpc.downloads.add.useMutation({
-		onSuccess: (data) => {
+		onSuccess: async (data) => {
+			await utils.downloads.invalidate();
 			toast.success("Download added");
-			utils.downloads.getAll.invalidate();
 			return data;
 		},
 		onError: (error) => {
@@ -23,9 +23,9 @@ export const useDownloadActions = () => {
 	// Pause download
 	const { mutate: pauseDownload, isPending: isPausingDownload } =
 		trpc.downloads.pause.useMutation({
-			onSuccess: () => {
+			onSuccess: async () => {
+				await utils.downloads.invalidate();
 				toast.success("Download paused");
-				utils.downloads.getAll.invalidate();
 			},
 			onError: (error) => {
 				toast.error("Failed to pause download", {
@@ -37,9 +37,9 @@ export const useDownloadActions = () => {
 	// Resume download
 	const { mutate: resumeDownload, isPending: isResumingDownload } =
 		trpc.downloads.resume.useMutation({
-			onSuccess: () => {
+			onSuccess: async () => {
+				await utils.downloads.invalidate();
 				toast.success("Download resumed");
-				utils.downloads.getAll.invalidate();
 			},
 			onError: (error) => {
 				toast.error(`Failed to resume download: ${error.message}`);
@@ -49,9 +49,9 @@ export const useDownloadActions = () => {
 	// Cancel download
 	const { mutate: cancelDownload, isPending: isCancellingDownload } =
 		trpc.downloads.cancel.useMutation({
-			onSuccess: () => {
+			onSuccess: async () => {
+				await utils.downloads.invalidate();
 				toast.success("Download cancelled");
-				utils.downloads.getAll.invalidate();
 			},
 			onError: (error) => {
 				toast.error(`Failed to cancel download: ${error.message}`);
@@ -62,7 +62,7 @@ export const useDownloadActions = () => {
 	const { mutate: removeDownload, isPending: isRemovingDownload } =
 		trpc.downloads.remove.useMutation({
 			onSuccess: async () => {
-				await utils.downloads.getAll.invalidate();
+				await utils.downloads.invalidate();
 				toast.success("Download removed");
 			},
 			onError: (error) => {
@@ -73,9 +73,9 @@ export const useDownloadActions = () => {
 	// Clear completed downloads
 	const { mutate: clearCompletedDownloads, isPending: isClearingCompleted } =
 		trpc.downloads.clearCompleted.useMutation({
-			onSuccess: (data) => {
+			onSuccess: async (data) => {
+				await utils.downloads.invalidate();
 				toast.success(`Cleared ${data.count} completed downloads`);
-				utils.downloads.getAll.invalidate();
 			},
 			onError: (error) => {
 				toast.error(`Failed to clear completed downloads: ${error.message}`);
@@ -85,9 +85,9 @@ export const useDownloadActions = () => {
 	// Set download priority
 	const { mutate: setPriority, isPending: isSettingPriority } =
 		trpc.downloads.setPriority.useMutation({
-			onSuccess: () => {
+			onSuccess: async () => {
+				await utils.downloads.invalidate();
 				toast.success("Download priority updated");
-				utils.downloads.getAll.invalidate();
 			},
 			onError: (error) => {
 				toast.error(`Failed to update priority: ${error.message}`);
