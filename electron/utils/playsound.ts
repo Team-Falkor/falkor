@@ -1,122 +1,59 @@
-import { exec, execSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { Readable } from "node:stream";
+import decode from "audio-decode";
+import Speaker from "speaker";
 
 /**
- * Options for sound playback
+ * Plays an audio file (wav, mp3, ogg, flac, etc.) in-process.
+ * Your app will appear in the mixer.
+ * @param soundPath Absolute path to the audio file
  */
-interface PlaySoundOptions {
-	/** Volume level (0 to 1) */
-	volume?: number;
-	/** Whether to play synchronously (blocking) */
-	sync?: boolean;
-	/** Whether to suppress error messages */
-	silent?: boolean;
-	/** Timeout in milliseconds for async playback */
-	timeout?: number;
-}
-
-/**
- * Result of a sound playback attempt
- */
-interface PlaySoundResult {
-	success: boolean;
-	error?: string;
-}
-
-/**
- * Plays a sound file natively based on the operating system with customizable options.
- *
- * @param soundPath - The absolute path to the sound file.
- * @param options - Optional configuration for playback behavior
- * @returns Promise resolving to information about the playback result
- */
-export const playSound = async (
-	soundPath: string,
-	options: PlaySoundOptions = {},
-): Promise<PlaySoundResult> => {
-	const { volume, sync = false, silent = false, timeout } = options;
-
-	// Validate file existence
+export async function playSound(soundPath: string): Promise<void> {
 	if (!existsSync(soundPath)) {
-		const errorMsg = `Sound file does not exist: ${soundPath}`;
-		if (!silent) console.warn(errorMsg);
-		return { success: false, error: errorMsg };
+		throw new Error(`Sound file does not exist: ${soundPath}`);
 	}
 
-	// Escape path for shell command safety
-	const escapedPath = soundPath.replace(/"/g, '\\"');
+	// Read file into a buffer
+	const buffer = readFileSync(soundPath);
 
-	// Get appropriate command for platform
-	const command = getPlayCommand(escapedPath, volume);
-	if (!command) {
-		const errorMsg = `Unsupported platform for sound playback: ${process.platform}`;
-		if (!silent) console.warn(errorMsg);
-		return { success: false, error: errorMsg };
-	}
+	// Decode audio (returns AudioBuffer)
+	const audioBuffer = await decode(buffer);
 
-	try {
-		if (sync) {
-			// Synchronous execution (still wrapped in a promise)
-			if (process.platform === "win32") {
-				execSync(command, { shell: "powershell.exe" });
-			} else {
-				execSync(command);
-			}
-			return { success: true };
-		}
-		// Asynchronous execution with promise
-		return new Promise((resolve) => {
-			const execOptions: { shell?: string; timeout?: number } = {};
-			if (process.platform === "win32") {
-				execOptions.shell = "powershell.exe";
-			}
-			if (timeout) {
-				execOptions.timeout = timeout;
-			}
+	// Prepare Speaker
+	const speaker = new Speaker({
+		channels: audioBuffer.numberOfChannels,
+		bitDepth: 16,
+		sampleRate: audioBuffer.sampleRate,
+	});
 
-			exec(command, execOptions, (error) => {
-				if (error && !silent) {
-					console.warn(`Error playing sound: ${error.message}`);
-					resolve({ success: false, error: error.message });
-				} else {
-					resolve({ success: true });
-				}
-			});
-		});
-	} catch (error) {
-		const errorMsg = `Failed to execute sound playback: ${error}`;
-		if (!silent) console.warn(errorMsg);
-		return { success: false, error: errorMsg as string };
-	}
-};
+	// Interleave and convert to 16-bit PCM
+	const interleaved = interleaveAndConvert(audioBuffer);
+
+	// Create a readable stream from the PCM buffer
+	const stream = Readable.from(interleaved);
+
+	return new Promise((resolve, reject) => {
+		stream.pipe(speaker);
+		speaker.on("close", resolve);
+		speaker.on("error", reject);
+		stream.on("error", reject);
+	});
+}
 
 /**
- * Generates the appropriate sound playback command based on the platform.
+ * Converts AudioBuffer to interleaved 16-bit PCM Buffer
  */
-function getPlayCommand(escapedPath: string, volume?: number): string | null {
-	switch (process.platform) {
-		case "win32":
-			// Fixed PowerShell command syntax
-			return `powershell.exe -Command "(New-Object System.Media.SoundPlayer '${escapedPath}').PlaySync()"`;
+function interleaveAndConvert(audioBuffer: AudioBuffer): Buffer {
+	const { numberOfChannels, length } = audioBuffer;
+	const output = Buffer.alloc(length * numberOfChannels * 2); // 16-bit PCM
 
-		case "darwin": {
-			const macVolume =
-				volume !== undefined ? Math.max(0, Math.min(volume, 1)) : 0.7;
-			return `afplay "${escapedPath}" -v ${macVolume}`;
+	for (let i = 0; i < length; i++) {
+		for (let ch = 0; ch < numberOfChannels; ch++) {
+			let sample = audioBuffer.getChannelData(ch)[i];
+			// Clamp and convert to 16-bit signed integer
+			sample = Math.max(-1, Math.min(1, sample));
+			output.writeInt16LE(sample * 0x7fff, (i * numberOfChannels + ch) * 2);
 		}
-
-		case "linux": {
-			if (volume !== undefined) {
-				// Convert volume to paplay's 0-65536 range
-				const pulseVolume = Math.floor(
-					Math.max(0, Math.min(volume, 100)) * 655.36,
-				);
-				return `paplay --volume ${pulseVolume} "${escapedPath}" || aplay "${escapedPath}"`;
-			}
-			return `paplay "${escapedPath}" || aplay "${escapedPath}"`;
-		}
-
-		default:
-			return null;
 	}
+	return output;
 }

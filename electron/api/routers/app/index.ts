@@ -176,25 +176,19 @@ export const appFunctionsRouter = router({
 					};
 				}
 
-				// Add some volume to make sure it's audible
-				const result = await playSound(soundPath, {
-					volume: 1.0,
-					silent: false,
-				});
-
-				console.log("Play sound result:", result);
+				await playSound(soundPath);
 
 				return {
-					success: result.success,
-					message: result.success
-						? `Playing sound: ${input.sound}`
-						: `Failed to play sound: ${result.error || "unknown error"}`,
+					success: true,
+					message: `Playing sound: ${input.sound}`,
 				};
 			} catch (error) {
 				console.error("Sound playback error:", error);
 				return {
 					success: false,
-					message: `Error playing sound: ${error instanceof Error ? error.message : String(error)}`,
+					message: `Error playing sound: ${
+						error instanceof Error ? error.message : String(error)
+					}`,
 				};
 			}
 		}),

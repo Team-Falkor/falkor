@@ -13,10 +13,9 @@ const settings = SettingsManager.getInstance();
 class NotificationsHandler {
 	private constructor() {}
 
-	public static constructNotification = (
+	public static constructNotification = async (
 		options?: NotificationConstructorOptions & {
 			notificationType?: NotificationType;
-			volume?: number;
 		},
 		show = true,
 	) => {
@@ -72,7 +71,11 @@ class NotificationsHandler {
 			}
 
 			console.log("Playing sound:", soundPath);
-			playSound(soundPath, { volume: options?.volume });
+			try {
+				await playSound(soundPath);
+			} catch (error) {
+				console.error("Error playing notification sound:", error);
+			}
 		} catch (error) {
 			console.error("Error creating notification:", error);
 		}
