@@ -6,13 +6,10 @@ import { DownloadItem } from "./DownloadItem";
 export function DownloadList() {
 	const { data: downloads } = trpc.downloads.getAll.useQuery(undefined, {
 		refetchInterval: 2500, // 2.5 seconds
-		refetchIntervalInBackground: true,
-		refetchOnMount: true,
-		refetchOnReconnect: true,
+		refetchIntervalInBackground: false,
+		staleTime: 2500,
 		refetchOnWindowFocus: true,
-		retry: 3,
-		staleTime: 1000, // 1 second
-		enabled: true,
+		refetchOnMount: true,
 	});
 
 	// if (!downloads?.length) {
