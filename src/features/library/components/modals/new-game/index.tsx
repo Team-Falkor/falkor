@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import {
 	Dialog,
@@ -19,8 +19,12 @@ import NewGameMetadataForm from "./forms/metadata";
 import NewGameSettingsForm from "./forms/settings";
 import { type NewGameFormSchema, newGameFormSchema } from "./schema";
 
-export const NewGameModal = () => {
-	const [open, setOpen] = useState(false);
+interface NewGameModalProps {
+	open: boolean;
+	setOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+export const NewGameModal = ({ open, setOpen }: NewGameModalProps) => {
 	const { t } = useLanguageContext();
 	const { createGame } = useGames();
 
