@@ -19,8 +19,8 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 	const { t } = useLanguageContext();
 	const utils = trpc.useUtils();
 	const { mutate: updateGame } = trpc.library.update.useMutation({
-		onSuccess: () => {
-			utils.library.invalidate();
+		onSuccess: async () => {
+			await utils.library.invalidate();
 		},
 	});
 
