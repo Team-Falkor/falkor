@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@custom-variant focus-states (&:is(:hover, :focus-within));
+@custom-variant focus-states (&:is(:hover, :focus-visible, :focus, :focus-within));
 @custom-variant focus-hover (&:is(:hover, :focus));
 
 @theme inline {

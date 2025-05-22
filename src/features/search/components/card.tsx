@@ -18,7 +18,7 @@ const SearchCard = ({
 
 	return (
 		<Link
-			className="group w-full cursor-default select-none rounded-lg p-2 transition-colors duration-200 hover:cursor-pointer hover:bg-accent/50"
+			className="group w-full cursor-default select-none rounded-lg p-2 transition-colors duration-200 focus-states:cursor-pointer focus-states:bg-accent/50"
 			key={1}
 			to={"/info/$id"}
 			params={{ id: id.toString() }}
@@ -29,17 +29,17 @@ const SearchCard = ({
 					<IGDBImage
 						alt={name}
 						imageId={cover.image_id}
-						className="size-12 rounded-md object-cover shadow-sm transition-transform duration-200 group-hover:scale-105"
+						className="size-12 rounded-md object-cover shadow-sm transition-transform duration-200 group-focus-states:scale-105"
 					/>
 				) : (
-					<Avatar className="size-12 transition-transform duration-200 group-hover:scale-105">
+					<Avatar className="size-12 transition-transform duration-200 group-focus-states:scale-105">
 						<AvatarFallback className="bg-muted/50">
 							<Gamepad2 className="size-6" />
 						</AvatarFallback>
 					</Avatar>
 				)}
 				<div className="flex flex-1 flex-col gap-0.5">
-					<P className="line-clamp-1 font-medium text-muted-foreground text-sm group-hover:text-foreground">
+					<P className="line-clamp-1 font-medium text-muted-foreground text-sm group-focus-states:text-foreground">
 						{name}
 					</P>
 					<TypographyMuted className="text-xs">{year}</TypographyMuted>

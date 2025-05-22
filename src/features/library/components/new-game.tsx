@@ -9,7 +9,7 @@ export const NewGameButton = ({
 }: HTMLAttributes<HTMLButtonElement>) => {
 	return (
 		<Button
-			className="gap-1.5 rounded-full bg-linear-to-tr from-blue-400 to-purple-400 text-white transition-all hover:opacity-90"
+			className="gap-1.5 rounded-full bg-linear-to-tr from-blue-400 to-purple-400 text-white transition-all focus-states:opacity-90"
 			onClick={onClick}
 			{...props}
 		>

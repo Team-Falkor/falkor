@@ -52,7 +52,7 @@ const SettingsSidebar = ({
 			<div className="p-4">
 				<H3>{t("sections.settings")}</H3>
 			</div>
-			<nav className="flex-1 space-y-1 ">{settingsTabs}</nav>
+			<nav className="flex-1 space-y-1">{settingsTabs}</nav>
 			<div className="mt-auto flex flex-col gap-2 p-1 px-4">
 				{!isPending && !isError && (
 					<div className="flex flex-col gap-0.5">

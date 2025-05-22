@@ -129,7 +129,7 @@ export function DownloadItem(
 								size="icon"
 								onClick={() => handleRemove()}
 								aria-label="Remove download from list"
-								className="text-destructive hover:text-destructive"
+								className="text-destructive focus-states:text-destructive"
 							>
 								<TrashIcon />
 							</Button>

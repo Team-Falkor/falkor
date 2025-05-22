@@ -161,7 +161,7 @@ const UnifiedPluginCard = ({
 									<Button
 										onClick={() => updatePlugin(id)}
 										size="sm"
-										className="transition-all duration-200 hover:scale-105"
+										className="transition-all duration-200 focus-states:scale-105"
 									>
 										<Download className="mr-2" />
 										{t("update")}
@@ -171,7 +171,7 @@ const UnifiedPluginCard = ({
 									variant="destructive"
 									onClick={() => deletePlugin(id)}
 									size="sm"
-									className="capitalize transition-all duration-200 hover:scale-105"
+									className="capitalize transition-all duration-200 focus-states:scale-105"
 								>
 									<Trash2 />
 								</Button>
@@ -180,7 +180,7 @@ const UnifiedPluginCard = ({
 										variant="success"
 										onClick={() => enablePlugin(id)}
 										size="sm"
-										className="capitalize transition-all duration-200 hover:scale-105"
+										className="capitalize transition-all duration-200 focus-states:scale-105"
 									>
 										<Power />
 									</Button>
@@ -189,7 +189,7 @@ const UnifiedPluginCard = ({
 										variant="destructive"
 										onClick={() => disablePlugin(id)}
 										size="sm"
-										className="transition-all duration-200 hover:scale-105"
+										className="transition-all duration-200 focus-states:scale-105"
 									>
 										<PowerOff />
 									</Button>
@@ -199,7 +199,7 @@ const UnifiedPluginCard = ({
 							<Button
 								onClick={handleInstall}
 								size="sm"
-								className="transition-all duration-200 hover:scale-105"
+								className="transition-all duration-200 focus-states:scale-105"
 							>
 								<Download />
 							</Button>

@@ -85,7 +85,7 @@ const RowContainer = ({
 						<Link
 							to={"/filter"}
 							search={getSearchParams()}
-							className="text-muted-foreground hover:underline"
+							className="text-muted-foreground focus-states:underline"
 						>
 							<TypographySmall>{t("view_more")}</TypographySmall>
 						</Link>

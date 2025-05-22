@@ -15,7 +15,7 @@ const GameCategories = () => {
 			{categories.map((category) => (
 				<Card
 					key={category.title}
-					className="group overflow-hidden transition-all hover:shadow-md hover:ring-1 hover:ring-primary/20"
+					className="group overflow-hidden transition-all focus-states:shadow-md focus-states:ring-1 focus-states:ring-primary/20"
 				>
 					<CardContent className="p-0">
 						<Link
@@ -36,7 +36,7 @@ const GameCategories = () => {
 										<h3 className="font-medium">{category.title}</h3>
 									</div>
 								</div>
-								<div className="opacity-0 transition-opacity group-hover:opacity-100">
+								<div className="opacity-0 transition-opacity group-focus-states:opacity-100">
 									<Button
 										variant="ghost"
 										size="sm"

@@ -35,7 +35,7 @@ const TitleBarControl = ({
 			onClick={handleClick}
 			aria-label={controlType}
 			className={cn(
-				"titlebar-button group transform cursor-pointer rounded-full p-1 outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1",
+				"titlebar-button group focus-statesring-muted-foreground focus-statesring-offset-1 transform cursor-pointer rounded-full p-1 outline-none transition-transform focus-states:scale-110 focus-visible:ring-2",
 				className,
 			)}
 			{...props}

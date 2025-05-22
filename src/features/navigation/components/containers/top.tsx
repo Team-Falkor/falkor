@@ -25,7 +25,7 @@ const NavBarTop = () => {
 							<img
 								src={logo}
 								alt="logo"
-								className="size-11 object-contain transition-all group-hover:opacity-80"
+								className="size-11 object-contain transition-all group-focus-states:opacity-80"
 							/>
 						</Link>
 					</TooltipTrigger>

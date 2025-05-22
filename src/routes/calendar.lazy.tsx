@@ -174,7 +174,7 @@ function CalendarRoute() {
 											to="/info/$id"
 											params={{ id: String(game.id) }}
 											className={cn(
-												"block truncate transition-all last:pb-1.5 hover:text-primary hover:underline",
+												"block truncate transition-all last:pb-1.5 focus-states:text-primary focus-states:underline",
 											)}
 											title={game.name}
 										>

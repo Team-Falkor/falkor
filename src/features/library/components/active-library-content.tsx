@@ -16,19 +16,25 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 	const { games: gamesMap } = useGames(true);
 	const gamesList = useMemo(() => Object.values(gamesMap), [gamesMap]);
 
-	// For the list query, pass a dummy ID when we’re not in “list” mode,
-	// and disable it via `enabled: type === "list"`.
 	const listQuery = trpc.lists.getByIdWithGames.useQuery(
-		// only valid when type === "list"
 		type === "list" ? props.listId : -1,
 		{ enabled: type === "list" },
 	);
+
 	const listGames = listQuery.data?.games ?? [];
 
 	if (type === "game") {
 		if (gamesList.length === 0) {
 			return <H5>{t("no_games_installed")}</H5>;
 		}
+
+		return (
+			<div className="flex flex-wrap gap-4">
+				{gamesList.map((game) => (
+					<ListCard key={game.id} {...game} />
+				))}
+			</div>
+		);
 	}
 
 	if (type === "list") {
@@ -39,6 +45,7 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 				</div>
 			);
 		}
+
 		if (listQuery.isError) {
 			return (
 				<div className="flex items-center justify-center">
@@ -46,9 +53,11 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 				</div>
 			);
 		}
+
 		if (listGames.length === 0) {
 			return <P>No games in this list.</P>;
 		}
+
 		return (
 			<div className="flex flex-wrap gap-4">
 				{listGames.map((game) => (

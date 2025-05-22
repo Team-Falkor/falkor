@@ -50,7 +50,7 @@ const ListsDropdownContent = (props: Props) => {
 			<DropdownMenuItem>
 				<DialogTrigger>
 					<div className="flex items-center gap-1.5">
-						<PlusIcon className="size-5 " />
+						<PlusIcon className="size-5" />
 						<P>Create a new list</P>
 					</div>
 				</DialogTrigger>

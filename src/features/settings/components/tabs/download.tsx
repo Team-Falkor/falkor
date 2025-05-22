@@ -109,7 +109,7 @@ const TorrentSettings = () => {
 
 							<Button
 								size="icon"
-								className="rounded-lg rounded-l-none bg-muted hover:bg-muted"
+								className="rounded-lg rounded-l-none bg-muted focus-states:bg-muted"
 								onClick={openDialog}
 								aria-label="Select Folder"
 								disabled={openDialogMutation.isPending}

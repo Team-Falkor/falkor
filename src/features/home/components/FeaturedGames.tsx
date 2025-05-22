@@ -30,7 +30,7 @@ const FeaturedGames = () => {
 								sort: "rating desc",
 								minRating: 85,
 							}}
-							className="text-muted-foreground transition-colors hover:text-primary/80 hover:underline"
+							className="text-muted-foreground transition-colors focus-states:text-primary/80 focus-states:underline"
 						>
 							<TypographySmall>{t("view_more")}</TypographySmall>
 						</Link>

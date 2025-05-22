@@ -81,7 +81,7 @@ function Library() {
 				>
 					<CarouselContent>
 						{tabs.map((tab, i) => (
-							<CarouselItem key={tab.name} className="basis-auto ">
+							<CarouselItem key={tab.name} className="basis-auto">
 								<Button
 									variant={activeTab?.name === tab.name ? "active" : "default"}
 									className={cn(

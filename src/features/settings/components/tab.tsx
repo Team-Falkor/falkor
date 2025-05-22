@@ -12,8 +12,9 @@ interface SettingTabProps {
 const SettingTab = ({ icon, title, isActive, onClick }: SettingTabProps) => {
 	return (
 		<button
+			type="button"
 			className={cn([
-				"group flex w-full items-center gap-3 p-3.5 font-medium text-sm transition-all duration-200 hover:bg-muted/50 hover:opacity-80",
+				"group flex w-full items-center gap-3 p-3.5 font-medium text-sm transition-all duration-200 focus-states:bg-muted/50 focus-states:opacity-80",
 				{
 					"border-purple-600 border-r-4 bg-purple-600/25": isActive,
 					"text-secondary-foreground/50": !isActive,

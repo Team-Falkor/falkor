@@ -23,7 +23,7 @@ export const EditGameOverlay = ({ game }: ContinuePlayingCardOverlayProps) => {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger>
+			<DropdownMenuTrigger asChild>
 				<Button
 					variant={"ghost"}
 					size={"icon"}
