@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import ErrorComponent from "./components/errorComponent";
 // import ConfirmClose from "./components/confirmClose";
 // import ErrorComponent from "./components/errorComponent";
 import { ThemeProvider } from "./components/theme-provider";
@@ -29,7 +30,7 @@ const appRouter = createRouter({
 	},
 	defaultPreload: "intent",
 	defaultPreloadStaleTime: 0,
-	// defaultErrorComponent: (props) => <ErrorComponent {...props} />,
+	defaultErrorComponent: (props) => <ErrorComponent {...props} />,
 });
 
 declare module "@tanstack/react-router" {
