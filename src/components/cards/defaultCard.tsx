@@ -23,9 +23,9 @@ const DefaultCard = ({
 
 	return (
 		<Link to={"/info/$id"} params={{ id: id.toString() }}>
-			<div className="group relative flex h-[300px] w-[200px] flex-col overflow-hidden rounded-lg border transition-shadow duration-300 hover:border-border hover:shadow-xl">
+			<div className="group relative flex h-[300px] w-[200px] flex-col overflow-hidden rounded-lg border transition-shadow duration-300 focus-states:border-border focus-states:shadow-xl">
 				{/* IMAGE */}
-				<div className="absolute inset-0 z-0 overflow-hidden transition-transform duration-300 group-hover:scale-105">
+				<div className="absolute inset-0 z-0 overflow-hidden transition-transform duration-300 group-focus-states:scale-105">
 					<IGDBImage
 						alt={name}
 						imageId={cover?.image_id}
@@ -46,7 +46,7 @@ const DefaultCard = ({
 						)}
 					</div>
 
-					<H5 className="group-hover:-translate-y-1 line-clamp-2 transform text-pretty transition-all duration-300 group-hover:opacity-100">
+					<H5 className="group-focus-states:-translate-y-1 line-clamp-2 transform text-pretty transition-all duration-300 group-focus-states:opacity-100">
 						{name}
 					</H5>
 				</div>

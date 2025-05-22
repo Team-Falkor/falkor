@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 // import ConfirmClose from "./components/confirmClose";
 // import ErrorComponent from "./components/errorComponent";
 import { ThemeProvider } from "./components/theme-provider";
+import { useGamepadNavigation } from "./hooks/use-gamepad-navigation";
 import { trpc, trpcClient } from "./lib";
 import { memoryHistory } from "./lib/history";
 import { routeTree } from "./routeTree.gen";
@@ -38,6 +39,7 @@ declare module "@tanstack/react-router" {
 }
 
 function App() {
+	useGamepadNavigation();
 	// useThemes();
 
 	return (

@@ -3,6 +3,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@custom-variant focus-states (&:is(:hover, :focus-within));
+@custom-variant focus-hover (&:is(:hover, :focus));
+
 @theme inline {
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);

@@ -88,7 +88,7 @@ const UnifiedPluginCard = ({
 	};
 
 	return (
-		<Card className="group relative h-full overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg">
+		<Card className="group relative h-full overflow-hidden transition-all duration-200 focus-states:scale-[1.01] focus-states:shadow-lg">
 			<CardHeader className="items-center justify-center space-y-4 text-center">
 				<div className="flex w-full justify-center">
 					<div className="relative h-24 w-24 overflow-hidden rounded-lg bg-muted/20">
@@ -103,7 +103,7 @@ const UnifiedPluginCard = ({
 								"h-full w-full object-cover transition-all duration-200",
 								{
 									"opacity-0": !imageLoaded && !imageError,
-									"group-hover:scale-110": imageLoaded && !imageError,
+									"group-focus-states:scale-110": imageLoaded && !imageError,
 								},
 							)}
 							onError={handlePlaceholder}
@@ -118,7 +118,7 @@ const UnifiedPluginCard = ({
 					</div>
 				</div>
 				<div className="space-y-1.5">
-					<CardTitle className="font-semibold text-xl transition-colors duration-200 group-hover:text-primary">
+					<CardTitle className="font-semibold text-xl transition-colors duration-200 group-focus-states:text-primary">
 						{name}
 					</CardTitle>
 					<CardDescription className="flex items-center justify-center gap-2 text-sm">
@@ -143,7 +143,7 @@ const UnifiedPluginCard = ({
 							<a
 								href={author.url}
 								className={cn(
-									"group/author flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary",
+									"group/author flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 focus-states:text-primary",
 									{ "cursor-pointer": author.url },
 								)}
 							>

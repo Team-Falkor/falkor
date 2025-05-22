@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NavBar from "@/features/navigation/components/navbar";
 import { useSettings } from "@/features/settings/hooks/useSettings";
 import Updater from "@/features/updater/components/updater";
-import { useGamepadNavigation } from "@/hooks/use-gamepad-navigation";
 import { cn, shouldHideTitleBar } from "@/lib";
 
 export const Route = createRootRoute({
@@ -12,7 +11,6 @@ export const Route = createRootRoute({
 });
 
 function Root() {
-	useGamepadNavigation();
 	const { settings } = useSettings();
 	// useAppStartup();
 

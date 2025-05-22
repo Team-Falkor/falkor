@@ -33,10 +33,10 @@ const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 			title={buttonTitle}
 			className={cn(
 				"flex items-center justify-center rounded-full p-3 shadow-lg backdrop-blur-sm",
-				"bg-primary/80 transition-all duration-300 hover:scale-110 hover:bg-primary",
+				"bg-primary/80 transition-all duration-300 focus-states:scale-110 focus-states:bg-primary",
 				"cursor-pointer text-white",
 				{
-					"opacity-0 group-hover:opacity-100": !isRunning,
+					"opacity-0 group-focus-states:opacity-100": !isRunning,
 					"scale-110": isRunning,
 					"pointer-events-none opacity-50": initializing || isMutating,
 				},

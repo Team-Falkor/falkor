@@ -35,7 +35,7 @@ const BannerCard = ({
 				<IGDBImage
 					imageSize="720p"
 					imageId={cover.image_id}
-					className="h-full w-full scale-100 transform object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
+					className="h-full w-full scale-100 transform object-cover transition-transform duration-700 ease-in-out group-focus-states:scale-105"
 					alt={name}
 				/>
 			</div>
@@ -53,7 +53,7 @@ const BannerCard = ({
 									imageSize="screenshot_med"
 									key={screenshot.id}
 									imageId={screenshot.image_id}
-									className="aspect-video w-48 rounded-lg object-cover shadow-lg transition-transform duration-300 ease-in-out hover:scale-105 lg:w-56"
+									className="aspect-video w-48 rounded-lg object-cover shadow-lg transition-transform duration-300 ease-in-out focus-states:scale-105 lg:w-56"
 									alt={name}
 								/>
 							))}

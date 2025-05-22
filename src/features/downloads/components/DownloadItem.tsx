@@ -66,12 +66,9 @@ export function DownloadItem(
 			},
 		);
 
-	const { data: liveData } = trpc.downloads.getById.useQuery(
-		{ id: initalData.id },
-		{
-			refetchInterval: 1000,
-		},
-	);
+	const { data: liveData } = trpc.downloads.getById.useQuery({
+		id: initalData.id,
+	});
 
 	const download = liveData ?? initalData;
 	const status = download.status;
