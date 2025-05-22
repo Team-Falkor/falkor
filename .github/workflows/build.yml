@@ -8,6 +8,15 @@ on:
 jobs:
   prebuild:
     runs-on: ubuntu-latest
+
+    env:
+      VITE_TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
+      VITE_TWITCH_CLIENT_SECRET: ${{ secrets.VITE_TWITCH_CLIENT_SECRET }}
+      VITE_ITAD_API_KEY: ${{ secrets.VITE_ITAD_API_KEY }}
+      VITE_STEAMGRIDDB_API_KEY: ${{ secrets.VITE_STEAMGRIDDB_API_KEY }}
+      VITE_RD_CLIENT_ID: ${{ secrets.VITE_RD_CLIENT_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
