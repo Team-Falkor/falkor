@@ -12,14 +12,6 @@ export function DownloadList() {
 		refetchOnMount: true,
 	});
 
-	// if (!downloads?.length) {
-	// 	return (
-	// 		<div className="flex h-[50vh] items-center justify-center">
-	// 			<p className="text-muted-foreground">No downloads</p>
-	// 		</div>
-	// 	);
-	// }
-
 	// Set all to its own const for contanuity
 	const all = downloads ?? [];
 
