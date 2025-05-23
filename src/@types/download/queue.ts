@@ -11,6 +11,8 @@ export enum DownloadStatus {
 	FAILED = "failed",
 	CANCELLED = "canceled",
 	NONE = "none",
+	CACHING_DEBRID = "CACHING_DEBRID", // Item is being cached by debrid service
+	// WAITING_FOR_DEBRID_CACHE = "WAITING_FOR_DEBRID_CACHE", // Alternative or intermediate
 }
 
 /**

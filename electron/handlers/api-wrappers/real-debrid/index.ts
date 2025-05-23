@@ -1,4 +1,5 @@
 import { getInfoHashFromMagnet } from "@backend/utils/utils";
+import type { RealDebridDownloadItem } from "@/@types";
 import { RealDebridAuthService } from "./services/auth";
 import { RealDebridTorrentService } from "./services/torrents";
 import { RealDebridUnrestrictService } from "./services/unrestrict";
@@ -27,7 +28,11 @@ class RealDebridClient {
 	}
 
 	public static getInstance(accessToken: string): RealDebridClient {
-		if (!RealDebridClient.instance) {
+		// Re-initialize if instance doesn't exist or if access token has changed
+		if (
+			!RealDebridClient.instance ||
+			RealDebridClient.instance.accessToken !== accessToken
+		) {
 			RealDebridClient.instance = new RealDebridClient(accessToken);
 		}
 		return RealDebridClient.instance;
@@ -81,7 +86,7 @@ class RealDebridClient {
 		magnetLink: string,
 		_password?: string,
 		_fileSelection: string | "all" = "all",
-	): Promise<string> {
+	): Promise<RealDebridDownloadItem> {
 		const torrentId = await this.getOrCreateTorrent(
 			decodeURIComponent(magnetLink),
 		);
@@ -95,9 +100,15 @@ class RealDebridClient {
 
 		// Check download status
 		if (torrentInfo.status !== "downloaded") {
-			// TODO: handle not cached
+			return {
+				status: "downloading",
+				filename: torrentInfo.filename,
+				download: null,
+				size: null,
+			};
+
 			// For now just throw an error
-			throw new Error("Torrent has not completed downloading.");
+			// throw new Error("Torrent has not completed downloading.");
 		}
 
 		// Ensure links are available
@@ -109,7 +120,12 @@ class RealDebridClient {
 		// Unrestrict the first available link
 		try {
 			const unrestrictedLink = await this.unrestrict.unrestrictLink(firstLink);
-			return unrestrictedLink.download;
+			return {
+				download: unrestrictedLink.download,
+				filename: unrestrictedLink.filename,
+				size: unrestrictedLink.filesize,
+				status: torrentInfo.status,
+			};
 		} catch (error) {
 			throw new Error(`Failed to unrestrict link: ${(error as Error).message}`);
 		}

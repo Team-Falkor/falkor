@@ -7,6 +7,8 @@ const settings = SettingsManager.getInstance();
 
 type Return = { url: string; type: "ddl" | "magnet" | "torrent" } | undefined;
 
+// TODO: handle downloading on debrid server
+
 export class DebridManager {
 	private static instance: DebridManager;
 
@@ -26,10 +28,10 @@ export class DebridManager {
 		const donwloadURL =
 			type === "ddl"
 				? (await client.unrestrict.unrestrictLink(url))?.download
-				: await client.downloadTorrentFromMagnet(url);
+				: (await client.downloadTorrentFromMagnet(url))?.download;
 
 		return {
-			url: donwloadURL,
+			url: !donwloadURL ? "" : donwloadURL,
 			type: type,
 		};
 	};

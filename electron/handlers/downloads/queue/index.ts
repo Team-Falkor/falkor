@@ -30,6 +30,8 @@ class DownloadQueue extends EventEmitter {
 	private queue: Map<string, DownloadItem>;
 	private activeDownloads: Set<string>;
 	private priorityQueue: Map<DownloadPriority, string[]>;
+	// TODO: handle downloading on debrid server
+	// private debridItems: Map<string, >;
 	private config: DownloadQueueConfig;
 	private handlers: Map<
 		"http" | "torrent",
