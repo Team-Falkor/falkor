@@ -1,5 +1,3 @@
-// src/components/active-library/active-library-content.tsx
-
 import { useMemo } from "react";
 import ListCard from "@/components/cards/list-card";
 import { H5, P } from "@/components/ui/typography";
@@ -10,16 +8,18 @@ import type { ActiveLibraryProps } from "./active-library";
 
 const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 	const { t } = useLanguageContext();
-
 	const { type } = props;
 
-	const { games: gamesMap } = useGames();
-	const gamesList = useMemo(() => Object.values(gamesMap), [gamesMap]);
+	const { games: gamesFromHook } = useGames();
+	const gamesList = useMemo(
+		() => Object.values(gamesFromHook),
+		[gamesFromHook],
+	);
 
 	const listQuery = trpc.lists.getByIdWithGames.useQuery(
 		type === "list" ? props.listId : -1,
 		{
-			enabled: type === "list",
+			enabled: type === "list" && props.listId !== -1,
 			staleTime: 1000 * 60 * 5,
 			refetchInterval: 1000 * 60 * 5,
 		},

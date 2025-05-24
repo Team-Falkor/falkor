@@ -1,5 +1,5 @@
 import { publicProcedure, router } from "@backend/api/trpc";
-import { libraryGames } from "@backend/database/schemas";
+import { libraryGames, listsToGames } from "@backend/database/schemas";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -108,11 +108,16 @@ export const libraryGamesRouter = router({
 	delete: publicProcedure
 		.input(z.object({ id: z.number() }))
 		.mutation(async ({ input, ctx }) => {
-			const deleted = ctx.db
+			// First, delete associations in listsToGames
+			await ctx.db
+				.delete(listsToGames) // Assuming 'listsToGames' schema is imported
+				.where(eq(listsToGames.gameId, input.id));
+
+			// Then, delete the game itself
+			const [deleted] = await ctx.db
 				.delete(libraryGames)
 				.where(eq(libraryGames.id, input.id))
-				.returning()
-				.get();
+				.returning();
 			return deleted;
 		}),
 });

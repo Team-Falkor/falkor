@@ -14,11 +14,8 @@ export function useGames() {
 		},
 		{
 			enabled: true,
-			staleTime: 1000 * 60 * 5, // 5 minutes
-			refetchInterval: 1000 * 30, // 30 seconds
-			refetchOnMount: true,
-			refetchOnReconnect: true,
-			refetchOnWindowFocus: true,
+			staleTime: 1000 * 60 * 5,
+			refetchInterval: 1000 * 30,
 		},
 	);
 

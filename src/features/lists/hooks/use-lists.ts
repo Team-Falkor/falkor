@@ -7,10 +7,11 @@ export function useLists() {
 		data: lists,
 		isPending: isLoading,
 		error,
-	} = trpc.lists.getAll.useQuery();
+	} = trpc.lists.getAll.useQuery(); // Fetches all lists
 
 	const { mutate: deleteList } = trpc.lists.delete.useMutation({
 		onSuccess: () => {
+			// Invalidates all queries when a list is deleted
 			utils.invalidate(undefined, { refetchType: "all", type: "all" });
 		},
 	});
@@ -18,6 +19,7 @@ export function useLists() {
 	const { mutate: createList, isPending: isCreating } =
 		trpc.lists.create.useMutation({
 			onSuccess: () => {
+				// Invalidates all queries when a list is created
 				utils.invalidate(undefined, { refetchType: "all", type: "all" });
 			},
 		});
