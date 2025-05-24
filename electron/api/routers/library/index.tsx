@@ -106,13 +106,6 @@ export const libraryGamesRouter = router({
 			return updated;
 		}),
 
-	// --- Assuming necessary imports ---
-	// import { publicProcedure } from "../trpc"; // Adjust path as needed
-	// import { z } from "zod";
-	// import { eq } from "drizzle-orm";
-	// import { listsToGames, libraryGames } from "../db/schema"; // Adjust path to your Drizzle schema
-	// import { TRPCError } from "@trpc/server";
-
 	delete: publicProcedure
 		.input(z.object({ id: z.number() }))
 		.mutation(async ({ input, ctx }) => {
