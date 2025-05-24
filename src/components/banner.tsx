@@ -7,7 +7,16 @@ import { CarouselContent, CarouselItem } from "./ui/carousel";
 type Props = HTMLAttributes<HTMLDivElement>;
 
 const Banner = ({ className, ...props }: Props) => {
-	const { data, error, isPending } = trpc.igdb.top_rated.useQuery({});
+	const { data, error, isPending } = trpc.igdb.top_rated.useQuery(
+		{},
+		{
+			refetchOnReconnect: true,
+			refetchOnWindowFocus: false,
+			refetchOnMount: false,
+			refetchInterval: 1000 * 60 * 60 * 1, // 1 hour (1000ms * 60s * 60m * 1)
+			refetchIntervalInBackground: false,
+		},
+	);
 
 	if (isPending) return <BannerSkeleton />;
 

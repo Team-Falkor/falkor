@@ -8,7 +8,16 @@ interface GenericRowProps {
 }
 
 const GenericRow = ({ dataToFetch }: GenericRowProps) => {
-	const { data, isPending, error } = trpc.igdb[dataToFetch].useQuery({});
+	const { data, isPending, error } = trpc.igdb[dataToFetch].useQuery(
+		{},
+		{
+			refetchOnReconnect: true,
+			refetchOnWindowFocus: false,
+			refetchOnMount: false,
+			refetchInterval: 1000 * 60 * 60 * 1, // 1 hour (1000ms * 60s * 60m * 1)
+			refetchIntervalInBackground: false,
+		},
+	);
 
 	if (isPending) return <GenericRowSkeleton />;
 	if (error || !data?.length) return null;
