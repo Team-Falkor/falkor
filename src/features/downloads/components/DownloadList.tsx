@@ -5,11 +5,11 @@ import { DownloadItem } from "./DownloadItem";
 
 export function DownloadList() {
 	const { data: downloads } = trpc.downloads.getAll.useQuery(undefined, {
-		refetchInterval: 2500, // 2.5 seconds
-		refetchIntervalInBackground: false,
-		staleTime: 2500,
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
+		// refetchInterval: 2500, // 2.5 seconds
+		// refetchIntervalInBackground: false,
+		// staleTime: 2500,
+		// refetchOnWindowFocus: true,
+		// refetchOnMount: true,
 	});
 
 	// Set all to its own const for contanuity

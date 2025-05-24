@@ -30,6 +30,8 @@ export class DebridManager {
 				? (await client.unrestrict.unrestrictLink(url))?.download
 				: (await client.downloadTorrentFromMagnet(url))?.download;
 
+		console.log(donwloadURL);
+
 		return {
 			url: !donwloadURL ? "" : donwloadURL,
 			type: type,

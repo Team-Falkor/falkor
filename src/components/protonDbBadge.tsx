@@ -11,7 +11,6 @@ const ProtonDbBadge = ({ appId }: Props) => {
 		appId,
 	});
 
-	console.log({ data });
 	if (isPending || error) return null;
 	if (!data) return null;
 

@@ -20,7 +20,7 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 	const utils = trpc.useUtils();
 	const { mutate: updateGame } = trpc.library.update.useMutation({
 		onSuccess: async () => {
-			await utils.library.invalidate();
+			await utils.library.invalidate(undefined, { refetchType: "all" });
 		},
 	});
 
@@ -54,7 +54,7 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 								installed: values.installed,
 							},
 						});
-						utils.library.list.invalidate();
+						utils.library.list.invalidate(undefined, { refetchType: "all" });
 						return;
 					}}
 					defaultValues={{

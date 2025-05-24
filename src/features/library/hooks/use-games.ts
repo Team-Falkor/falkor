@@ -14,24 +14,24 @@ export function useGames(active?: boolean) {
 
 	const { mutate: deleteGame } = trpc.library.delete.useMutation({
 		onSuccess: () => {
-			utils.library.list.invalidate();
+			utils.library.list.invalidate(undefined, { refetchType: "all" });
 		},
 	});
 
 	const { mutate: updateGame } = trpc.library.update.useMutation({
 		onSuccess: () => {
-			utils.library.list.invalidate();
+			utils.library.list.invalidate(undefined, { refetchType: "all" });
 		},
 	});
 
 	const { mutate: createGame } = trpc.library.create.useMutation({
 		onSuccess: () => {
-			utils.library.list.invalidate();
+			utils.library.list.invalidate(undefined, { refetchType: "all" });
 		},
 	});
 
 	const fetchGames = () => {
-		utils.library.list.invalidate();
+		utils.library.list.invalidate(undefined, { refetchType: "all" });
 	};
 
 	return {

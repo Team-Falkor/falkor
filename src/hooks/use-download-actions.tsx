@@ -11,7 +11,7 @@ export const useDownloadActions = () => {
 		error: addDownloadError,
 	} = trpc.downloads.add.useMutation({
 		onSuccess: async (data) => {
-			await utils.downloads.invalidate();
+			await utils.downloads.invalidate(undefined, { refetchType: "all" });
 			toast.success("Download added");
 			return data;
 		},
@@ -24,7 +24,7 @@ export const useDownloadActions = () => {
 	const { mutate: pauseDownload, isPending: isPausingDownload } =
 		trpc.downloads.pause.useMutation({
 			onSuccess: async () => {
-				await utils.downloads.invalidate();
+				await utils.downloads.invalidate(undefined, { refetchType: "all" });
 				toast.success("Download paused");
 			},
 			onError: (error) => {
@@ -38,7 +38,7 @@ export const useDownloadActions = () => {
 	const { mutate: resumeDownload, isPending: isResumingDownload } =
 		trpc.downloads.resume.useMutation({
 			onSuccess: async () => {
-				await utils.downloads.invalidate();
+				await utils.downloads.invalidate(undefined, { refetchType: "all" });
 				toast.success("Download resumed");
 			},
 			onError: (error) => {
@@ -50,7 +50,7 @@ export const useDownloadActions = () => {
 	const { mutate: cancelDownload, isPending: isCancellingDownload } =
 		trpc.downloads.cancel.useMutation({
 			onSuccess: async () => {
-				await utils.downloads.invalidate();
+				await utils.downloads.invalidate(undefined, { refetchType: "all" });
 				toast.success("Download cancelled");
 			},
 			onError: (error) => {
@@ -62,7 +62,7 @@ export const useDownloadActions = () => {
 	const { mutate: removeDownload, isPending: isRemovingDownload } =
 		trpc.downloads.remove.useMutation({
 			onSuccess: async () => {
-				await utils.downloads.invalidate();
+				await utils.downloads.invalidate(undefined, { refetchType: "all" });
 				toast.success("Download removed");
 			},
 			onError: (error) => {
@@ -74,7 +74,7 @@ export const useDownloadActions = () => {
 	const { mutate: clearCompletedDownloads, isPending: isClearingCompleted } =
 		trpc.downloads.clearCompleted.useMutation({
 			onSuccess: async (data) => {
-				await utils.downloads.invalidate();
+				await utils.downloads.invalidate(undefined, { refetchType: "all" });
 				toast.success(`Cleared ${data.count} completed downloads`);
 			},
 			onError: (error) => {
@@ -86,7 +86,7 @@ export const useDownloadActions = () => {
 	const { mutate: setPriority, isPending: isSettingPriority } =
 		trpc.downloads.setPriority.useMutation({
 			onSuccess: async () => {
-				await utils.downloads.invalidate();
+				await utils.downloads.invalidate(undefined, { refetchType: "all" });
 				toast.success("Download priority updated");
 			},
 			onError: (error) => {

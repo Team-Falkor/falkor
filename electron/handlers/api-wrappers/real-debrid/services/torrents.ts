@@ -66,7 +66,10 @@ export class RealDebridTorrentService {
 			headers: this.authHeaders,
 		});
 
+		console.log(this.authHeaders);
+
 		if (!response.ok) {
+			console.log(response);
 			throw new Error(`Failed to get torrents: ${response.statusText}`);
 		}
 

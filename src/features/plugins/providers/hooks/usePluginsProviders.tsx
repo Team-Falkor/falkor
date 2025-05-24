@@ -34,16 +34,24 @@ export const usePluginsProviders = () => {
 
 	const updatePluginMutation = trpc.plugins.providers.update.useMutation({
 		onSuccess: () => {
-			utils.plugins.providers.list.invalidate();
-			utils.plugins.providers.checkForUpdatesAll.invalidate();
+			utils.plugins.providers.list.invalidate(undefined, {
+				refetchType: "all",
+			});
+			utils.plugins.providers.checkForUpdatesAll.invalidate(undefined, {
+				refetchType: "all",
+			});
 		},
 	});
 
 	const updateAllPluginsMutation = trpc.plugins.providers.updateAll.useMutation(
 		{
 			onSuccess: () => {
-				utils.plugins.providers.list.invalidate();
-				utils.plugins.providers.checkForUpdatesAll.invalidate();
+				utils.plugins.providers.list.invalidate(undefined, {
+					refetchType: "all",
+				});
+				utils.plugins.providers.checkForUpdatesAll.invalidate(undefined, {
+					refetchType: "all",
+				});
 			},
 		},
 	);
@@ -52,7 +60,9 @@ export const usePluginsProviders = () => {
 	const getPlugins = useCallback(
 		async (forceRefresh?: boolean) => {
 			if (forceRefresh) {
-				await utils.plugins.providers.list.invalidate();
+				await utils.plugins.providers.list.invalidate(undefined, {
+					refetchType: "all",
+				});
 			}
 			return pluginsQuery;
 		},

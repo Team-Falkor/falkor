@@ -27,7 +27,7 @@ const AddAccountButton = () => {
 	const torBox = accounts?.find((account) => account.type === "torbox");
 
 	const handleAuthenticated = async () => {
-		await utils.accounts.invalidate();
+		await utils.accounts.invalidate(undefined, { refetchType: "all" });
 	};
 
 	return (

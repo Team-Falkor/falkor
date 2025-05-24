@@ -10,10 +10,19 @@ interface DeleteDialogProps {
 const DeleteDialog = ({ gameId }: DeleteDialogProps) => {
 	const { t } = useLanguageContext();
 	const utils = trpc.useUtils();
+
+	const invalidate = async () => {
+		await utils.library.invalidate(undefined, {
+			refetchType: "all",
+		});
+		await utils.lists.invalidate(undefined, {
+			refetchType: "all",
+		});
+	};
+
 	const { mutate: deleteGame } = trpc.library.delete.useMutation({
 		onSuccess: async () => {
-			await utils.library.invalidate();
-			await utils.lists.invalidate();
+			await invalidate();
 		},
 	});
 
@@ -21,8 +30,7 @@ const DeleteDialog = ({ gameId }: DeleteDialogProps) => {
 		<Confirmation
 			onConfirm={async () => {
 				deleteGame({ id: Number.parseInt(gameId) });
-				await utils.library.invalidate();
-				await utils.lists.invalidate();
+				await invalidate();
 			}}
 		>
 			<DropdownMenuItem onSelect={(e) => e.preventDefault()}>

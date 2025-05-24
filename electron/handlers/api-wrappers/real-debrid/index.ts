@@ -31,7 +31,8 @@ class RealDebridClient {
 		// Re-initialize if instance doesn't exist or if access token has changed
 		if (
 			!RealDebridClient.instance ||
-			RealDebridClient.instance.accessToken !== accessToken
+			(RealDebridClient.instance.accessToken !== accessToken &&
+				accessToken?.length > 1)
 		) {
 			RealDebridClient.instance = new RealDebridClient(accessToken);
 		}
@@ -100,15 +101,15 @@ class RealDebridClient {
 
 		// Check download status
 		if (torrentInfo.status !== "downloaded") {
-			return {
-				status: "downloading",
-				filename: torrentInfo.filename,
-				download: null,
-				size: null,
-			};
+			// return {
+			// 	status: "downloading",
+			// 	filename: torrentInfo.filename,
+			// 	download: null,
+			// 	size: null,
+			// };
 
 			// For now just throw an error
-			// throw new Error("Torrent has not completed downloading.");
+			throw new Error("Torrent has not completed downloading.");
 		}
 
 		// Ensure links are available

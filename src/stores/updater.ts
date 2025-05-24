@@ -49,7 +49,6 @@ export const useUpdaterStore = create<UpdaterState>((set) => ({
 			},
 			never
 		>("updater:check-for-update");
-		console.log({ check });
 		if (!check || !check.success) return;
 
 		window.ipcRenderer.on("updater:download-progress", (_, progress) => {

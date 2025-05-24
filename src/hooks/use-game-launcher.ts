@@ -36,9 +36,15 @@ export function useGameLauncher(game: LibraryGame) {
 	const invalidateAll = useCallback(
 		() =>
 			Promise.all([
-				utils.lists.invalidate(),
-				utils.launcher.invalidate(),
-				utils.library.invalidate(),
+				utils.lists.invalidate(undefined, {
+					refetchType: "all",
+				}),
+				utils.launcher.invalidate(undefined, {
+					refetchType: "all",
+				}),
+				utils.library.invalidate(undefined, {
+					refetchType: "all",
+				}),
 			]),
 		[utils],
 	);
