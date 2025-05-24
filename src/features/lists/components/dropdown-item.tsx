@@ -41,7 +41,10 @@ const ListsDropdownItem = ({
 	});
 	const deleteList = trpc.lists.delete.useMutation({
 		onSuccess: () => {
-			utils.lists.getAll.invalidate(undefined, { refetchType: "all" });
+			utils.lists.getAll.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
 			toast.success("List deleted");
 		},
 		onError: () => {

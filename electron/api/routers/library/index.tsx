@@ -97,12 +97,11 @@ export const libraryGamesRouter = router({
 				...input.data,
 				gameLastPlayed: input.data.gameLastPlayed ?? undefined,
 			};
-			const updated = await ctx.db
+			const [updated] = await ctx.db
 				.update(libraryGames)
 				.set(updates)
 				.where(eq(libraryGames.id, input.id))
-				.returning()
-				.get();
+				.returning();
 			return updated;
 		}),
 

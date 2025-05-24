@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { RouterOutputs } from "@/@types";
 import {
 	Dialog,
@@ -16,16 +17,20 @@ interface UpdateDialogProps {
 }
 
 const UpdateDialog = ({ game }: UpdateDialogProps) => {
+	const [open, setOpen] = useState(false);
 	const { t } = useLanguageContext();
 	const utils = trpc.useUtils();
 	const { mutate: updateGame } = trpc.library.update.useMutation({
 		onSuccess: async () => {
-			await utils.library.invalidate(undefined, { refetchType: "all" });
+			await utils.library.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
 		},
 	});
 
 	return (
-		<Dialog>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
 					{t("update")}
@@ -37,7 +42,7 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 				</DialogHeader>
 
 				<UpdateGameForm
-					onSubmit={(values) => {
+					onSubmit={async (values) => {
 						updateGame({
 							id: game.id,
 							data: {
@@ -54,7 +59,16 @@ const UpdateDialog = ({ game }: UpdateDialogProps) => {
 								installed: values.installed,
 							},
 						});
-						utils.library.list.invalidate(undefined, { refetchType: "all" });
+						await utils.library.invalidate(undefined, {
+							refetchType: "all",
+							type: "all",
+						});
+						await utils.lists.invalidate(undefined, {
+							refetchType: "all",
+							type: "all",
+						});
+
+						setOpen(false);
 						return;
 					}}
 					defaultValues={{

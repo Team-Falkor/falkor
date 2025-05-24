@@ -50,12 +50,12 @@ const Confirmation = ({
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
-					<DialogClose>
+					<DialogClose asChild>
 						<Button variant={"destructive"} onClick={onCancel}>
 							{t("cancel")}
 						</Button>
 					</DialogClose>
-					<DialogClose>
+					<DialogClose asChild>
 						<Button type="submit" onClick={onConfirm}>
 							{t("confirm")}
 						</Button>

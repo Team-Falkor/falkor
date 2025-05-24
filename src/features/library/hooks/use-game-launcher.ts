@@ -11,20 +11,29 @@ export function useGameLauncher() {
 
 	const { mutate: launchGame } = trpc.launcher.launch.useMutation({
 		onSuccess: () => {
-			utils.launcher.getRunning.invalidate(undefined, { refetchType: "all" });
+			utils.launcher.getRunning.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
 		},
 	});
 
 	const { mutate: stopGame } = trpc.launcher.stop.useMutation({
 		onSuccess: () => {
-			utils.launcher.getRunning.invalidate(undefined, { refetchType: "all" });
+			utils.launcher.getRunning.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
 		},
 	});
 
 	// Subscribe to game state changes
 	trpc.launcher.onGameStateChange.useSubscription(undefined, {
 		onData: () => {
-			utils.launcher.getRunning.invalidate(undefined, { refetchType: "all" });
+			utils.launcher.getRunning.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
 		},
 	});
 

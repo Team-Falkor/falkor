@@ -13,12 +13,16 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 
 	const { type } = props;
 
-	const { games: gamesMap } = useGames(true);
+	const { games: gamesMap } = useGames();
 	const gamesList = useMemo(() => Object.values(gamesMap), [gamesMap]);
 
 	const listQuery = trpc.lists.getByIdWithGames.useQuery(
 		type === "list" ? props.listId : -1,
-		{ enabled: type === "list" },
+		{
+			enabled: type === "list",
+			staleTime: 1000 * 60 * 5,
+			refetchInterval: 1000 * 60 * 5,
+		},
 	);
 
 	const listGames = listQuery.data?.games ?? [];

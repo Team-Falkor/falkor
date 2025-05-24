@@ -12,11 +12,11 @@ const DeleteDialog = ({ gameId }: DeleteDialogProps) => {
 	const utils = trpc.useUtils();
 
 	const invalidate = async () => {
-		await utils.library.invalidate(undefined, {
+		await utils.invalidate(undefined, {
 			refetchType: "all",
-		});
-		await utils.lists.invalidate(undefined, {
-			refetchType: "all",
+			type: "all",
+			exact: false,
+			stale: true,
 		});
 	};
 
