@@ -1,10 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
+	DialogFooter, // Import DialogFooter
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
@@ -57,18 +60,31 @@ export const NewGameModal = ({ open, setOpen }: NewGameModalProps) => {
 		} = values;
 
 		try {
-			await createGame({
-				gameName,
-				gamePath,
-				gameId,
-				gameIcon,
-				gameArgs,
-				gameCommand,
-				igdbId: igdbId ? Number(igdbId) : undefined,
-				gameSteamId: steamId,
-				winePrefixFolder: winePrefixFolder,
-			});
-			form.reset();
+			createGame(
+				{
+					gameName,
+					gamePath,
+					gameId,
+					gameIcon,
+					gameArgs,
+					gameCommand,
+					igdbId: igdbId ? Number(igdbId) : undefined,
+					gameSteamId: steamId,
+					winePrefixFolder: winePrefixFolder,
+				},
+				{
+					onSuccess: () => {
+						form.reset();
+					},
+					onError: (err) => {
+						console.error("Failed to add game:", err);
+						toast.error("Failed to add game", {
+							description: err.message,
+						});
+					},
+				},
+			);
+			// setOpen(false); // Optionally close dialog on success
 		} catch (err) {
 			console.error("Failed to add game:", err);
 		}
@@ -80,43 +96,50 @@ export const NewGameModal = ({ open, setOpen }: NewGameModalProps) => {
 				<NewGameButton onClick={() => setOpen(true)} />
 			</DialogTrigger>
 
-			<Tabs defaultValue="metadata">
-				<DialogContent className="flex h-[calc(100vh-10rem)] flex-col">
-					<DialogHeader>
-						<DialogTitle>{t("new_game")}</DialogTitle>
-						<DialogDescription>create a new game</DialogDescription>
+			<DialogContent className="flex h-[calc(100vh-10rem)] flex-col">
+				<DialogHeader>
+					<DialogTitle>{t("new_game")}</DialogTitle>
+					<DialogDescription>
+						{t("new_game_modal.description")}
+					</DialogDescription>
+				</DialogHeader>
 
-						<TabsList className="flex w-full justify-between">
-							<TabsTrigger value="metadata" className="flex-1">
-								{t("sections.metadata")}
-							</TabsTrigger>
-							<TabsTrigger value="settings" className="flex-1">
-								{t("sections.settings")}
-							</TabsTrigger>
-						</TabsList>
-					</DialogHeader>
+				<Tabs
+					defaultValue="metadata"
+					className="flex flex-1 flex-col overflow-hidden"
+				>
+					<TabsList className="flex w-full justify-between">
+						<TabsTrigger value="metadata" className="flex-1">
+							{t("sections.metadata")}
+						</TabsTrigger>
+						<TabsTrigger value="settings" className="flex-1">
+							{t("sections.settings")}
+						</TabsTrigger>
+					</TabsList>
 
 					<Form {...form}>
-						<div className="flex-1 overflow-hidden">
-							<ScrollArea className="h-full">
-								<form
-									className="flex flex-col gap-4"
-									autoComplete="off"
-									onSubmit={form.handleSubmit(handleAddGame)}
-								>
-									<TabsContent value="metadata">
+						<form
+							className="flex flex-1 flex-col overflow-hidden"
+							autoComplete="off"
+							onSubmit={form.handleSubmit(handleAddGame)}
+						>
+							<div className="flex-1 overflow-y-auto">
+								<ScrollArea className="h-full px-1 py-4">
+									<TabsContent value="metadata" className="mt-0">
 										<NewGameMetadataForm form={form} />
 									</TabsContent>
-
-									<TabsContent value="settings">
+									<TabsContent value="settings" className="mt-0">
 										<NewGameSettingsForm form={form} />
 									</TabsContent>
-								</form>
-							</ScrollArea>
-						</div>
+								</ScrollArea>
+							</div>
+							<DialogFooter className="mt-auto pt-4">
+								<Button type="submit">{t("add_game")}</Button>
+							</DialogFooter>
+						</form>
 					</Form>
-				</DialogContent>
-			</Tabs>
+				</Tabs>
+			</DialogContent>
 		</Dialog>
 	);
 };

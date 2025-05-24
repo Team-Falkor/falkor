@@ -1,5 +1,6 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames, listsToGames } from "@backend/database/schemas";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -105,19 +106,40 @@ export const libraryGamesRouter = router({
 			return updated;
 		}),
 
+	// --- Assuming necessary imports ---
+	// import { publicProcedure } from "../trpc"; // Adjust path as needed
+	// import { z } from "zod";
+	// import { eq } from "drizzle-orm";
+	// import { listsToGames, libraryGames } from "../db/schema"; // Adjust path to your Drizzle schema
+	// import { TRPCError } from "@trpc/server";
+
 	delete: publicProcedure
 		.input(z.object({ id: z.number() }))
 		.mutation(async ({ input, ctx }) => {
-			// First, delete associations in listsToGames
-			await ctx.db
-				.delete(listsToGames) // Assuming 'listsToGames' schema is imported
-				.where(eq(listsToGames.gameId, input.id));
+			try {
+				const deletedGameRecord = await ctx.db.transaction((tx) => {
+					tx.delete(listsToGames)
+						.where(eq(listsToGames.gameId, input.id))
+						.run();
 
-			// Then, delete the game itself
-			const [deleted] = await ctx.db
-				.delete(libraryGames)
-				.where(eq(libraryGames.id, input.id))
-				.returning();
-			return deleted;
+					const deletedGames = tx
+						.delete(libraryGames)
+						.where(eq(libraryGames.gameId, input.id.toString()))
+						.returning()
+						.get();
+
+					return deletedGames;
+				});
+
+				return deletedGameRecord;
+			} catch (error) {
+				console.error("Failed to delete game:", error);
+
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "An unexpected error occurred while deleting the game.",
+					cause: error instanceof Error ? error : undefined,
+				});
+			}
 		}),
 });
