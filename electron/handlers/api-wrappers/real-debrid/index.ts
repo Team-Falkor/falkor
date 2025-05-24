@@ -1,5 +1,9 @@
 import { getInfoHashFromMagnet } from "@backend/utils/utils";
-import type { RealDebridDownloadItem } from "@/@types";
+import type {
+	RealDebridDownloadItem,
+	RealDebridDownloadingStatus,
+	RealDebridTorrentInfo,
+} from "@/@types";
 import { RealDebridAuthService } from "./services/auth";
 import { RealDebridTorrentService } from "./services/torrents";
 import { RealDebridUnrestrictService } from "./services/unrestrict";
@@ -83,6 +87,7 @@ class RealDebridClient {
 		return addedTorrent.id;
 	}
 
+	// this function will also be called in an interval to check the status of the torrent
 	public async downloadTorrentFromMagnet(
 		magnetLink: string,
 		_password?: string,
@@ -101,15 +106,43 @@ class RealDebridClient {
 
 		// Check download status
 		if (torrentInfo.status !== "downloaded") {
-			// return {
-			// 	status: "downloading",
-			// 	filename: torrentInfo.filename,
-			// 	download: null,
-			// 	size: null,
-			// };
+			const statusesToCheck: Array<RealDebridTorrentInfo["status"]> = [
+				"downloading",
+				"uploading",
+				"queued",
+			];
 
-			// For now just throw an error
-			throw new Error("Torrent has not completed downloading.");
+			if (statusesToCheck.includes(torrentInfo.status)) {
+				const realStatus = torrentInfo.status as RealDebridDownloadingStatus;
+
+				console.log({
+					status: realStatus,
+					filename: torrentInfo.filename,
+					progress: torrentInfo.progress,
+					download: magnetLink,
+					size: null,
+				});
+
+				/**
+				 * Not ready to implement yet but this will be the structured output of the feature:
+				 * Automatically enqueue debrid downloads that aren’t cached, display a ‘Downloading via debrid’ status, and auto-start them once cached on the server
+				 *
+				 * For now we will just throw the error
+				 * */
+
+				throw new Error(
+					`Real debrid is ${realStatus} with status: ${torrentInfo.status}`,
+				);
+				// return {
+				// 	status: realStatus,
+				// 	filename: torrentInfo.filename,
+				// 	progress: torrentInfo.progress,
+				// 	download: magnetLink,
+				// 	size: null,
+				// };
+			}
+			// throw error becuase the debrid service has errored
+			throw new Error(`Real debrid erroed with status: ${torrentInfo.status}`);
 		}
 
 		// Ensure links are available

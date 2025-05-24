@@ -101,7 +101,12 @@ export interface RealDebridTorrentInfo extends RealDebridTorrent {
 	files: RealDebridTorrentFile[];
 }
 
-type NonDownloadingStatus<S> = Exclude<S, "downloading">;
+export type RealDebridDownloadingStatus =
+	| "downloading"
+	| "uploading"
+	| "queued";
+
+export type NonDownloadingStatus<S> = Exclude<S, RealDebridDownloadingStatus>;
 
 export type RealDebridDownloadItem<
 	TorrentStatus extends string = RealDebridTorrentInfo["status"],
@@ -113,8 +118,9 @@ export type RealDebridDownloadItem<
 			size: number;
 	  }
 	| {
-			status: "downloading";
+			status: RealDebridDownloadingStatus;
 			filename: string;
-			download: null | undefined;
+			download: string;
 			size: null | undefined;
+			progress: number | null | undefined;
 	  };

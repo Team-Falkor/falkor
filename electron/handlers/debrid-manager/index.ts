@@ -5,7 +5,14 @@ import { debridProviders } from "./map";
 
 const settings = SettingsManager.getInstance();
 
-type Return = { url: string; type: "ddl" | "magnet" | "torrent" } | undefined;
+type Return =
+	| {
+			url: string;
+			type: "ddl" | "magnet" | "torrent";
+			provider: "real-debrid" | "torbox";
+			isCaching: boolean;
+	  }
+	| undefined;
 
 // TODO: handle downloading on debrid server
 
@@ -22,20 +29,34 @@ export class DebridManager {
 		type: PluginSearchResponse["type"],
 		_password?: string,
 	): Promise<Return | null> => {
-		const client = debridProviders.get("real-debrid");
+		const provider = "real-debrid";
+		const client = debridProviders.get(provider);
 		if (!client) return null;
 
-		const donwloadURL =
-			type === "ddl"
-				? (await client.unrestrict.unrestrictLink(url))?.download
-				: (await client.downloadTorrentFromMagnet(url))?.download;
+		let returnData: Return | null = null;
+		if (type === "ddl") {
+			const result = await client.unrestrict.unrestrictLink(url);
+			returnData = {
+				url: result?.download ?? "",
+				isCaching: false,
+				type: "ddl",
+				provider,
+			};
+		}
 
-		console.log(donwloadURL);
+		if (type !== "ddl") {
+			const result = await client.downloadTorrentFromMagnet(url);
+			returnData = {
+				url: result.download,
+				isCaching: ["downloading", "queued", "uploading"].includes(
+					result.status,
+				),
+				type: "ddl",
+				provider,
+			};
+		}
 
-		return {
-			url: !donwloadURL ? "" : donwloadURL,
-			type: type,
-		};
+		return returnData;
 	};
 
 	public async download(
@@ -51,7 +72,11 @@ export class DebridManager {
 			"preferredDebridService",
 		) as SettingsConfig["preferredDebridService"];
 
-		switch (preferedDebridService) {
+		const service = preferedDebridService
+			? preferedDebridService
+			: debridProviders.keys().next().value;
+
+		switch (service) {
 			case "real-debrid": {
 				const result = await this.realDebrid(url, type, _password);
 				return result;
@@ -60,9 +85,8 @@ export class DebridManager {
 				// TODO: torbox
 				return null;
 			}
-
 			default: {
-				// TODO: default use first debrid service from the map
+				// No service found
 				return null;
 			}
 		}
