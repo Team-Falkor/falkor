@@ -67,7 +67,11 @@ export function CommunityProviders() {
 				</CardHeader>
 				<CardContent>
 					<Button asChild>
-						<a href="https://falkor.moe/plugins/providers/add">
+						<a
+							href="https://falkor.moe/plugins/providers/add"
+							target="_blank"
+							rel="noopener"
+						>
 							<Plus />
 							Add Provider
 						</a>
