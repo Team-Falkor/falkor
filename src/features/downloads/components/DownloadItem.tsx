@@ -21,7 +21,7 @@ import { trpc } from "@/lib/trpc";
 import { formatBytes, formatTimeRemaining } from "@/lib/utils";
 
 export function DownloadItem(
-	initalData: RouterOutputs["downloads"]["getAll"][number],
+	data: RouterOutputs["downloads"]["getAll"][number],
 ) {
 	const utils = trpc.useUtils();
 	const pauseMutation = trpc.downloads.pause.useMutation({
@@ -39,38 +39,34 @@ export function DownloadItem(
 
 	const handlePause = () =>
 		pauseMutation.mutate(
-			{ id: initalData.id },
+			{ id: data.id },
 			{
 				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 	const handleResume = () =>
 		resumeMutation.mutate(
-			{ id: initalData.id },
+			{ id: data.id },
 			{
 				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 	const handleCancel = () =>
 		cancelMutation.mutate(
-			{ id: initalData.id },
+			{ id: data.id },
 			{
 				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 	const handleRemove = () =>
 		removeMutation.mutate(
-			{ id: initalData.id },
+			{ id: data.id },
 			{
 				onSuccess: async () => await utils.downloads.invalidate(),
 			},
 		);
 
-	const { data: liveData } = trpc.downloads.getById.useQuery({
-		id: initalData.id,
-	});
-
-	const download = liveData ?? initalData;
+	const download = data;
 	const status = download.status;
 
 	const isActive = status === DownloadStatus.DOWNLOADING;

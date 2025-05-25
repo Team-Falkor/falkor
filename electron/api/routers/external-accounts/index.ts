@@ -21,7 +21,7 @@ export const externalAccountsRouter = router({
 				email: z.string().optional(),
 				avatar: z.string().optional(),
 				clientId: z.string().optional(),
-				clientSecret: z.string().optional(),
+				clientSecret: z.string(),
 				accessToken: z.string(),
 				refreshToken: z.string(),
 				expiresIn: z.number(),

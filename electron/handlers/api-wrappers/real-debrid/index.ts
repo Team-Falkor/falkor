@@ -115,14 +115,6 @@ class RealDebridClient {
 			if (statusesToCheck.includes(torrentInfo.status)) {
 				const realStatus = torrentInfo.status as RealDebridDownloadingStatus;
 
-				console.log({
-					status: realStatus,
-					filename: torrentInfo.filename,
-					progress: torrentInfo.progress,
-					download: magnetLink,
-					size: null,
-				});
-
 				/**
 				 * Not ready to implement yet but this will be the structured output of the feature:
 				 * Automatically enqueue debrid downloads that aren’t cached, display a ‘Downloading via debrid’ status, and auto-start them once cached on the server

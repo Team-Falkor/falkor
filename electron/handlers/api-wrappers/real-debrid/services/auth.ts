@@ -25,6 +25,11 @@ export interface RealDebridToken {
 	token_type: string;
 }
 
+export interface RealDebridClientInfo {
+	client_id: string;
+	client_secret: string;
+}
+
 export class RealDebridAuthService extends EventEmitter {
 	private static instance: RealDebridAuthService;
 	private baseUrl = "https://api.real-debrid.com";
@@ -37,6 +42,13 @@ export class RealDebridAuthService extends EventEmitter {
 	private constructor() {
 		super();
 		this.clientId = "X245A4XAIBGVM";
+	}
+
+	setClientSecret(clientSecret: string) {
+		this.clientSecret = clientSecret;
+	}
+	setClientId(clientId: string) {
+		this.clientId = clientId;
 	}
 
 	public static getInstance(): RealDebridAuthService {
@@ -98,7 +110,10 @@ export class RealDebridAuthService extends EventEmitter {
 					const token = await this.obtainAccessToken(deviceCode);
 
 					// Store the token in the database
-					const account = await this.upsertAccountToken(token);
+					const account = await this.upsertAccountToken(token, {
+						client_id: data.client_id,
+						client_secret: data.client_secret,
+					});
 
 					this.emit("token", { token, account });
 				} catch (error) {
@@ -156,11 +171,14 @@ export class RealDebridAuthService extends EventEmitter {
 
 		const body = `client_id=${this.clientId}&client_secret=${this.clientSecret}&code=${refreshToken}&grant_type=http://oauth.net/grant_type/device/1.0`;
 
+		console.log(body);
+
 		const response = await fetch(url, {
 			method: "POST",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
 			body,
 		});
+		console.log(response);
 
 		const data = await response.json();
 
@@ -184,12 +202,19 @@ export class RealDebridAuthService extends EventEmitter {
 	/**
 	 * Unified upsert for account tokens.
 	 */
-	private async upsertAccountToken(token: RealDebridToken): Promise<Account> {
+	private async upsertAccountToken(
+		token: RealDebridToken,
+		clientInfo?: RealDebridClientInfo,
+	): Promise<Account> {
 		const payload: Partial<Account> = {
 			type: "real-debrid",
 			accessToken: token.access_token,
 			refreshToken: token.refresh_token,
 			expiresIn: token.expires_in,
+			...(clientInfo && {
+				clientId: clientInfo.client_id,
+				clientSecret: clientInfo.client_secret,
+			}),
 		};
 
 		const accountEntry = await db

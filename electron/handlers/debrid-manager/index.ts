@@ -11,6 +11,8 @@ type Return =
 			type: "ddl" | "magnet" | "torrent";
 			provider: "real-debrid" | "torbox";
 			isCaching: boolean;
+			progress?: number;
+			fileSize?: number;
 	  }
 	| undefined;
 
@@ -46,13 +48,26 @@ export class DebridManager {
 
 		if (type !== "ddl") {
 			const result = await client.downloadTorrentFromMagnet(url);
+
+			const isCaching = ["downloading", "queued", "uploading"].includes(
+				result.status,
+			);
+			const progress =
+				result.status === "downloading"
+					? (result.progress ?? undefined)
+					: undefined;
+			const fileSize =
+				result.status === "downloading"
+					? (result.size ?? undefined)
+					: undefined;
+
 			returnData = {
 				url: result.download,
-				isCaching: ["downloading", "queued", "uploading"].includes(
-					result.status,
-				),
+				isCaching,
 				type: "ddl",
 				provider,
+				progress,
+				fileSize,
 			};
 		}
 
@@ -67,6 +82,8 @@ export class DebridManager {
 		const account = settings.get("useAccountsForDownloads");
 		if (!account) return null;
 
+		console.log(account);
+
 		// check prefered debrid service first if not set use first added service
 		const preferedDebridService = settings.get(
 			"preferredDebridService",
@@ -75,6 +92,8 @@ export class DebridManager {
 		const service = preferedDebridService
 			? preferedDebridService
 			: debridProviders.keys().next().value;
+
+		console.log({ service });
 
 		switch (service) {
 			case "real-debrid": {

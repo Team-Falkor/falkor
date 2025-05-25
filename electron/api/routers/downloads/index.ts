@@ -1,4 +1,6 @@
 import { DebridManager } from "@backend/handlers/debrid-manager";
+import { DebridCachingManager } from "@backend/handlers/debrid-manager/debridCachingManager";
+import { debridCachingItems } from "@backend/handlers/debrid-manager/map";
 import { httpDownloadHandler } from "@backend/handlers/downloads/http";
 import { torrentDownloadHandler } from "@backend/handlers/downloads/torrent";
 import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
@@ -19,7 +21,7 @@ const gameDataSchema = z.object({
 	banner_id: z.string().optional(),
 });
 
-const addDownloadSchema = z.object({
+export const addDownloadSchema = z.object({
 	url: z.string(),
 	multiple_choice: z.boolean().default(false),
 	pluginId: pluginIdSchema.optional(),
@@ -77,8 +79,22 @@ export const downloadQueueRouter = router({
 			const debrid = await debridManager.download(
 				finalUrl,
 				isDirectHttp ? "ddl" : "torrent",
-				undefined,
 			);
+
+			if (debrid?.isCaching) {
+				// add to a cache queue that will check on an interval to see if the status has changed and once its changed in that interval add to the download queue and remove from the cache queue
+				const item = new DebridCachingManager({
+					inputFromAddDownload: payload,
+					url: payload.url,
+					type: payload.type,
+					id: payload.url,
+				});
+
+				debridCachingItems.set(payload.url, item);
+				item.start();
+
+				return { id: payload.url, isCaching: true };
+			}
 
 			if (debrid?.url) {
 				payload = {
@@ -89,13 +105,19 @@ export const downloadQueueRouter = router({
 			}
 
 			const id = await downloadQueue.addDownload(payload);
-			return { id };
+			return { id, isCaching: false };
 		} catch (err) {
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
 				message: getErrorMessage(err, "Failed to add download"),
 			});
 		}
+	}),
+
+	getCachingItems: publicProcedure.query(() => {
+		const items = Array.from(debridCachingItems.values());
+		if (!items?.length) return [];
+		return items.map((item) => item.getStats());
 	}),
 
 	pause: publicProcedure.input(downloadIdSchema).mutation(async ({ input }) => {

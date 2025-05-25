@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { DownloadStatus } from "@/@types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
@@ -5,12 +6,26 @@ import { DownloadItem } from "./DownloadItem";
 
 export function DownloadList() {
 	const { data: downloads } = trpc.downloads.getAll.useQuery(undefined, {
-		// refetchInterval: 2500, // 2.5 seconds
+		refetchInterval: 2500, // 2.5 seconds
 		// refetchIntervalInBackground: false,
-		// staleTime: 2500,
+		staleTime: 2500,
 		// refetchOnWindowFocus: true,
 		// refetchOnMount: true,
 	});
+	const { data: cachingItems } = trpc.downloads.getCachingItems.useQuery(
+		undefined,
+		{
+			refetchInterval: 60_000, // 1 minute
+			// refetchIntervalInBackground: false,
+			// staleTime: 2500,
+			// refetchOnWindowFocus: true,
+			// refetchOnMount: true,
+		},
+	);
+
+	useEffect(() => {
+		console.log("cachingItems", cachingItems);
+	}, [cachingItems]);
 
 	// Set all to its own const for contanuity
 	const all = downloads ?? [];

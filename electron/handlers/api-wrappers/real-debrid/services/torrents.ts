@@ -62,11 +62,12 @@ export class RealDebridTorrentService {
 	}
 
 	public async getTorrents(): Promise<RealDebridTorrent[]> {
+		console.log(`${this.baseUrl}/torrents`, {
+			authHeaders: this.authHeaders,
+		});
 		const response = await fetch(`${this.baseUrl}/torrents`, {
 			headers: this.authHeaders,
 		});
-
-		console.log(this.authHeaders);
 
 		if (!response.ok) {
 			console.log(response);
@@ -116,7 +117,11 @@ export class RealDebridTorrentService {
 
 	public async selectAllFiles(id: string): Promise<void> {
 		const torrentInfo = await this.getTorrentInfo(id);
+		console.log(torrentInfo);
 		const fileIds = torrentInfo.files.map((file) => file.id);
+		console.log(fileIds);
 		await this.selectFiles(id, fileIds);
+		console.log("done");
+		return;
 	}
 }
