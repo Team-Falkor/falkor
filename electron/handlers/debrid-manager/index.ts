@@ -82,8 +82,6 @@ export class DebridManager {
 		const account = settings.get("useAccountsForDownloads");
 		if (!account) return null;
 
-		console.log(account);
-
 		// check prefered debrid service first if not set use first added service
 		const preferedDebridService = settings.get(
 			"preferredDebridService",
@@ -92,8 +90,6 @@ export class DebridManager {
 		const service = preferedDebridService
 			? preferedDebridService
 			: debridProviders.keys().next().value;
-
-		console.log({ service });
 
 		switch (service) {
 			case "real-debrid": {

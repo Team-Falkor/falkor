@@ -15,7 +15,7 @@ export const useDownloadActions = () => {
 				refetchType: "all",
 				type: "all",
 			});
-			toast.success("Download added");
+			toast.success(`${data?.isCaching ? "Caching" : "Download"} started`);
 			return data;
 		},
 		onError: (error) => {

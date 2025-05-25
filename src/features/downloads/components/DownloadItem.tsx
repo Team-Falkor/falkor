@@ -20,9 +20,13 @@ import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
 import { formatBytes, formatTimeRemaining } from "@/lib/utils";
 
-export function DownloadItem(
-	data: RouterOutputs["downloads"]["getAll"][number],
-) {
+type Item = RouterOutputs["downloads"]["getAll"][number];
+
+interface DownloadItemData extends Item {
+	typeOf: "download";
+}
+
+export function DownloadItem(data: DownloadItemData) {
 	const utils = trpc.useUtils();
 	const pauseMutation = trpc.downloads.pause.useMutation({
 		onSuccess: async () => await utils.downloads.invalidate(),

@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { DownloadStatus } from "@/@types";
+import { DownloadStatus, type RouterOutputs } from "@/@types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
+import { CachingDownloadItem } from "./CachingDownloadItem";
 import { DownloadItem } from "./DownloadItem";
 
 export function DownloadList() {
@@ -46,16 +47,35 @@ export function DownloadList() {
 		);
 	};
 
-	const renderTab = (downloads: typeof all) => {
-		if (!downloads?.length) {
+	const renderTab = (
+		downloads: RouterOutputs["downloads"]["getAll"] = [],
+		caching: RouterOutputs["downloads"]["getCachingItems"] = [],
+	) => {
+		if (downloads.length === 0 && caching.length === 0) {
 			return renderEmptyTag("Nothing here yet. Start downloading something!");
 		}
 
+		// Merge and tag items
+		const allDownloads = [
+			...downloads.map((item) => ({
+				...item,
+				typeOf: "download" as const,
+			})),
+			...caching.map((item) => ({
+				...item,
+				typeOf: "caching" as const,
+			})),
+		];
+
 		return (
 			<div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3">
-				{downloads.map((download) => (
-					<DownloadItem key={download.id} {...download} />
-				))}
+				{allDownloads.map((item) =>
+					item.typeOf === "download" ? (
+						<DownloadItem key={`download-${item.id}`} {...item} />
+					) : (
+						<CachingDownloadItem key={`caching-${item.id}`} {...item} />
+					),
+				)}
 			</div>
 		);
 	};
@@ -63,7 +83,9 @@ export function DownloadList() {
 	return (
 		<Tabs defaultValue="all" className="w-full">
 			<TabsList className="mb-4 grid h-auto w-full grid-cols-2 sm:grid-cols-5">
-				<TabsTrigger value="all">All {all?.length ?? 0}</TabsTrigger>
+				<TabsTrigger value="all">
+					All {[...all, ...(cachingItems ?? [])]?.length ?? 0}
+				</TabsTrigger>
 				<TabsTrigger value="active">Active {active?.length ?? 0}</TabsTrigger>
 				<TabsTrigger value="queued">Queued {queued?.length ?? 0}</TabsTrigger>
 				<TabsTrigger value="completed">
@@ -71,7 +93,7 @@ export function DownloadList() {
 				</TabsTrigger>
 				<TabsTrigger value="failed">Failed {failed?.length ?? 0}</TabsTrigger>
 			</TabsList>
-			<TabsContent value="all">{renderTab(all)}</TabsContent>
+			<TabsContent value="all">{renderTab(all, cachingItems)}</TabsContent>
 			<TabsContent value="active">{renderTab(active)}</TabsContent>
 			<TabsContent value="queued">{renderTab(queued)}</TabsContent>
 			<TabsContent value="completed">{renderTab(completed)}</TabsContent>

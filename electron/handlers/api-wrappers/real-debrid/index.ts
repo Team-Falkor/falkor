@@ -122,16 +122,16 @@ class RealDebridClient {
 				 * For now we will just throw the error
 				 * */
 
-				throw new Error(
-					`Real debrid is ${realStatus} with status: ${torrentInfo.status}`,
-				);
-				// return {
-				// 	status: realStatus,
-				// 	filename: torrentInfo.filename,
-				// 	progress: torrentInfo.progress,
-				// 	download: magnetLink,
-				// 	size: null,
-				// };
+				// throw new Error(
+				// 	`Real debrid is ${realStatus} with status: ${torrentInfo.status}`,
+				// );
+				return {
+					status: realStatus,
+					filename: torrentInfo.filename,
+					progress: torrentInfo.progress,
+					download: magnetLink,
+					size: null,
+				};
 			}
 			// throw error becuase the debrid service has errored
 			throw new Error(`Real debrid erroed with status: ${torrentInfo.status}`);
