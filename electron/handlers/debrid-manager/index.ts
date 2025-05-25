@@ -16,7 +16,7 @@ type Return =
 	  }
 	| undefined;
 
-// TODO: handle downloading on debrid server
+// TODO: add new method for checking if the download is still downloading on debrid service
 
 export class DebridManager {
 	private static instance: DebridManager;
