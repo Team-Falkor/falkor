@@ -22,12 +22,15 @@ const updateAccountTokensInDb = async (
 	expiresIn: number,
 ): Promise<boolean> => {
 	try {
+		// expiresIn is in seconds, store it as the future timestamp
+		const expiryDate = new Date(Date.now() + expiresIn * 1000);
+
 		const updatedAccounts = await db
 			.update(accounts)
 			.set({
 				accessToken,
 				refreshToken,
-				expiresIn,
+				expiresIn: expiryDate.getTime(), // Store as milliseconds timestamp
 			})
 			.where(eq(accounts.type, provider))
 			.returning({ id: accounts.id });
@@ -52,7 +55,6 @@ export const initRealDebrid = async (
 		| undefined;
 	let tokenToUse = currentAccessToken;
 
-	// 1. Handle token refresh if the current token has expired
 	if (hasExpired) {
 		if (!currentRefreshToken) {
 			console.error(
@@ -113,7 +115,6 @@ export const initRealDebrid = async (
 		}
 	}
 
-	// 2. Determine the client instance to return
 	if (forceReinitialize) {
 		console.info(
 			"RealDebrid: `forceReinitialize` is true. Re-creating client with the latest token.",
@@ -144,11 +145,10 @@ export const initRealDebrid = async (
 		(account) => account.type === "real-debrid",
 	);
 	const now = new Date();
-	const expiresIn = new Date(
-		now.getTime() -
-			(realDebridFromDB?.expiresIn ? realDebridFromDB?.expiresIn * 1000 : 0),
-	);
-	const hasExpired = expiresIn < now;
+
+	// expiresIn from DB is now a future timestamp in milliseconds
+	const expiresInTimestamp = realDebridFromDB?.expiresIn ?? 0;
+	const hasExpired = expiresInTimestamp < now.getTime();
 
 	if (
 		realDebridFromDB?.accessToken &&
