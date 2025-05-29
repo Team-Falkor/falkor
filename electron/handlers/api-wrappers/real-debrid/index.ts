@@ -72,7 +72,10 @@ class RealDebridClient {
 		const infoHash = getInfoHashFromMagnet(magnetLink);
 		const existingTorrents = await this.torrents.getTorrents();
 		const foundTorrent = existingTorrents?.length
-			? existingTorrents?.find((torrent) => torrent.hash === infoHash)
+			? existingTorrents?.find((torrent) => {
+					const hash = torrent?.hash;
+					return hash?.toLowerCase() === infoHash?.toLowerCase();
+				})
 			: null;
 
 		if (foundTorrent) {
