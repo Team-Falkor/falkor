@@ -3,13 +3,13 @@ import { Carousel, CarouselContent } from "@/components/ui/carousel";
 // import NavBarContinuePlayingCard from "../cards/playing";
 
 export const NavBarMiddle = () => {
-	// const { games } = useGames(true);
+	// const { games } = useGames();
 
 	// const gamesToShow = useMemo(() => {
 	//   const gamesArray = Object.values(games);
 	//   if (!gamesArray?.length) return [];
 	//   gamesArray.sort(
-	//     (a, b) => Number(b.game_last_played) - Number(a.game_last_played)
+	//     (a, b) => Number(b.gameLastPlayed) - Number(a.gameLastPlayed)
 	//   );
 	//   return gamesArray.slice(0, 5);
 	// }, [games]);

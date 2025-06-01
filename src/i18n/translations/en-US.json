@@ -147,5 +147,6 @@
 	"changelog": "Changelog",
 	"no_games_installed": "You have not installed any games yet",
 	"installed": "Installed",
-	"installed_description": "is this game installed?"
+	"installed_description": "is this game installed?",
+	"calendar": "Calendar"
 }
