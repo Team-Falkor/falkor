@@ -3243,10 +3243,10 @@ electron-updater@^6.6.2:
     semver "^7.6.3"
     tiny-typed-emitter "^2.1.0"
 
-electron@^35.2.2:
-  version "35.4.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-35.4.0.tgz#d7e0b87e298bf8d85d64057f20594a6fd59e6a0e"
-  integrity sha512-VIPSNcUnic00aaE83w6BW4Dj1kE8A5DU0nVbvwqotN3+gseGunbP4WyHp/kfKXVKQj1S3No3HnYxU5LJmYbAtw==
+electron@^36.4.0:
+  version "36.4.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-36.4.0.tgz#9463bf5fa7565ae7be3a274f7f6a46359bcfe74d"
+  integrity sha512-LLOOZEuW5oqvnjC7HBQhIqjIIJAZCIFjQxltQGLfEC7XFsBoZgQ3u3iFj+Kzw68Xj97u1n57Jdt7P98qLvUibQ==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^22.7.7"
