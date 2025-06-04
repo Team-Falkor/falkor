@@ -8,7 +8,21 @@ export const useFormActions = (form: UseFormReturn<NewGameFormSchema>) => {
 	const handlePathButton = async () => {
 		const selected = await openDialog.mutateAsync({
 			properties: ["openFile"],
-			filters: [{ name: "Executable", extensions: ["exe", "sh"] }],
+			filters: [
+				{
+					name: "Executable",
+					extensions: [
+						"exe",
+						"bat",
+						"cmd",
+						"sh",
+						"run",
+						"AppImage",
+						"jar",
+						"url",
+					],
+				},
+			],
 		});
 
 		if (!selected.success || !selected.result) return;
