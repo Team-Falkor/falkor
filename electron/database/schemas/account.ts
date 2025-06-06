@@ -19,7 +19,7 @@ export const accounts = sqliteTable(
 		accessToken: text("access_token"),
 		refreshToken: text("refresh_token"),
 		expiresIn: integer("expires_in"),
-		type: text("type").$type<"real-debrid" | "torbox">().unique(),
+		type: text("type").$type<"real-debrid" | "torbox" | "steam">().unique(),
 	},
 	(table) => [
 		// Unique constraint on "type"
