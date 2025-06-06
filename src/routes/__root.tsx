@@ -1,4 +1,7 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import type { ToastNotification } from "@/@types";
 import TitleBar from "@/components/title-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NavBar from "@/features/navigation/components/navbar";
@@ -15,6 +18,37 @@ function Root() {
 	// useAppStartup();
 
 	const titleBarStyle = settings?.titleBarStyle;
+
+	useEffect(() => {
+		// Handler for toast events
+		function handleToastEvent(
+			_event: unknown,
+			{ message, type, description }: ToastNotification,
+		) {
+			switch (type) {
+				case "success":
+					toast.success(message, { description });
+					break;
+				case "error":
+					toast.error(message, { description });
+					break;
+				case "warning":
+					toast.warning(message, { description });
+					break;
+				default:
+					toast(message, { description });
+					break;
+			}
+		}
+
+		// Listen for the toast event from Electron
+		window.ipcRenderer.on("toast:show", handleToastEvent);
+
+		// Cleanup on unmount
+		return () => {
+			window.ipcRenderer.removeListener("toast:show", handleToastEvent);
+		};
+	}, [toast]);
 
 	return (
 		<TooltipProvider>
