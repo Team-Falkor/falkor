@@ -1,17 +1,5 @@
 import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
-import { BrowserWindow } from "electron";
 import { sendToastNotification } from "./window";
-
-// Memoized main window
-let mainWindow: BrowserWindow | null = null;
-
-const getMainWindow = (): BrowserWindow | null => {
-	if (mainWindow && !mainWindow.isDestroyed()) {
-		return mainWindow;
-	}
-	mainWindow = BrowserWindow.getAllWindows()[0] ?? null;
-	return mainWindow;
-};
 
 export const handleDeepLink = async (url: string): Promise<void> => {
 	const deepLinkContent = url?.split("falkor://")?.[1];

@@ -52,7 +52,7 @@ export function setupAppLifecycle(): void {
 
 	// Prevent accidental app termination on certain platforms
 	if (process.platform === "darwin" || process.platform === "win32") {
-		app.on("before-quit", (event) => {
+		app.on("before-quit", (_event) => {
 			// If there are unsaved changes or other conditions requiring confirmation,
 			// you could handle that here
 		});
