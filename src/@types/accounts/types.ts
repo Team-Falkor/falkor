@@ -1,7 +1,6 @@
 export enum ExternalAccountType {
 	"real-debrid" = 0,
 	torbox = 1,
-	steam = 2,
 }
 
 export interface ExternalAccount {

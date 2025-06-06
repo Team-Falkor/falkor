@@ -35,6 +35,9 @@ function Root() {
 				case "warning":
 					toast.warning(message, { description });
 					break;
+				case "info":
+					toast.info(message, { description });
+					break;
 				default:
 					toast(message, { description });
 					break;

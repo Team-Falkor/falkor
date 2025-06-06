@@ -166,7 +166,7 @@ export enum Sound {
 }
 
 export interface ToastNotification {
-	type: "success" | "warning" | "error";
+	type: "success" | "warning" | "info" | "error";
 	message: string;
 	description?: string;
 }
