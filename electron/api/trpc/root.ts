@@ -13,6 +13,7 @@ import { communityProvidersRouter } from "../routers/plugins/providers/community
 import { protonDbRouter } from "../routers/protondb";
 import { realDebridAuthRouter } from "../routers/real-debrid/auth";
 import { settingsRouter } from "../routers/settings";
+import { steamRouter } from "../routers/steam";
 import { router } from ".";
 
 export const appRouter = router({
@@ -35,6 +36,7 @@ export const appRouter = router({
 		auth: realDebridAuthRouter,
 	},
 	app: appFunctionsRouter,
+	steam: steamRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -11,6 +11,7 @@ import {
 	Tray,
 } from "electron";
 import { createIPCHandler } from "trpc-electron/main";
+import type { ToastNotification } from "@/@types";
 import { appRouter } from "../api/trpc/root";
 import { SettingsManager } from "../handlers/settings/settings";
 import { INDEX_HTML, PRELOAD_PATH, VITE_DEV_SERVER_URL } from "./constants";
@@ -52,6 +53,7 @@ export async function createWindow(
 			process.env.VITE_PUBLIC ?? "",
 			"icon-256x256.png",
 		);
+
 		const iconExists = existsSync(iconPath);
 
 		if (!iconExists) {
@@ -291,3 +293,15 @@ export const emitToFrontend = <TData>(
 		return false;
 	}
 };
+
+/**
+ * Sends a toast notification to the renderer process.
+ *
+ * @param win - The target BrowserWindow instance.
+ * @param toast - The toast notification details.
+ */
+export function sendToastNotification(toast: ToastNotification): void {
+	if (!win) return;
+
+	win.webContents.send("toast:show", toast);
+}

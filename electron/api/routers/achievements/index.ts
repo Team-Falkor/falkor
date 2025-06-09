@@ -1,10 +1,11 @@
+import { achievementImporter } from "@backend/handlers/achievements/import";
 import { SettingsManager } from "@backend/handlers/settings/settings";
 import { getErrorMessage } from "@backend/utils/utils";
 import type Database from "better-sqlite3";
 import { eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { z } from "zod";
-import type { ISchemaForGame } from "@/@types";
+import type { IGetSchemaForGame } from "@/@types";
 import { publicProcedure, router } from "../../../api/trpc";
 import { achievements } from "../../../database/schemas";
 
@@ -43,7 +44,7 @@ export const getAchievementsDataFromApi = async (steamId: string) => {
 			throw new Error("Failed to fetch data");
 		}
 
-		const data: ISchemaForGame = await res.json();
+		const data: IGetSchemaForGame = await res.json();
 		return data?.game?.availableGameStats?.achievements ?? [];
 	} catch (error) {
 		throw new Error(getErrorMessage(error));
@@ -98,6 +99,16 @@ export const achievementsRouter = router({
 				return dataWithUnlocked;
 			} catch (error) {
 				throw new Error(getErrorMessage(error));
+			}
+		}),
+
+	import: publicProcedure
+		.input(z.object({ steamId: z.string(), lang: z.string().default("en") }))
+		.mutation(async ({ input }) => {
+			try {
+				await achievementImporter.importAchievements(input.steamId, input.lang);
+			} catch (error) {
+				console.error(error);
 			}
 		}),
 });
