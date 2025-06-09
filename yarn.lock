@@ -375,10 +375,6 @@
 
 "@electron/node-gyp@https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2":
   version "10.2.0-electron.1"
-<<<<<<< HEAD
-  uid "06b29aafb7708acef8b3669835c8a7857ebc92d2"
-=======
->>>>>>> feat/debrid-improvements
   resolved "https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2"
   dependencies:
     env-paths "^2.2.0"
