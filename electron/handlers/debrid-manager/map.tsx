@@ -1,5 +1,7 @@
+import { setTimeout } from "node:timers/promises";
 import { db } from "@backend/database";
 import { accounts } from "@backend/database/schemas";
+import { sendToastNotification } from "@backend/main/window";
 import { eq } from "drizzle-orm";
 import {
 	RealDebridAuthService,
@@ -8,12 +10,16 @@ import {
 import type { DebridCachingManager } from "./debridCachingManager";
 
 type DebridService = RealDebridClient;
+type DebridServiceType = "real-debrid" | "torbox";
 
-type DebriServiceType = "real-debrid" | "torbox";
-
-export const debridProviders: Map<DebriServiceType, DebridService> = new Map();
-
+export const debridProviders: Map<DebridServiceType, DebridService> = new Map();
 export const debridCachingItems: Map<string, DebridCachingManager> = new Map();
+
+const MILLISECONDS_PER_SECOND = 1000;
+
+// Add initialization tracking
+let isInitialized = false;
+let initializationPromise: Promise<void> | null = null;
 
 const updateAccountTokensInDb = async (
 	provider: "real-debrid",
@@ -22,15 +28,16 @@ const updateAccountTokensInDb = async (
 	expiresIn: number,
 ): Promise<boolean> => {
 	try {
-		// expiresIn is in seconds, store it as the future timestamp
-		const expiryDate = new Date(Date.now() + expiresIn * 1000);
+		const expiryDate = new Date(
+			Date.now() + expiresIn * MILLISECONDS_PER_SECOND,
+		);
 
 		const updatedAccounts = await db
 			.update(accounts)
 			.set({
 				accessToken,
 				refreshToken,
-				expiresIn: expiryDate.getTime(), // Store as milliseconds timestamp
+				expiresIn: expiryDate.getTime(),
 			})
 			.where(eq(accounts.type, provider))
 			.returning({ id: accounts.id });
@@ -38,7 +45,7 @@ const updateAccountTokensInDb = async (
 		return updatedAccounts.length > 0;
 	} catch (error) {
 		console.error(`Failed to update tokens in DB for ${provider}:`, error);
-		return false; // Indicate failure
+		return false;
 	}
 };
 
@@ -50,6 +57,10 @@ export const initRealDebrid = async (
 	hasExpired = false,
 	forceReinitialize = false,
 ): Promise<RealDebridClient> => {
+	if (!currentAccessToken || !clientSecret || !clientId) {
+		throw new Error("RealDebrid: Missing required authentication parameters");
+	}
+
 	let client = debridProviders.get("real-debrid") as
 		| RealDebridClient
 		| undefined;
@@ -68,100 +79,149 @@ export const initRealDebrid = async (
 			const realDebridAuthService = RealDebridAuthService.getInstance();
 			realDebridAuthService.setClientSecret(clientSecret);
 			realDebridAuthService.setClientId(clientId);
+
 			const tokenResponse =
 				await realDebridAuthService.refreshToken(currentRefreshToken);
 
-			if (tokenResponse) {
-				const {
-					access_token: newAccessToken,
-					refresh_token: newRefreshToken,
-					expires_in: newExpiresIn,
-				} = tokenResponse;
-
-				const dbUpdated = await updateAccountTokensInDb(
-					"real-debrid",
-					newAccessToken,
-					newRefreshToken,
-					newExpiresIn,
-				);
-
-				if (dbUpdated) {
-					console.info(
-						"RealDebrid: Token refreshed and database updated successfully.",
-					);
-					tokenToUse = newAccessToken;
-					client = RealDebridClient.getInstance(tokenToUse);
-					debridProviders.set("real-debrid", client);
-				} else {
-					console.error(
-						"RealDebrid: Token refreshed, but failed to update database.",
-					);
-					throw new Error(
-						"RealDebrid: Token refreshed but database update failed.",
-					);
-				}
-			} else {
-				console.error(
-					"RealDebrid: Token refresh attempt failed (no response from auth service).",
-				);
-				throw new Error("RealDebrid: Token refresh failed.");
+			if (!tokenResponse) {
+				throw new Error("RealDebrid: Token refresh failed - no response");
 			}
+
+			const {
+				access_token: newAccessToken,
+				refresh_token: newRefreshToken,
+				expires_in: newExpiresIn,
+			} = tokenResponse;
+
+			if (!newAccessToken) {
+				throw new Error(
+					"RealDebrid: Invalid refresh response - missing access token",
+				);
+			}
+
+			const dbUpdated = await updateAccountTokensInDb(
+				"real-debrid",
+				newAccessToken,
+				newRefreshToken,
+				newExpiresIn,
+			);
+
+			if (!dbUpdated) {
+				throw new Error(
+					"RealDebrid: Token refreshed but database update failed.",
+				);
+			}
+
+			console.info(
+				"RealDebrid: Token refreshed and database updated successfully.",
+			);
+			tokenToUse = newAccessToken;
+			client = RealDebridClient.getInstance(tokenToUse);
+			debridProviders.set("real-debrid", client);
 		} catch (error) {
 			console.error("RealDebrid: Error during token refresh process.", error);
-			if (error instanceof Error) throw error;
-			throw new Error(
-				"An unknown error occurred during RealDebrid token refresh.",
-			);
+			throw error instanceof Error
+				? error
+				: new Error(
+						"An unknown error occurred during RealDebrid token refresh.",
+					);
 		}
 	}
 
-	if (forceReinitialize) {
-		console.info(
-			"RealDebrid: `forceReinitialize` is true. Re-creating client with the latest token.",
-		);
+	if (forceReinitialize || !client) {
+		const action = forceReinitialize
+			? "Re-creating client due to forceReinitialize"
+			: "Creating new client instance";
+		console.info(`RealDebrid: ${action}.`);
+
 		client = RealDebridClient.getInstance(tokenToUse);
 		debridProviders.set("real-debrid", client);
-		return client;
+	} else {
+		console.info("RealDebrid: Returning existing client instance.");
 	}
 
-	if (client) {
-		console.info(
-			"RealDebrid: Returning existing or refreshed client instance.",
-		);
-		return client;
-	}
-
-	console.info("RealDebrid: No client instance found. Initializing a new one.");
-	client = RealDebridClient.getInstance(tokenToUse);
-	debridProviders.set("real-debrid", client);
 	return client;
 };
 
-// TODO: torbox
+// Initialize providers from database
+const initializeProviders = async (): Promise<void> => {
+	if (isInitialized) return;
 
-(async () => {
-	const externalAccounts = await db.select().from(accounts);
-	const realDebridFromDB = externalAccounts.find(
-		(account) => account.type === "real-debrid",
-	);
-	const now = new Date();
-
-	// expiresIn from DB is now a future timestamp in milliseconds
-	const expiresInTimestamp = realDebridFromDB?.expiresIn ?? 0;
-	const hasExpired = expiresInTimestamp < now.getTime();
-
-	if (
-		realDebridFromDB?.accessToken &&
-		realDebridFromDB?.clientSecret &&
-		realDebridFromDB?.clientId
-	) {
-		await initRealDebrid(
-			realDebridFromDB.accessToken,
-			realDebridFromDB.refreshToken,
-			realDebridFromDB.clientSecret,
-			realDebridFromDB.clientId,
-			hasExpired,
-			true,
+	try {
+		const externalAccounts = await db.select().from(accounts);
+		const realDebridFromDB = externalAccounts.find(
+			(account) => account.type === "real-debrid",
 		);
+
+		if (!realDebridFromDB) {
+			console.info("RealDebrid: No account found in database");
+			isInitialized = true;
+			return;
+		}
+
+		const now = new Date();
+		const expiresInTimestamp = realDebridFromDB.expiresIn ?? 0;
+		const hasExpired = expiresInTimestamp < now.getTime();
+
+		console.log({
+			accessToken: realDebridFromDB.accessToken,
+			refreshToken: realDebridFromDB.refreshToken,
+			clientSecret: realDebridFromDB.clientSecret,
+			clientId: realDebridFromDB.clientId,
+		});
+
+		if (
+			realDebridFromDB.accessToken &&
+			realDebridFromDB.clientSecret &&
+			realDebridFromDB.clientId
+		) {
+			await initRealDebrid(
+				realDebridFromDB.accessToken,
+				realDebridFromDB.refreshToken,
+				realDebridFromDB.clientSecret,
+				realDebridFromDB.clientId,
+				hasExpired,
+				true,
+			);
+			console.info("RealDebrid: Successfully initialized from database");
+		} else {
+			// Determine which credentials are missing
+			const missingCredentials = [];
+			if (!realDebridFromDB.accessToken)
+				missingCredentials.push("Access Token");
+			if (!realDebridFromDB.clientSecret)
+				missingCredentials.push("Client Secret");
+			if (!realDebridFromDB.clientId) missingCredentials.push("Client ID");
+
+			const missingItems = missingCredentials.join(", ");
+
+			console.warn("RealDebrid: Missing required credentials in database");
+
+			await setTimeout(5000);
+
+			sendToastNotification({
+				type: "error",
+				message: "RealDebrid Configuration Error",
+				description: `Missing required credentials: ${missingItems}. Please reconfigure your RealDebrid account in settings.`,
+			});
+		}
+	} catch (error) {
+		console.error("RealDebrid: Failed to initialize from database:", error);
+	} finally {
+		isInitialized = true;
 	}
-})();
+};
+
+// Export function to ensure initialization
+export const ensureProvidersInitialized = async (): Promise<void> => {
+	if (isInitialized) return;
+
+	if (!initializationPromise) {
+		initializationPromise = initializeProviders();
+	}
+
+	await initializationPromise;
+};
+
+// Start initialization immediately but don't block module loading
+initializationPromise = initializeProviders();
