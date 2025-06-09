@@ -1,5 +1,6 @@
 import os from "node:os";
 import { app, BrowserWindow } from "electron";
+import { handleDeepLink } from "./deep-link";
 import { cleanup, createWindow, showWindow } from "./window";
 
 export function setupAppLifecycle(): void {
@@ -32,7 +33,10 @@ export function setupAppLifecycle(): void {
 	});
 
 	// Handle second instance (someone tries to launch the app when it's already running)
-	app.on("second-instance", () => {
+	app.on("second-instance", (_event, argv) => {
+		const deepLink = argv.find((arg) => arg.startsWith("falkor://"));
+		if (deepLink) handleDeepLink(deepLink);
+
 		showWindow();
 	});
 
@@ -48,7 +52,7 @@ export function setupAppLifecycle(): void {
 
 	// Prevent accidental app termination on certain platforms
 	if (process.platform === "darwin" || process.platform === "win32") {
-		app.on("before-quit", (event) => {
+		app.on("before-quit", (_event) => {
 			// If there are unsaved changes or other conditions requiring confirmation,
 			// you could handle that here
 		});

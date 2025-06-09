@@ -24,26 +24,44 @@ Stay tuned—there’s plenty more to come!
 
 To get started with Falkor, follow these steps:
 
-1. Ensure that you have Yarn installed on your system. You can find installation instructions [here](https://classic.yarnpkg.com/en/docs/install).
+1. **Install Yarn**  
+   Make sure Yarn is installed on your system. You can find installation instructions [here](https://classic.yarnpkg.com/en/docs/install).
 
-2. Navigate to the main directory and execute `yarn install`. This command will install all dependencies required for the project.
+2. **Install Dependencies**  
+   In the project’s root directory, run `yarn install` to install all required dependencies.
 
-3. Set up the necessary environment variables by duplicating the file `.env.example` and renaming it to `.env`. Then, fill in the required information.
+3. **Configure Environment Variables**  
+   Copy `.env.example` to `.env` and fill in the required values as described below.
 
-4. Run `yarn dev` to kick off the development server and watch your changes in real-time.
+4. **Start the Development Server**  
+   Run `yarn dev` to launch the development server and enable real-time updates as you work.
 
-### IGDB (Twitch)
+---
 
-- `VITE_TWITCH_CLIENT_ID`: Twitch client ID (https://api-docs.igdb.com/#getting-started)
-- `VITE_TWITCH_CLIENT_SECRET`: Twitch client secret (https://api-docs.igdb.com/#getting-started)
+### Environment Variables
 
-### ITAD (IsThereAnyDeal)
+#### IGDB (Twitch)
 
-- `VITE_ITAD_API_KEY`: ITAD API key (https://docs.isthereanydeal.com/#section/Access)
+- `VITE_TWITCH_CLIENT_ID`: Your Twitch client ID.  
+  See: ```IGDB Getting Started``` (https://api-docs.igdb.com/#getting-started)
 
-### RD (Real Debrid)
+- `VITE_TWITCH_CLIENT_SECRET`: Your Twitch client secret.  
+  See: ```IGDB Getting Started``` (https://api-docs.igdb.com/#getting-started)
 
-- `VITE_RD_CLIENT_ID`: Open source app RD client ID found in the Real Debrid documentation (https://api.real-debrid.com/)
+#### IsThereAnyDeal (ITAD)
+
+- `VITE_ITAD_API_KEY`: Your IsThereAnyDeal API key.  
+  See: ```ITAD API Access``` (https://docs.isthereanydeal.com/#section/Access)
+
+#### Real Debrid (RD)
+
+- `VITE_RD_CLIENT_ID`: Client ID for open source apps, as found in the Real Debrid documentation.  
+  See: ```Real Debrid API``` (https://api.real-debrid.com/)
+
+#### Steam
+
+- `VITE_STEAM_API_KEY`: Your Steam API key, used for authentication and Steam API access.  
+  See: ```Steam API Key``` (https://steamcommunity.com/dev/apikey)
 
 ### NixOS Flakes
 

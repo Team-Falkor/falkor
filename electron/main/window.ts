@@ -11,6 +11,7 @@ import {
 	Tray,
 } from "electron";
 import { createIPCHandler } from "trpc-electron/main";
+import type { ToastNotification } from "@/@types";
 import { appRouter } from "../api/trpc/root";
 import { SettingsManager } from "../handlers/settings/settings";
 import { INDEX_HTML, PRELOAD_PATH, VITE_DEV_SERVER_URL } from "./constants";
@@ -25,6 +26,8 @@ export interface WindowOptions {
 // State variables
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let isWindowReady = false;
+let pendingToasts: ToastNotification[] = [];
 const settings = SettingsManager.getInstance();
 
 /**
@@ -52,6 +55,7 @@ export async function createWindow(
 			process.env.VITE_PUBLIC ?? "",
 			"icon-256x256.png",
 		);
+
 		const iconExists = existsSync(iconPath);
 
 		if (!iconExists) {
@@ -141,10 +145,51 @@ function setupWindowEvents(windowInstance: BrowserWindow): void {
 		);
 	});
 
+	// Listen for frontend ready signal
+	windowInstance.webContents.on("did-finish-load", () => {
+		// Add a small delay to ensure React/frontend is fully initialized
+		setTimeout(() => {
+			isWindowReady = true;
+			processPendingToasts();
+		}, 1000);
+	});
+
+	// Reset ready state when navigating
+	windowInstance.webContents.on("did-start-loading", () => {
+		isWindowReady = false;
+	});
+
 	// Clean up references when window is closed
 	windowInstance.on("closed", () => {
 		win = null;
+		isWindowReady = false;
+		pendingToasts = [];
 	});
+}
+
+/**
+ * Processes any pending toast notifications
+ */
+function processPendingToasts(): void {
+	if (!isWindowReady || !win || pendingToasts.length === 0) {
+		return;
+	}
+
+	console.log(`Processing ${pendingToasts.length} pending toast notifications`);
+
+	// Send all pending toasts
+	pendingToasts.forEach((toast) => {
+		try {
+			if (win && !win.isDestroyed()) {
+				win.webContents.send("toast:show", toast);
+			}
+		} catch (error) {
+			console.error("Failed to send pending toast:", error);
+		}
+	});
+
+	// Clear the queue
+	pendingToasts = [];
 }
 
 /**
@@ -291,3 +336,51 @@ export const emitToFrontend = <TData>(
 		return false;
 	}
 };
+
+/**
+ * Sends a toast notification to the renderer process.
+ * Waits for the frontend to be ready before sending, or queues the notification.
+ *
+ * @param toast - The toast notification details.
+ */
+export function sendToastNotification(toast: ToastNotification): void {
+	// Check if window exists and is not destroyed
+	if (!win || win.isDestroyed()) {
+		console.warn(
+			"Cannot send toast notification: window does not exist or is destroyed",
+		);
+		return;
+	}
+
+	// If window is ready, send immediately
+	if (isWindowReady) {
+		try {
+			win.webContents.send("toast:show", toast);
+			console.log(
+				"Toast notification sent:",
+				toast.message || toast.description,
+			);
+		} catch (error) {
+			console.error("Failed to send toast notification:", error);
+		}
+		return;
+	}
+
+	// Queue the notification for later
+	pendingToasts.push(toast);
+	console.log(
+		`Toast notification queued (${pendingToasts.length} pending):`,
+		toast.message || toast.description,
+	);
+
+	// Set up a fallback timeout in case the ready event doesn't fire
+	setTimeout(() => {
+		if (!isWindowReady && pendingToasts.length > 0) {
+			console.warn(
+				"Frontend ready timeout reached, attempting to send pending toasts anyway",
+			);
+			isWindowReady = true;
+			processPendingToasts();
+		}
+	}, 5000); // 5 second fallback
+}

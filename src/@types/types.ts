@@ -164,3 +164,9 @@ export enum Sound {
 	Complete = "complete",
 	AchievementUnlocked = "achievement_unlocked",
 }
+
+export interface ToastNotification {
+	type: "success" | "warning" | "info" | "error";
+	message: string;
+	description?: string;
+}

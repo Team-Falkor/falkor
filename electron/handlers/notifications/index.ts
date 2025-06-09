@@ -131,7 +131,7 @@ class NotificationsHandler {
 	 */
 	private static downloadImage(url: string, output: string): Promise<string> {
 		return new Promise((resolve, reject) => {
-			console.log("Starting download for image:", url);
+			// console.log("Starting download for image:", url);
 
 			https
 				.get(url, { timeout: 10000 }, (response) => {
