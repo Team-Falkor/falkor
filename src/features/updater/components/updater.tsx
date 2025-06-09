@@ -131,8 +131,10 @@ const Updater = () => {
 						<Button variant="destructive">{t("later")}</Button>
 					</DialogClose>
 					<Button
+						type="button"
 						onClick={(e) => {
 							e.preventDefault();
+							e.stopPropagation();
 							setOpen(true);
 							installUpdate();
 						}}
