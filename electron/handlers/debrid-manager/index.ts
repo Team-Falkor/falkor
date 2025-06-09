@@ -33,12 +33,6 @@ export class DebridManager {
 		const provider = "real-debrid";
 		const client = debridProviders.get(provider);
 
-		console.log({
-			provider,
-			client,
-			debridProviders,
-		});
-
 		if (!client) {
 			console.log("No client found for provider");
 			return null;

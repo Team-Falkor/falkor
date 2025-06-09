@@ -163,13 +163,6 @@ const initializeProviders = async (): Promise<void> => {
 		const expiresInTimestamp = realDebridFromDB.expiresIn ?? 0;
 		const hasExpired = expiresInTimestamp < now.getTime();
 
-		console.log({
-			accessToken: realDebridFromDB.accessToken,
-			refreshToken: realDebridFromDB.refreshToken,
-			clientSecret: realDebridFromDB.clientSecret,
-			clientId: realDebridFromDB.clientId,
-		});
-
 		if (
 			realDebridFromDB.accessToken &&
 			realDebridFromDB.clientSecret &&

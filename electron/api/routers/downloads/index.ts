@@ -1,4 +1,5 @@
 import { DebridManager } from "@backend/handlers/debrid-manager";
+import { DebridCachingManager } from "@backend/handlers/debrid-manager/debridCachingManager";
 import { debridCachingItems } from "@backend/handlers/debrid-manager/map";
 import { httpDownloadHandler } from "@backend/handlers/downloads/http";
 import { torrentDownloadHandler } from "@backend/handlers/downloads/torrent";
@@ -69,7 +70,7 @@ export const downloadQueueRouter = router({
 				}
 			}
 
-			const payload: z.infer<typeof addDownloadSchema> = {
+			let payload: z.infer<typeof addDownloadSchema> = {
 				...input,
 				url: finalUrl,
 			};
@@ -80,36 +81,31 @@ export const downloadQueueRouter = router({
 				isDirectHttp ? "ddl" : "torrent",
 			);
 
-			console.log({ debrid });
+			if (debrid?.isCaching) {
+				// add to a cache queue that will check on an interval to see if the status has changed and once its changed in that interval add to the download queue and remove from the cache queue
+				const item = new DebridCachingManager({
+					inputFromAddDownload: payload,
+					url: payload.url,
+					type: payload.type,
+					id: payload.url,
+				});
 
-			//  Throw to test
-			throw new Error("test");
+				debridCachingItems.set(payload.url, item);
+				item.start();
 
-			// if (debrid?.isCaching) {
-			// 	// add to a cache queue that will check on an interval to see if the status has changed and once its changed in that interval add to the download queue and remove from the cache queue
-			// 	const item = new DebridCachingManager({
-			// 		inputFromAddDownload: payload,
-			// 		url: payload.url,
-			// 		type: payload.type,
-			// 		id: payload.url,
-			// 	});
+				return { id: payload.url, isCaching: true };
+			}
 
-			// 	debridCachingItems.set(payload.url, item);
-			// 	item.start();
+			if (debrid?.url) {
+				payload = {
+					...payload,
+					url: debrid.url,
+					type: "http",
+				};
+			}
 
-			// 	return { id: payload.url, isCaching: true };
-			// }
-
-			// if (debrid?.url) {
-			// 	payload = {
-			// 		...payload,
-			// 		url: debrid.url,
-			// 		type: "http",
-			// 	};
-			// }
-
-			// const id = await downloadQueue.addDownload(payload);
-			// return { id, isCaching: false };
+			const id = await downloadQueue.addDownload(payload);
+			return { id, isCaching: false };
 		} catch (err) {
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
