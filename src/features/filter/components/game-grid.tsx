@@ -18,6 +18,7 @@ export function GameGrid({ games, isLoading }: GameGridProps) {
 			<div className={containerClasses}>
 				{Array.from({ length: 15 }).map((_, idx) => (
 					<Card
+						// biome-ignore lint/suspicious/noArrayIndexKey: Fine for skeleton
 						key={idx}
 						className={`${itemClasses} aspect-[3/4] animate-pulse overflow-hidden p-0`}
 					>

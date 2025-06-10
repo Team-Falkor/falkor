@@ -1,8 +1,11 @@
+import { Play } from "lucide-react";
 import { useMemo } from "react";
-import ListCard from "@/components/cards/list-card";
+import DefaultCard from "@/components/cards/defaultCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { H5, P } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { trpc } from "@/lib";
+import { formatPlaytime, trpc } from "@/lib";
 import { useGames } from "../hooks/use-games";
 import type { ActiveLibraryProps } from "./active-library";
 
@@ -34,9 +37,41 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 
 		return (
 			<div className="flex flex-wrap gap-4">
-				{gamesList.map((game) => (
-					<ListCard key={game.id} {...game} />
-				))}
+				{gamesList.map((game) => {
+					const image = game.gameIcon;
+					const imageURL = image ? image.replace("t_thumb", "t_cover_big") : "";
+
+					return (
+						<DefaultCard
+							key={game.id}
+							id={game.id}
+							name={game.gameName}
+							cover={{
+								image: imageURL,
+								type: "image",
+							}}
+							renderActionButton={() => {
+								return (
+									<Button variant={"functional"}>
+										<Play className="fill-black dark:fill-white" />
+										Play Game
+									</Button>
+								);
+							}}
+							renderBottomOfImage={() => {
+								if (!game.gamePlaytime) return null;
+
+								return (
+									<Badge className="bg-card-foreground/10 backdrop-blur-xl">
+										<span className="text-sm">
+											{formatPlaytime(game.gamePlaytime)}
+										</span>
+									</Badge>
+								);
+							}}
+						/>
+					);
+				})}
 			</div>
 		);
 	}
@@ -64,9 +99,33 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 
 		return (
 			<div className="flex flex-wrap gap-4">
-				{listGames.map((game) => (
-					<ListCard key={game.id} {...game} />
-				))}
+				{listGames.map((game) => {
+					const image = game.gameIcon;
+					const imageURL = image ? image.replace("t_thumb", "t_cover_big") : "";
+
+					return (
+						<DefaultCard
+							key={game.id}
+							id={game.id}
+							name={game.gameName}
+							cover={{
+								image: imageURL,
+								type: "image",
+							}}
+							renderBottomOfImage={() => {
+								if (!game.gamePlaytime) return null;
+
+								return (
+									<Badge className="bg-card-foreground/10 backdrop-blur-xl">
+										<span className="text-sm">
+											{formatPlaytime(game.gamePlaytime)}
+										</span>
+									</Badge>
+								);
+							}}
+						/>
+					);
+				})}
 			</div>
 		);
 	}
