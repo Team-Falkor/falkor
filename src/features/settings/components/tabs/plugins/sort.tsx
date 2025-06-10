@@ -15,8 +15,7 @@ interface PluginsSortProps {
 	setShowRows: (showRows: boolean) => void;
 	sortBy: SortBy;
 	setSortBy: Dispatch<SetStateAction<SortBy>>;
-
-	setShowEnabledOnly: Dispatch<SetStateAction<boolean>>;
+	changeEnabledOnly: () => void;
 	showEnabledOnly: boolean;
 }
 
@@ -25,7 +24,7 @@ const PluginsSort = ({
 	showRows,
 	setSortBy,
 	sortBy,
-	setShowEnabledOnly,
+	changeEnabledOnly,
 	showEnabledOnly,
 }: PluginsSortProps) => {
 	const { t } = useLanguageContext();
@@ -37,17 +36,14 @@ const PluginsSort = ({
 					<Button
 						variant={showEnabledOnly ? "default" : "ghost"}
 						size={"icon"}
-						onClick={() => {
-							localStorage.setItem("showEnabledOnly", String(!showEnabledOnly));
-							setShowEnabledOnly(!showEnabledOnly);
-						}}
+						onClick={changeEnabledOnly}
 						className="h-8 w-8"
 					>
 						<Check className="h-4 w-4" />
 					</Button>
 				</TooltipTrigger>
 				<TooltipContent className="capitalize">
-					{!showEnabledOnly ? t("enabled_only") : t("all_plugins")}
+					{showEnabledOnly ? t("enabled_only") : t("all_plugins")}
 				</TooltipContent>
 			</Tooltip>
 

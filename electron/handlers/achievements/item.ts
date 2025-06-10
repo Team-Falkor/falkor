@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 import type {
 	AchievementFile,
 	AchivementStat,
-	ISchemaForGame,
+	IGetSchemaForGame,
 	UnlockedAchievement,
 } from "@/@types/achievements/types";
 import logger from "../logging";
@@ -36,7 +36,7 @@ class AchievementItem {
 	private readonly parser = new AchievementParser();
 	private readonly api = achievementData;
 
-	private achivement_data: ISchemaForGame | null = null;
+	private achivement_data: IGetSchemaForGame | null = null;
 	private file_unlocked_achievements: Set<UnlockedAchievement> = new Set();
 
 	private watcher: AchievementWatcher | null = null;

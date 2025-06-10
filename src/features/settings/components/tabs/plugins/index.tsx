@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { H1, TypographyMuted } from "@/components/ui/typography";
 import { CommunityProviders } from "@/features/plugins/providers/components/community-providers";
+import { usePluginsProviders } from "@/features/plugins/providers/hooks/usePluginsProviders";
 import { useLanguageContext } from "@/i18n/I18N";
 import { cn } from "@/lib";
 import { SettingsSection } from "../../section";
@@ -18,13 +19,12 @@ const PluginSettings = () => {
 	const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 	const [showRows, setShowRows] = useState<boolean>(false);
 	const [sortBy, setSortBy] = useState<SortBy>("alphabetic-asc");
-	const [showEnabledOnly, setShowEnabledOnly] = useState<boolean>(false);
 	const [search, setSearch] = useState("");
+	const { changeEnabledOnly, enabledOnly } = usePluginsProviders();
 
 	useEffect(() => {
 		setShowRows(localStorage?.getItem("showRows") === "true");
 		setSortBy((localStorage?.getItem("sortBy") as SortBy) || "alphabetic-asc");
-		setShowEnabledOnly(localStorage?.getItem("showEnabledOnly") === "true");
 	}, []);
 
 	return (
@@ -64,8 +64,8 @@ const PluginSettings = () => {
 											setShowRows={setShowRows}
 											sortBy={sortBy}
 											setSortBy={setSortBy}
-											showEnabledOnly={showEnabledOnly}
-											setShowEnabledOnly={setShowEnabledOnly}
+											showEnabledOnly={enabledOnly}
+											changeEnabledOnly={changeEnabledOnly}
 										/>
 									</div>
 								</div>
@@ -77,7 +77,7 @@ const PluginSettings = () => {
 									showRows={showRows}
 									setShowRows={setShowRows}
 									sortBy={sortBy}
-									showEnabledOnly={showEnabledOnly}
+									showEnabledOnly={enabledOnly}
 									search={search}
 								/>
 							</SettingsSection>
