@@ -16,7 +16,7 @@ interface Props {
 
 const AchievementContainer = ({ steamId, gameId }: Props) => {
 	const { isPending, isError, data } =
-		trpc.achachievements.getUnlockedWithGameData.useQuery({ steamId, gameId });
+		trpc.achievements.getUnlockedWithGameData.useQuery({ steamId, gameId });
 
 	if (isPending) return null;
 	if (isError) return null;

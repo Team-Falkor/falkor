@@ -1,7 +1,6 @@
 import logo from "@resources/icon.png";
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, HomeIcon, LibraryIcon } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, HomeIcon, LibraryIcon, User2Icon } from "lucide-react";
 import {
 	Tooltip,
 	TooltipContent,
@@ -13,7 +12,7 @@ import { useLanguageContext } from "@/i18n/I18N";
 import NavItem from "../item";
 
 const NavBarTop = () => {
-	const [open, setOpen] = useState(false);
+	// const [open, setOpen] = useState(false);
 
 	const { t } = useLanguageContext();
 	return (
@@ -35,6 +34,8 @@ const NavBarTop = () => {
 
 			<div className="grid gap-2 pb-4">
 				<Search />
+
+				<NavItem href="/profile" title={t("home")} icon={<User2Icon />} />
 
 				<NavItem href="/" title={t("home")} icon={<HomeIcon />} />
 
