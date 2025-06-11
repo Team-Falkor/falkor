@@ -28,7 +28,7 @@ const GenericRow = ({ dataToFetch }: GenericRowProps) => {
 				data?.map((game) => (
 					<CarouselItem
 						key={game.id}
-						className="basis-auto px-2"
+						className="basis-auto px-2 py-4"
 						id={"carousel-item"}
 					>
 						<DefaultCard
