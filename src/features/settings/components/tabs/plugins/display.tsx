@@ -10,7 +10,6 @@ import type { SortBy } from "./sort";
 interface Props {
 	showRows: boolean;
 	setShowRows: (showRows: boolean) => void;
-
 	sortBy: SortBy;
 	showEnabledOnly: boolean;
 	search: string;
@@ -23,7 +22,6 @@ const PluginDisplay = ({
 	search,
 }: Props) => {
 	const {
-		getPlugins,
 		needsUpdate,
 		plugins,
 		isErrorPlugins,
@@ -44,23 +42,28 @@ const PluginDisplay = ({
 		[plugins],
 	);
 
-	const sortedPlugins = useMemo(() => {
-		let sorted = plugins;
-		if (showEnabledOnly) {
-			sorted = sorted?.filter((plugin) => !plugin?.disabled);
+	const filteredAndSortedPlugins = useMemo(() => {
+		let filtered = plugins;
+
+		// Filter by enabled/disabled status
+		if (showEnabledOnly && filtered) {
+			filtered = filtered.filter((plugin) => !plugin.disabled);
 		}
 
+		// Sort plugins
 		if (sortBy === "alphabetic-asc") {
-			sorted = sorted?.sort((a, b) => a?.name?.localeCompare(b?.name));
+			filtered = filtered?.sort((a, b) => a?.name?.localeCompare(b?.name));
 		} else if (sortBy === "alphabetic-desc") {
-			sorted = sorted?.sort((a, b) => b?.name?.localeCompare(a?.name));
+			filtered = filtered?.sort((a, b) => b?.name?.localeCompare(a?.name));
 		}
 
+		// Apply search filter
 		if (search?.length > 0) {
-			sorted = onSearch(search, sorted);
+			filtered = onSearch(search, filtered);
 		}
-		return sorted;
-	}, [plugins, onSearch, search, showEnabledOnly, sortBy]);
+
+		return filtered;
+	}, [onSearch, plugins, search, sortBy, showEnabledOnly]);
 
 	if (isLoadingPlugins) return <div>Loading...</div>;
 	if (isErrorPlugins) {
@@ -77,12 +80,12 @@ const PluginDisplay = ({
 					{
 						"grid grid-cols-2 gap-4": showRows,
 						"grid grid-cols-1 gap-4": !showRows,
-						flex: !sortedPlugins?.length,
+						flex: !filteredAndSortedPlugins?.length,
 					},
 				])}
 			>
-				{sortedPlugins?.length ? (
-					sortedPlugins?.map((plugin: PluginSetupJSONDisabled) => (
+				{filteredAndSortedPlugins?.length ? (
+					filteredAndSortedPlugins?.map((plugin: PluginSetupJSONDisabled) => (
 						<UnifiedPluginCard
 							key={plugin.id}
 							id={plugin.id}
@@ -94,7 +97,11 @@ const PluginDisplay = ({
 							isInstalled={true}
 							disabled={plugin.disabled}
 							author={plugin.author}
-							needsUpdate={!!needsUpdate?.find((plugin) => plugin.id)}
+							needsUpdate={
+								!!needsUpdate?.find(
+									(updatePlugin) => updatePlugin.id === plugin.id,
+								)
+							}
 						/>
 					))
 				) : (
