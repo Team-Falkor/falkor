@@ -18,7 +18,7 @@ type DefaultCardProps = {
 
 	renderBadge?: (id: number) => React.ReactNode;
 	renderTitle?: (id: number, name: string) => React.ReactNode;
-	renderActionButton?: (id: number, onAction?: () => void) => React.ReactNode;
+	renderActionButton?: (id: number) => React.ReactNode;
 	renderBottomOfImage?: (id: number) => React.ReactNode;
 };
 
@@ -43,28 +43,28 @@ const DefaultCard = ({
 			{/* Top image */}
 
 			<div className="group/link relative h-[85%] w-full">
+				<div className="absolute top-2 right-2 z-10">
+					{renderBadge ? (
+						renderBadge(id)
+					) : formattedRating ? (
+						<Badge className="flex items-center gap-1.5 bg-black/80 px-2.5 py-1 text-sm shadow-lg backdrop-blur-sm">
+							<Star size={14} className="fill-yellow-400 text-yellow-400" />
+							<span className="font-medium">{formattedRating}</span>
+						</Badge>
+					) : null}
+				</div>
+
 				<Link
 					to={"/info/$id"}
 					params={{
 						id: id.toString(),
 					}}
 				>
-					<div className="absolute top-2 right-2 z-10">
-						{renderBadge ? (
-							renderBadge(id)
-						) : formattedRating ? (
-							<Badge className="flex items-center gap-1.5 bg-black/80 px-2.5 py-1 text-sm shadow-lg backdrop-blur-sm">
-								<Star size={14} className="fill-yellow-400 text-yellow-400" />
-								<span className="font-medium">{formattedRating}</span>
-							</Badge>
-						) : null}
-					</div>
-
 					<div className="absolute bottom-2 left-2 z-10">
 						{renderBottomOfImage?.(id)}
 					</div>
 
-					{cover.type === "image" && cover.image ? (
+					{cover.type === "image_id" && cover.image ? (
 						<IGDBImage
 							alt={name}
 							imageId={cover.image}

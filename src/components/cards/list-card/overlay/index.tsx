@@ -1,4 +1,4 @@
-import { Ellipsis } from "lucide-react";
+import { Pencil } from "lucide-react";
 import type { RouterOutputs } from "@/@types";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,11 +25,11 @@ export const EditGameOverlay = ({ game }: ContinuePlayingCardOverlayProps) => {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button
-					variant={"ghost"}
-					size={"icon"}
-					className="relative z-50 h-full w-7"
+					variant={"default"}
+					size="icon"
+					className="relative z-20 rounded-full"
 				>
-					<Ellipsis size={16} />
+					<Pencil />
 				</Button>
 			</DropdownMenuTrigger>
 

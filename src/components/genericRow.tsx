@@ -31,7 +31,14 @@ const GenericRow = ({ dataToFetch }: GenericRowProps) => {
 						className="basis-auto px-2"
 						id={"carousel-item"}
 					>
-						<DefaultCard key={game.id} {...game} />
+						<DefaultCard
+							key={game.id}
+							{...game}
+							cover={{
+								image: game.cover?.image_id,
+								type: "image_id",
+							}}
+						/>
 					</CarouselItem>
 				))}
 		</CarouselContent>

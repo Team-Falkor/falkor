@@ -42,7 +42,13 @@ export function GameGrid({ games, isLoading }: GameGridProps) {
 	return (
 		<div className={containerClasses}>
 			{games.map((game) => (
-				<DefaultCard {...game} />
+				<DefaultCard
+					{...game}
+					cover={{
+						image: game.cover?.image_id,
+						type: "image_id",
+					}}
+				/>
 			))}
 		</div>
 	);

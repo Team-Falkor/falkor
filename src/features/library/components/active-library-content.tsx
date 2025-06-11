@@ -1,8 +1,8 @@
-import { Play } from "lucide-react";
 import { useMemo } from "react";
 import DefaultCard from "@/components/cards/defaultCard";
+import { EditGameOverlay } from "@/components/cards/list-card/overlay";
+import { PlayStopButton } from "@/components/play-stop-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { H5, P } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
 import { formatPlaytime, trpc } from "@/lib";
@@ -51,12 +51,10 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 								type: "image",
 							}}
 							renderActionButton={() => {
-								return (
-									<Button variant={"functional"}>
-										<Play className="fill-black dark:fill-white" />
-										Play Game
-									</Button>
-								);
+								return <PlayStopButton game={game} />;
+							}}
+							renderBadge={() => {
+								return <EditGameOverlay key={game.id} game={game} />;
 							}}
 							renderBottomOfImage={() => {
 								if (!game.gamePlaytime) return null;
@@ -111,6 +109,12 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 							cover={{
 								image: imageURL,
 								type: "image",
+							}}
+							renderBadge={() => {
+								return <EditGameOverlay key={game.id} game={game} />;
+							}}
+							renderActionButton={() => {
+								return <PlayStopButton game={game} />;
 							}}
 							renderBottomOfImage={() => {
 								if (!game.gamePlaytime) return null;
