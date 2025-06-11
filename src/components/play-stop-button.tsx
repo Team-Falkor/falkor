@@ -23,6 +23,7 @@ export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 				toggleGameState();
 			}}
 			disabled={initializing || isMutating}
+			className="w-full font-semibold uppercase"
 		>
 			{isRunning ? (
 				<>
@@ -35,8 +36,6 @@ export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 					Play Game
 				</>
 			)}
-			<Play className="fill-black dark:fill-white" />
-			Play Game
 		</Button>
 	);
 };
