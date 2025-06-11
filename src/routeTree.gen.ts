@@ -19,12 +19,19 @@ import { Route as FilterIndexImport } from './routes/filter/index'
 
 // Create Virtual Routes
 
+const ProfileLazyImport = createFileRoute('/profile')()
 const LibraryLazyImport = createFileRoute('/library')()
 const DownloadsLazyImport = createFileRoute('/downloads')()
 const CalendarLazyImport = createFileRoute('/calendar')()
 const InfoIdLazyImport = createFileRoute('/info/$id')()
 
 // Create/Update Routes
+
+const ProfileLazyRoute = ProfileLazyImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/profile.lazy').then((d) => d.Route))
 
 const LibraryLazyRoute = LibraryLazyImport.update({
   id: '/library',
@@ -107,6 +114,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryLazyImport
       parentRoute: typeof rootRoute
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/info/$id': {
       id: '/info/$id'
       path: '/info/$id'
@@ -132,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
+  '/profile': typeof ProfileLazyRoute
   '/info/$id': typeof InfoIdLazyRoute
   '/filter': typeof FilterIndexRoute
 }
@@ -142,6 +157,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
+  '/profile': typeof ProfileLazyRoute
   '/info/$id': typeof InfoIdLazyRoute
   '/filter': typeof FilterIndexRoute
 }
@@ -153,6 +169,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
+  '/profile': typeof ProfileLazyRoute
   '/info/$id': typeof InfoIdLazyRoute
   '/filter/': typeof FilterIndexRoute
 }
@@ -165,6 +182,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/downloads'
     | '/library'
+    | '/profile'
     | '/info/$id'
     | '/filter'
   fileRoutesByTo: FileRoutesByTo
@@ -174,6 +192,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/downloads'
     | '/library'
+    | '/profile'
     | '/info/$id'
     | '/filter'
   id:
@@ -183,6 +202,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/downloads'
     | '/library'
+    | '/profile'
     | '/info/$id'
     | '/filter/'
   fileRoutesById: FileRoutesById
@@ -194,6 +214,7 @@ export interface RootRouteChildren {
   CalendarLazyRoute: typeof CalendarLazyRoute
   DownloadsLazyRoute: typeof DownloadsLazyRoute
   LibraryLazyRoute: typeof LibraryLazyRoute
+  ProfileLazyRoute: typeof ProfileLazyRoute
   InfoIdLazyRoute: typeof InfoIdLazyRoute
   FilterIndexRoute: typeof FilterIndexRoute
 }
@@ -204,6 +225,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarLazyRoute: CalendarLazyRoute,
   DownloadsLazyRoute: DownloadsLazyRoute,
   LibraryLazyRoute: LibraryLazyRoute,
+  ProfileLazyRoute: ProfileLazyRoute,
   InfoIdLazyRoute: InfoIdLazyRoute,
   FilterIndexRoute: FilterIndexRoute,
 }
@@ -223,6 +245,7 @@ export const routeTree = rootRoute
         "/calendar",
         "/downloads",
         "/library",
+        "/profile",
         "/info/$id",
         "/filter/"
       ]
@@ -241,6 +264,9 @@ export const routeTree = rootRoute
     },
     "/library": {
       "filePath": "library.lazy.tsx"
+    },
+    "/profile": {
+      "filePath": "profile.lazy.tsx"
     },
     "/info/$id": {
       "filePath": "info/$id.lazy.tsx"

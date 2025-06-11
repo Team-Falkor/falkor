@@ -141,7 +141,6 @@ function setupWindowEvents(
 
 	// Listen for frontend ready signal
 	windowInstance.webContents.on("did-finish-load", () => {
-		// Add a small delay to ensure React/frontend is fully initialized
 		setTimeout(() => {
 			isWindowReady = true;
 			processPendingToasts();

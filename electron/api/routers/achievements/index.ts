@@ -102,6 +102,21 @@ export const achievementsRouter = router({
 			}
 		}),
 
+	getAll: publicProcedure.query(async ({ ctx }) => {
+		try {
+      const data = await ctx.db.query.achievements.findMany({
+        with: {
+          game: true,
+        },
+      });
+      
+			return data;
+		} catch (error) {
+			console.error("[tRPC][achievements.getAll]", error);
+			return [];
+		}
+	}),
+
 	import: publicProcedure
 		.input(z.object({ steamId: z.string(), lang: z.string().default("en") }))
 		.mutation(async ({ input }) => {

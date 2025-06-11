@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
 	integer,
 	sqliteTable,
@@ -29,3 +29,10 @@ export const achievements = sqliteTable(
 		),
 	],
 );
+
+export const achievementsRelations = relations(achievements, ({ one }) => ({
+	game: one(libraryGames, {
+		fields: [achievements.gameId],
+		references: [libraryGames.gameId],
+	}),
+}));
