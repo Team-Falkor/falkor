@@ -1,7 +1,8 @@
 import { XIcon } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import type * as React from "react";
-
+import { useRef } from "react";
+import useGamepadButton from "@/hooks/use-gamepad-button"; // Update this import path
 import { cn } from "@/lib/utils";
 
 function Dialog({
@@ -49,6 +50,13 @@ function DialogContent({
 	children,
 	...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+	const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+	// Use the gamepad button hook to close dialog with "B" button
+	useGamepadButton("B", () => {
+		closeButtonRef.current?.click();
+	});
+
 	return (
 		<DialogPortal data-slot="dialog-portal">
 			<DialogOverlay />
@@ -61,7 +69,10 @@ function DialogContent({
 				{...props}
 			>
 				{children}
-				<DialogPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0">
+				<DialogPrimitive.Close
+					ref={closeButtonRef}
+					className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0"
+				>
 					<XIcon />
 					<span className="sr-only">Close</span>
 				</DialogPrimitive.Close>

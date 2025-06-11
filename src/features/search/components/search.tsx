@@ -30,7 +30,11 @@ export default function SearchDialog() {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button size="icon" variant={open ? "default" : "ghost"}>
+				<Button
+					size="icon"
+					variant={open ? "default" : "ghost"}
+					className="focus-states:bg-muted"
+				>
 					<SearchIcon />
 				</Button>
 			</DialogTrigger>

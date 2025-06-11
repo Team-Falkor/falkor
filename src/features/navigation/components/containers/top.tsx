@@ -1,7 +1,6 @@
 import logo from "@resources/icon.png";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, HomeIcon, LibraryIcon } from "lucide-react";
-import { useState } from "react";
 import {
 	Tooltip,
 	TooltipContent,
@@ -13,7 +12,7 @@ import { useLanguageContext } from "@/i18n/I18N";
 import NavItem from "../item";
 
 const NavBarTop = () => {
-	const [open, setOpen] = useState(false);
+	// const [open, setOpen] = useState(false);
 
 	const { t } = useLanguageContext();
 	return (

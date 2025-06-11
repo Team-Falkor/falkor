@@ -105,7 +105,7 @@ export function useGamepadNavigation() {
 
 			// Find the first connected, non-null gamepad for this frame
 			for (const pad of rawGamepads) {
-				if (pad && pad.connected) {
+				if (pad?.connected) {
 					currentFrameGamepad = pad;
 					break;
 				}

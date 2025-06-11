@@ -36,7 +36,7 @@ const NavItem: FunctionComponent<NavItemProps> = (props) => {
 						className={buttonVariants({
 							variant: "ghost",
 							size: "icon",
-							className: "rounded-lg [&.active]:bg-muted",
+							className: "rounded-lg focus-states:bg-muted [&.active]:bg-muted",
 						})}
 					>
 						<div className="*:size-5">{icon}</div>
