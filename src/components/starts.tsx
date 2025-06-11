@@ -16,7 +16,10 @@ const Stars = ({ stars }: StarsProps) => {
 			{/* Render full stars */}
 			{Array.from({ length: fullStars }, (_, i) => (
 				<Star
-					key={`full-${i}`}
+					key={`full-${
+						// biome-ignore lint/suspicious/noArrayIndexKey: fine here
+						i
+					}`}
 					className="size-4 fill-yellow-400 text-yellow-400"
 				/>
 			))}
