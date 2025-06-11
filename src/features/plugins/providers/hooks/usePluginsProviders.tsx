@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { trpc } from "@/lib";
 
 /**
@@ -7,11 +7,23 @@ import { trpc } from "@/lib";
  * updates, and listing of plugins with cache invalidation.
  */
 export const usePluginsProviders = () => {
+	const [enabledOnly, setEnabledOnly] = useState(
+		localStorage.getItem("showEnabledOnly") === "true",
+	);
+
+	const changeEnabledOnly = useCallback(() => {
+		const currentValue = localStorage.getItem("showEnabledOnly") === "true";
+		const newValue = !currentValue;
+
+		localStorage.setItem("showEnabledOnly", String(newValue));
+		setEnabledOnly(newValue);
+	}, []);
+
 	// tRPC context for cache operations
 	const utils = trpc.useUtils();
 
-	// Queries
-	const pluginsQuery = trpc.plugins.providers.list.useQuery(false);
+	// Queries - enabledOnly will trigger refetch when changed
+	const pluginsQuery = trpc.plugins.providers.list.useQuery(enabledOnly);
 	const needsUpdateQuery =
 		trpc.plugins.providers.checkForUpdatesAll.useQuery(false);
 
@@ -108,5 +120,9 @@ export const usePluginsProviders = () => {
 		// Helpers
 		refetchPlugins: pluginsQuery.refetch,
 		invalidatePlugins: () => utils.plugins.providers.list.invalidate(),
+
+		// State
+		enabledOnly,
+		changeEnabledOnly,
 	};
 };
