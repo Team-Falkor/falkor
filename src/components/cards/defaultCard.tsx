@@ -15,7 +15,6 @@ type DefaultCardProps = {
 	id: number;
 	total_rating?: number;
 	aggregated_rating?: number;
-
 	renderBadge?: (id: number) => React.ReactNode;
 	renderTitle?: (id: number, name: string) => React.ReactNode;
 	renderActionButton?: (id: number) => React.ReactNode;
@@ -35,11 +34,11 @@ const DefaultCard = ({
 }: DefaultCardProps) => {
 	// Format rating to show only one decimal place if available
 	const rating = total_rating ?? aggregated_rating ?? null;
-	const formattedRating = rating ? Math.round(rating) / 10 : null;
+	const formattedRating = rating ? (Math.round(rating) / 10)?.toFixed(1) : null;
 
 	return (
-		<div className="group w-full max-w-[200px]">
-			{/* Image Container */}
+		<div className="group w-full flex-shrink-0" style={{ width: "160px" }}>
+			{/* Image Container - Fixed size */}
 			<div className="relative mb-3">
 				<Link
 					to={"/info/$id"}
@@ -48,22 +47,26 @@ const DefaultCard = ({
 					}}
 					className="block overflow-hidden rounded-lg transition-transform duration-300 hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
 				>
-					{/* Image */}
-					<div className="relative aspect-[2/3] w-full bg-gray-200">
+					{/* Fixed aspect ratio container */}
+					<div
+						className="relative overflow-hidden bg-gray-200"
+						style={{ width: "160px", height: "240px" }} // 2:3 aspect ratio, fixed dimensions
+					>
 						{cover.type === "image_id" && cover.image ? (
 							<IGDBImage
 								alt={name}
 								imageId={cover.image}
-								className="h-full w-full object-cover"
+								className="absolute inset-0 h-full w-full object-cover"
 							/>
 						) : cover.image ? (
 							<img
 								src={cover.image}
 								alt={name}
-								className="h-full w-full object-cover"
+								className="absolute inset-0 h-full w-full object-cover"
+								loading="lazy"
 							/>
 						) : (
-							<div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+							<div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
 								No Image
 							</div>
 						)}
@@ -93,14 +96,14 @@ const DefaultCard = ({
 				)}
 			</div>
 
-			{/* Card Content */}
-			<div className="space-y-3">
+			{/* Card Content - Fixed width */}
+			<div className="space-y-3" style={{ width: "160px" }}>
 				{/* Title */}
 				<div className="min-h-[1.5rem]">
 					{renderTitle ? (
 						renderTitle(id, name)
 					) : (
-						<H5 className="line-clamp-2 text-center font-medium text-sm leading-tight">
+						<H5 className="line-clamp-2 overflow-hidden text-center font-medium text-sm leading-tight">
 							{name}
 						</H5>
 					)}
