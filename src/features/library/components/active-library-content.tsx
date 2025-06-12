@@ -60,7 +60,7 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 								if (!game.gamePlaytime) return null;
 
 								return (
-									<Badge className="bg-card-foreground/10 backdrop-blur-xl">
+									<Badge className="bg-muted/30 backdrop-blur-3xl">
 										<span className="text-sm">
 											{formatPlaytime(game.gamePlaytime)}
 										</span>
@@ -120,7 +120,7 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 								if (!game.gamePlaytime) return null;
 
 								return (
-									<Badge className="bg-card-foreground/10 backdrop-blur-xl">
+									<Badge className="bg-muted/30 backdrop-blur-3xl">
 										<span className="text-sm">
 											{formatPlaytime(game.gamePlaytime)}
 										</span>
