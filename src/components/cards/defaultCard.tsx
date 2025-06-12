@@ -37,7 +37,7 @@ const DefaultCard = ({
 	const formattedRating = rating ? (Math.round(rating) / 10)?.toFixed(1) : null;
 
 	return (
-		<div className="group w-full flex-shrink-0" style={{ width: "160px" }}>
+		<div className="group w-[230px] shrink-0">
 			{/* Image Container - Fixed size */}
 			<div className="relative mb-3">
 				<Link
@@ -48,10 +48,7 @@ const DefaultCard = ({
 					className="block overflow-hidden rounded-lg transition-transform duration-300 hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
 				>
 					{/* Fixed aspect ratio container */}
-					<div
-						className="relative overflow-hidden bg-gray-200"
-						style={{ width: "160px", height: "240px" }} // 2:3 aspect ratio, fixed dimensions
-					>
+					<div className="relative h-[300px] w-full overflow-hidden">
 						{cover.type === "image_id" && cover.image ? (
 							<IGDBImage
 								alt={name}
@@ -96,8 +93,7 @@ const DefaultCard = ({
 				)}
 			</div>
 
-			{/* Card Content - Fixed width */}
-			<div className="space-y-3" style={{ width: "160px" }}>
+			<div className="flex w-full flex-col gap-2">
 				{/* Title */}
 				<div className="min-h-[1.5rem]">
 					{renderTitle ? (
