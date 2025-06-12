@@ -18,7 +18,7 @@ const FeaturedGames = () => {
 			<Carousel
 				id="top-rated-carousel"
 				plugins={[autoplay.current]}
-				className="rounded-xl shadow-lg ring-1 ring-muted/20"
+				className="rounded-lg shadow-lg ring-1 ring-muted/20"
 			>
 				<div className="flex w-full items-center justify-between gap-2 p-4">
 					<div className="flex items-end gap-3">
