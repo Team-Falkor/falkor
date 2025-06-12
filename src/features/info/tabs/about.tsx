@@ -58,9 +58,9 @@ const InfoAboutTab = ({
 
 	return (
 		<>
-			<div className="flex h-52 w-full shrink-0 flex-col gap-2 overflow-hidden rounded-2xl bg-background p-4">
+			<div className="flex h-52 w-full shrink-0 flex-col gap-2 overflow-hidden rounded-2xl bg-card p-4">
 				<div className="flex h-10 items-center justify-between overflow-hidden">
-					<TypographySmall className="flex shrink-0 grow-0 items-center gap-2 rounded-full bg-secondary/20 p-2.5 font-semibold">
+					<TypographySmall className="flex shrink-0 grow-0 items-center gap-2 rounded-full bg-muted-foreground/10 p-2.5 font-semibold">
 						<Lightbulb fill="currentColor" size={15} />
 						{t("about_this_game")}
 					</TypographySmall>
@@ -70,7 +70,7 @@ const InfoAboutTab = ({
 							<Stars stars={(data?.aggregated_rating ?? 0) / 10} />
 						)}
 
-						<TypographySmall className="flex items-center gap-2 rounded-full bg-secondary/20 p-2.5 font-semibold">
+						<TypographySmall className="flex items-center gap-2 rounded-full bg-muted-foreground/10 p-2.5 font-semibold">
 							{!isReleased
 								? t("not_released")
 								: !releaseDate?.date
@@ -85,7 +85,7 @@ const InfoAboutTab = ({
 						{isSameDevAndPublisherSame ? (
 							<TypographySmall
 								key={publisher?.company?.id}
-								className="flex items-center gap-2 truncate rounded-full bg-secondary/20 p-2.5 font-semibold"
+								className="flex items-center gap-2 truncate rounded-full bg-muted-foreground/10 p-2.5 font-semibold"
 							>
 								{developer?.company?.name ?? "N/A"}
 							</TypographySmall>
@@ -93,14 +93,14 @@ const InfoAboutTab = ({
 							<>
 								<TypographySmall
 									key={publisher?.company?.id}
-									className="flex items-center gap-2 truncate rounded-full bg-secondary/20 p-2.5 font-semibold"
+									className="flex items-center gap-2 truncate rounded-full bg-muted-foreground/10 p-2.5 font-semibold"
 								>
 									{publisher?.company?.name ?? "N/A"}
 								</TypographySmall>
 
 								<TypographySmall
 									key={developer?.company?.id}
-									className="flex items-center gap-2 truncate rounded-full bg-secondary/20 p-2.5 font-semibold"
+									className="flex items-center gap-2 truncate rounded-full bg-muted-foreground/10 p-2.5 font-semibold"
 								>
 									{developer?.company?.name ?? "N/A"}
 								</TypographySmall>
@@ -113,7 +113,7 @@ const InfoAboutTab = ({
 							{genres.map((genre) => (
 								<TypographySmall
 									key={genre?.slug}
-									className="flex items-center gap-2 truncate rounded-full bg-secondary/20 p-2.5 font-semibold"
+									className="flex items-center gap-2 truncate rounded-full bg-muted-foreground/10 p-2.5 font-semibold"
 								>
 									{genre?.name}
 								</TypographySmall>
@@ -122,7 +122,7 @@ const InfoAboutTab = ({
 					)}
 				</div>
 
-				<TypographyMuted className="-mt-1 line-clamp-4 text-pretty">
+				<TypographyMuted className="line-clamp-3 overflow-hidden text-pretty">
 					{data?.storyline ?? data?.summary ?? ""}
 				</TypographyMuted>
 			</div>

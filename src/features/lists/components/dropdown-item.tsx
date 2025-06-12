@@ -65,7 +65,7 @@ const ListsDropdownItem = ({
 				gameId: game.id,
 				gameName: game.name,
 				gameIcon: game.cover?.url,
-				gameSteamId: getSteamIdFromWebsites(game.websites),
+				gameSteamId: getSteamIdFromWebsites(game?.websites),
 			});
 		}
 	}, [games, listId, game, addGameToList, removeGameFromList]);
