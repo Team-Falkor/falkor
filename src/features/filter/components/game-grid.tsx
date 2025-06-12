@@ -9,18 +9,17 @@ interface GameGridProps {
 }
 
 export function GameGrid({ games, isLoading }: GameGridProps) {
-	// Flex layout: items wrap and use responsive percentage widths
-	const containerClasses = "flex flex-wrap gap-4 p-4 justify-start";
-	const itemClasses = "w-full ";
+	const gridContainerClasses =
+		"grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4 p-4";
 
 	if (isLoading) {
 		return (
-			<div className={containerClasses}>
+			<div className={gridContainerClasses}>
 				{Array.from({ length: 15 }).map((_, idx) => (
 					<Card
 						// biome-ignore lint/suspicious/noArrayIndexKey: Fine for skeleton
 						key={idx}
-						className={`${itemClasses} aspect-[3/4] animate-pulse overflow-hidden p-0`}
+						className="aspect-[3/4] animate-pulse overflow-hidden p-0"
 					>
 						<Skeleton className="h-full w-full" />
 					</Card>
@@ -40,9 +39,10 @@ export function GameGrid({ games, isLoading }: GameGridProps) {
 	}
 
 	return (
-		<div className={containerClasses}>
+		<div className={gridContainerClasses}>
 			{games.map((game) => (
 				<DefaultCard
+					key={game.id}
 					{...game}
 					cover={{
 						image: game.cover?.image_id,

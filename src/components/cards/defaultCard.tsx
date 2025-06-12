@@ -37,7 +37,7 @@ const DefaultCard = ({
 	const formattedRating = rating ? (Math.round(rating) / 10)?.toFixed(1) : null;
 
 	return (
-		<div className="group w-[230px] shrink-0">
+		<div className="group w-[230px]">
 			{/* Image Container - Fixed size */}
 			<div className="relative mb-3">
 				<Link
