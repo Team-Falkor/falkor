@@ -21,6 +21,8 @@ const AchievementContainer = ({ steamId, gameId }: Props) => {
 	if (isPending) return null;
 	if (isError) return null;
 
+	if (!data?.length) return null;
+
 	const unlocked = data?.filter((achievement) => achievement.unlocked);
 
 	return (
