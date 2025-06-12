@@ -17,7 +17,7 @@ const ActiveLibrary = (props: ActiveLibraryProps) => {
 	return (
 		<div className="flex flex-col gap-4 rounded-lg p-6">
 			<LibraryHeader {...props} />
-			<div className="flex flex-wrap gap-6 px-2 py-4">
+			<div className="flex flex-wrap gap-6 rounded-lg bg-muted/30 p-6">
 				<ActiveLibraryContent {...props} />
 			</div>
 		</div>
