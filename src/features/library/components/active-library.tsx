@@ -4,6 +4,7 @@ import LibraryHeader from "./library-header";
 export type ActiveLibraryProps =
 	| {
 			title: string;
+			description?: string;
 			type: "game";
 	  }
 	| {

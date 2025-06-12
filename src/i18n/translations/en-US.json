@@ -116,6 +116,7 @@
 	"actions": "Actions",
 	"stop_playing": "Stop Playing",
 	"continue_playing": "Continue Playing",
+	"continue_playing_description": "Continue Playing your installed game",
 	"igdb_id": "IGDB ID",
 	"support_me_on_kofi": "Support me on Ko-fi",
 	"create_new_list": "Create A New List",
