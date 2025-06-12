@@ -15,7 +15,7 @@ const GameCategories = () => {
 			{categories.map((category) => (
 				<Card
 					key={category.title}
-					className="group overflow-hidden transition-all focus-states:shadow-md focus-states:ring-1 focus-states:ring-primary/20"
+					className="group overflow-hidden bg-muted/30 transition-all focus-states:shadow-md focus-states:ring-1 focus-states:ring-primary/20"
 				>
 					<CardContent className="p-0">
 						<Link
