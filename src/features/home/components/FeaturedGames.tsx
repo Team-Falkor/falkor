@@ -14,7 +14,7 @@ const FeaturedGames = () => {
 	);
 
 	return (
-		<div className="mb-16 rounded-xl bg-linear-to-r from-background to-secondary/10">
+		<div className="mb-16 rounded-lg bg-muted/30">
 			<Carousel
 				id="top-rated-carousel"
 				plugins={[autoplay.current]}
