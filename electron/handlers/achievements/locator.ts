@@ -283,6 +283,7 @@ class AchievementFileLocator {
 					throw new Error(`Invalid path type: ${type}`);
 			}
 		}
+
 		// Linux path handling
 		const homeDir = app.getPath("home");
 		// Use XDG base directory for Linux systems
