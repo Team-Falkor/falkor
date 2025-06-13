@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { db } from "@backend/database";
+import { createIPCHandler } from "@janwirth/electron-trpc-link/main";
 import {
 	app,
 	BrowserWindow,
@@ -10,7 +11,6 @@ import {
 	shell,
 	Tray,
 } from "electron";
-import { createIPCHandler } from "trpc-electron/main";
 import type { ToastNotification } from "@/@types";
 import { appRouter } from "../api/trpc/root";
 import { SettingsManager } from "../handlers/settings/settings";

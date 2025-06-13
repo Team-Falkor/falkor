@@ -1,22 +1,15 @@
-import { trpc } from "@/lib";
+import type { RouterOutputs } from "@/@types";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
-const AccountsTable = () => {
-	const { data, isPending, error, isError } = trpc.accounts.getAll.useQuery();
+type Account = RouterOutputs["accounts"]["getAll"];
 
-	if (isPending) {
-		return <div>Loading...</div>;
-	}
+// 1. Update props to receive data directly
+interface AccountsTableProps {
+	data: Account;
+}
 
-	if (isError) {
-		return <div>Error: {error.message}</div>;
-	}
-
-	if (!data) {
-		return <div>No data</div>;
-	}
-
+const AccountsTable = ({ data }: AccountsTableProps) => {
 	return (
 		<div className="">
 			<DataTable columns={columns} data={data} />

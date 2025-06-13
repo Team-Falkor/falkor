@@ -1,5 +1,5 @@
+import { ipcLink } from "@janwirth/electron-trpc-link/renderer";
 import { createTRPCReact, loggerLink } from "@trpc/react-query";
-import { ipcLink } from "trpc-electron/renderer";
 import type { AppRouter } from "../../../electron/api/trpc/root";
 
 export const trpc = createTRPCReact<AppRouter>();
