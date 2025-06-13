@@ -1,4 +1,5 @@
-import { Switch as SwitchPrimitive } from "radix-ui";;
+import { Switch as SwitchPrimitive } from "radix-ui";
+
 import type * as React from "react";
 
 import { cn } from "@/lib/utils";

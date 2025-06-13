@@ -41,7 +41,11 @@ function LibraryPage() {
 			{
 				name: t("sections.continue_playing"),
 				component: (
-					<ActiveLibrary type="game" title={t("sections.continue_playing")} />
+					<ActiveLibrary
+						type="game"
+						title={t("sections.continue_playing")}
+						description={t("continue_playing_description")}
+					/>
 				),
 			},
 			...listDerivedTabs,

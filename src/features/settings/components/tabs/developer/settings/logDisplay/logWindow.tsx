@@ -9,12 +9,9 @@ interface LogWindowProps {
 }
 
 const LogWindow = ({ enabled }: LogWindowProps) => {
-	const { data: logs, refetch: retrieveLogs } = trpc.logging.getLogs.useQuery(
-		undefined,
-		{
-			enabled,
-		},
-	);
+	const { data: logs } = trpc.logging.getLogs.useQuery(undefined, {
+		enabled,
+	});
 
 	return (
 		<div>
@@ -26,8 +23,10 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
 			>
 				<div className="flex size-full flex-col items-start justify-start gap-2 py-2">
 					{logs?.length ? (
-						logs.map((log, i) => {
-							return <LogSwitch {...log} key={i} />;
+						logs.map((log) => {
+							return (
+								<LogSwitch {...log} key={log.message?.split("")?.join("")} />
+							);
 						})
 					) : (
 						<div className="flex size-full items-center justify-center">

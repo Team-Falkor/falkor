@@ -7,7 +7,7 @@ const HeroSection = () => {
 	const { t } = useLanguageContext();
 
 	return (
-		<div className="relative mb-10 w-full overflow-hidden rounded-xl bg-linear-to-br from-background via-secondary/30 to-primary/20 p-8">
+		<div className="relative mb-10 w-full overflow-hidden rounded-lg bg-linear-to-br from-background via-muted/30 to-primary/20 p-8">
 			<div className="absolute top-0 right-0 h-full w-1/2 rounded-l-full bg-linear-to-bl from-primary to-transparent opacity-10" />
 			<div className="relative z-10 flex max-w-3xl flex-col items-start gap-4">
 				<H1 className="flex items-end gap-2">

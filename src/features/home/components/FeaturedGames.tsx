@@ -14,11 +14,11 @@ const FeaturedGames = () => {
 	);
 
 	return (
-		<div className="mb-16 rounded-xl bg-linear-to-r from-background to-secondary/10">
+		<div className="mb-16 rounded-lg bg-muted/30">
 			<Carousel
 				id="top-rated-carousel"
 				plugins={[autoplay.current]}
-				className="overflow-hidden rounded-xl shadow-lg ring-1 ring-muted/20"
+				className="rounded-lg shadow-lg ring-1 ring-muted/20"
 			>
 				<div className="flex w-full items-center justify-between gap-2 p-4">
 					<div className="flex items-end gap-3">

@@ -61,7 +61,10 @@ export function useGameLauncher(game: LibraryGame) {
 				toast("Game launched", { description: game.gameName });
 			}
 		} catch (err) {
-			toast("Action failed", { description: String(err) });
+			console.log(err);
+			toast("Action failed", {
+				description: String(err)?.split("TRPCClientError: ")?.join(""),
+			});
 		} finally {
 			await invalidateAll();
 		}

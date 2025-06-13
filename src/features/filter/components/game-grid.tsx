@@ -1,5 +1,7 @@
+import { format } from "date-fns";
 import type { RouterOutputs } from "@/@types";
 import DefaultCard from "@/components/cards/defaultCard";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -9,17 +11,17 @@ interface GameGridProps {
 }
 
 export function GameGrid({ games, isLoading }: GameGridProps) {
-	// Flex layout: items wrap and use responsive percentage widths
-	const containerClasses = "flex flex-wrap gap-4 p-4 justify-start";
-	const itemClasses = "w-full ";
+	const gridContainerClasses =
+		"grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4 p-4";
 
 	if (isLoading) {
 		return (
-			<div className={containerClasses}>
+			<div className={gridContainerClasses}>
 				{Array.from({ length: 15 }).map((_, idx) => (
 					<Card
+						// biome-ignore lint/suspicious/noArrayIndexKey: Fine for skeleton
 						key={idx}
-						className={`${itemClasses} aspect-[3/4] animate-pulse overflow-hidden p-0`}
+						className="aspect-[3/4] animate-pulse overflow-hidden p-0"
 					>
 						<Skeleton className="h-full w-full" />
 					</Card>
@@ -39,9 +41,28 @@ export function GameGrid({ games, isLoading }: GameGridProps) {
 	}
 
 	return (
-		<div className={containerClasses}>
+		<div className={gridContainerClasses}>
 			{games.map((game) => (
-				<DefaultCard {...game} />
+				<DefaultCard
+					key={game.id}
+					{...game}
+					cover={{
+						image: game.cover?.image_id,
+						type: "image_id",
+					}}
+					renderBottomOfImage={() => {
+						if (!game.first_release_date) return null;
+
+						// Show release date in badge use date fns to format
+						return (
+							<Badge className="bg-muted/30 backdrop-blur-3xl">
+								<span className="text-sm">
+									{format(new Date(game.first_release_date * 1000), "PPP")}
+								</span>
+							</Badge>
+						);
+					}}
+				/>
 			))}
 		</div>
 	);

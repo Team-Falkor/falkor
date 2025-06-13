@@ -71,14 +71,13 @@ const RowContainer = ({
 	return (
 		<div className={cn("mx-auto", className)} id={id} {...props}>
 			<Carousel
-				className={className}
 				id={id}
 				opts={{
 					skipSnaps: true,
 					dragFree: true,
 				}}
 			>
-				<div className="flex items-center justify-between pb-4">
+				<div className="flex items-center justify-between pb-2">
 					<div className="flex items-end gap-2">
 						<H2>{title}</H2>
 

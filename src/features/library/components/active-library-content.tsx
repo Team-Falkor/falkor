@@ -1,8 +1,11 @@
 import { useMemo } from "react";
-import ListCard from "@/components/cards/list-card";
+import DefaultCard from "@/components/cards/defaultCard";
+import { EditGameOverlay } from "@/components/cards/list-card/overlay";
+import { PlayStopButton } from "@/components/play-stop-button";
+import { Badge } from "@/components/ui/badge";
 import { H5, P } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { trpc } from "@/lib";
+import { formatPlaytime, trpc } from "@/lib";
 import { useGames } from "../hooks/use-games";
 import type { ActiveLibraryProps } from "./active-library";
 
@@ -34,9 +37,39 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 
 		return (
 			<div className="flex flex-wrap gap-4">
-				{gamesList.map((game) => (
-					<ListCard key={game.id} {...game} />
-				))}
+				{gamesList.map((game) => {
+					const image = game.gameIcon;
+					const imageURL = image ? image.replace("t_thumb", "t_cover_big") : "";
+
+					return (
+						<DefaultCard
+							key={game.id}
+							id={game.id}
+							name={game.gameName}
+							cover={{
+								image: imageURL,
+								type: "image",
+							}}
+							renderActionButton={() => {
+								return <PlayStopButton game={game} />;
+							}}
+							renderBadge={() => {
+								return <EditGameOverlay key={game.id} game={game} />;
+							}}
+							renderBottomOfImage={() => {
+								if (!game.gamePlaytime) return null;
+
+								return (
+									<Badge className="bg-muted/30 backdrop-blur-3xl">
+										<span className="text-sm">
+											{formatPlaytime(game.gamePlaytime)}
+										</span>
+									</Badge>
+								);
+							}}
+						/>
+					);
+				})}
 			</div>
 		);
 	}
@@ -64,9 +97,39 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 
 		return (
 			<div className="flex flex-wrap gap-4">
-				{listGames.map((game) => (
-					<ListCard key={game.id} {...game} />
-				))}
+				{listGames.map((game) => {
+					const image = game.gameIcon;
+					const imageURL = image ? image.replace("t_thumb", "t_cover_big") : "";
+
+					return (
+						<DefaultCard
+							key={game.id}
+							id={game.id}
+							name={game.gameName}
+							cover={{
+								image: imageURL,
+								type: "image",
+							}}
+							renderBadge={() => {
+								return <EditGameOverlay key={game.id} game={game} />;
+							}}
+							renderActionButton={() => {
+								return <PlayStopButton game={game} />;
+							}}
+							renderBottomOfImage={() => {
+								if (!game.gamePlaytime) return null;
+
+								return (
+									<Badge className="bg-muted/30 backdrop-blur-3xl">
+										<span className="text-sm">
+											{formatPlaytime(game.gamePlaytime)}
+										</span>
+									</Badge>
+								);
+							}}
+						/>
+					);
+				})}
 			</div>
 		);
 	}

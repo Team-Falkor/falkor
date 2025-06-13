@@ -41,7 +41,14 @@ const SimilarGames = ({ data }: SimilarGamesProps) => {
 				<CarouselContent className="-ml-2">
 					{items.map((game) => (
 						<CarouselItem key={game.id} className="basis-auto px-2">
-							<DefaultCard key={game.id} {...game} />
+							<DefaultCard
+								key={game.id}
+								{...game}
+								cover={{
+									image: game.cover?.image_id,
+									type: "image_id",
+								}}
+							/>
 						</CarouselItem>
 					))}
 				</CarouselContent>

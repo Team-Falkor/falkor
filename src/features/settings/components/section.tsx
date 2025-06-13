@@ -20,7 +20,7 @@ export const SettingsSection = ({
 	return (
 		<div
 			className={cn(
-				"space-y-4 overflow-hidden rounded-xl bg-muted/60 p-4 shadow-md",
+				"space-y-4 overflow-hidden rounded-lg bg-muted/60 p-4 shadow-md",
 				className,
 			)}
 			{...props}

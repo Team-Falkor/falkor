@@ -1,6 +1,8 @@
+import { format } from "date-fns";
 import { trpc } from "@/lib";
 import DefaultCard from "./cards/defaultCard";
 import GenericRowSkeleton from "./skeletons/genericRow";
+import { Badge } from "./ui/badge";
 import { CarouselContent, CarouselItem } from "./ui/carousel";
 
 interface GenericRowProps {
@@ -28,10 +30,29 @@ const GenericRow = ({ dataToFetch }: GenericRowProps) => {
 				data?.map((game) => (
 					<CarouselItem
 						key={game.id}
-						className="basis-auto px-2"
+						className="basis-auto px-2 py-4"
 						id={"carousel-item"}
 					>
-						<DefaultCard key={game.id} {...game} />
+						<DefaultCard
+							key={game.id}
+							{...game}
+							cover={{
+								image: game.cover?.image_id,
+								type: "image_id",
+							}}
+							renderBottomOfImage={() => {
+								if (!game.first_release_date) return null;
+
+								// Show release date in badge use date fns to format
+								return (
+									<Badge className="bg-muted/30 backdrop-blur-3xl">
+										<span className="text-sm">
+											{format(new Date(game.first_release_date * 1000), "PPP")}
+										</span>
+									</Badge>
+								);
+							}}
+						/>
 					</CarouselItem>
 				))}
 		</CarouselContent>

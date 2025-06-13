@@ -1,54 +1,41 @@
+import { StopIcon } from "@radix-ui/react-icons";
 import { Play } from "lucide-react";
-import { MdStop } from "react-icons/md";
-
 import type { LibraryGame } from "@/@types";
 import { useGameLauncher } from "@/hooks/use-game-launcher";
-import { cn } from "@/lib";
+import { Button } from "./ui/button";
 
 interface PlayStopButtonProps {
 	game: LibraryGame;
 }
 
-const PlayStopButton = ({ game }: PlayStopButtonProps) => {
+export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 	const { isRunning, initializing, isMutating, toggleGameState } =
 		useGameLauncher(game);
 
 	if (!game.installed || !game.gamePath) return null;
 
-	const buttonTitle = initializing
-		? "Checking…"
-		: isRunning
-			? "Stop Game"
-			: "Launch Game";
-
 	return (
-		<button
+		<Button
+			variant={"functional"}
 			onClick={(e) => {
-				toggleGameState();
 				e.stopPropagation();
 				e.preventDefault();
+				toggleGameState();
 			}}
 			disabled={initializing || isMutating}
-			type="button"
-			title={buttonTitle}
-			className={cn(
-				"flex items-center justify-center rounded-full p-3 shadow-lg backdrop-blur-sm",
-				"bg-primary/80 transition-all duration-300 focus-states:scale-110 focus-states:bg-primary",
-				"cursor-pointer text-white",
-				{
-					"opacity-0 group-focus-states:opacity-100": !isRunning,
-					"scale-110": isRunning,
-					"pointer-events-none opacity-50": initializing || isMutating,
-				},
-			)}
+			className="w-full font-semibold uppercase"
 		>
 			{isRunning ? (
-				<MdStop size={40} fill="white" />
+				<>
+					<StopIcon className="fill-black dark:fill-white" />
+					Stop Game
+				</>
 			) : (
-				<Play size={32} fill="white" />
+				<>
+					<Play className="fill-black dark:fill-white" />
+					Play Game
+				</>
 			)}
-		</button>
+		</Button>
 	);
 };
-
-export default PlayStopButton;

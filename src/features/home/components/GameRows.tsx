@@ -10,14 +10,16 @@ const GameRows = () => {
 				id="new-releases-row"
 				title={t("sections.new_releases")}
 				dataToFetch="new_releases"
-				className="rounded-xl bg-linear-to-r from-background to-secondary/5 p-4 shadow-xs ring-1 ring-muted/20"
+				// className="rounded-xl bg-linear-to-r from-background to-secondary/5 p-4 shadow-xs ring-1 ring-muted/20"
+				className="rounded-lg bg-muted/30 p-6"
 			/>
 
 			<RowContainer
 				id="most-anticipated-row"
 				title={t("sections.most_anticipated")}
 				dataToFetch="most_anticipated"
-				className="rounded-xl bg-linear-to-r from-background to-secondary/5 p-4 shadow-xs ring-1 ring-muted/20"
+				// className="rounded-xl bg-linear-to-r from-background to-secondary/5 p-4 shadow-xs ring-1 ring-muted/20"
+				className="rounded-lg bg-muted/30 p-6"
 			/>
 		</div>
 	);

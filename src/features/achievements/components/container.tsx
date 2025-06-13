@@ -21,41 +21,45 @@ const AchievementContainer = ({ steamId, gameId }: Props) => {
 	if (isPending) return null;
 	if (isError) return null;
 
+	if (!data?.length) return null;
+
 	const unlocked = data?.filter((achievement) => achievement.unlocked);
 
 	return (
-		<Carousel
-			opts={{
-				skipSnaps: true,
-				dragFree: true,
-			}}
-			className="w-full"
-		>
-			<div className="mb-4 flex flex-col gap-1">
-				<div className="flex justify-between">
-					<div className="flex items-end gap-3">
-						<H2 className="capitalize">{t("achievements")}</H2>
-						<TypographyMuted>
-							{unlocked?.length}/{data.length}
-						</TypographyMuted>
-					</div>
-					<div>
-						<CarouselButton direction="left" />
-						<CarouselButton direction="right" />
+		<div className="rounded-lg bg-muted/30 p-6">
+			<Carousel
+				opts={{
+					skipSnaps: true,
+					dragFree: true,
+				}}
+				className="w-full"
+			>
+				<div className="mb-4 flex flex-col gap-1">
+					<div className="flex justify-between">
+						<div className="flex items-end gap-3">
+							<H2 className="capitalize">{t("achievements")}</H2>
+							<TypographyMuted>
+								{unlocked?.length}/{data.length}
+							</TypographyMuted>
+						</div>
+						<div>
+							<CarouselButton direction="left" />
+							<CarouselButton direction="right" />
+						</div>
 					</div>
 				</div>
-			</div>
 
-			<CarouselContent className="-ml-2">
-				{data.map((achievement) => {
-					return (
-						<CarouselItem key={achievement.name} className="basis-auto px-2">
-							<AchievementCard {...achievement} />
-						</CarouselItem>
-					);
-				})}
-			</CarouselContent>
-		</Carousel>
+				<CarouselContent className="-ml-2">
+					{data.map((achievement) => {
+						return (
+							<CarouselItem key={achievement.name} className="basis-auto px-2">
+								<AchievementCard {...achievement} />
+							</CarouselItem>
+						);
+					})}
+				</CarouselContent>
+			</Carousel>
+		</div>
 	);
 };
 

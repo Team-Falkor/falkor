@@ -117,7 +117,7 @@ export class IGDBWrapper extends IGDBApiBase {
 
 		const item = igdbData[0];
 
-		const steam_id = getSteamIdFromWebsites(item.websites);
+		const steam_id = getSteamIdFromWebsites(item?.websites);
 
 		const steam = steam_id ? await this.steamStoreInfo(steam_id) : null;
 

@@ -1,4 +1,5 @@
-import { Slider as SliderPrimitive } from "radix-ui";;
+import { Slider as SliderPrimitive } from "radix-ui";
+
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -50,6 +51,7 @@ function Slider({
 			{Array.from({ length: _values.length }, (_, index) => (
 				<SliderPrimitive.Thumb
 					data-slot="slider-thumb"
+					// biome-ignore lint/suspicious/noArrayIndexKey: shadcn so fine
 					key={index}
 					className="block size-4 shrink-0 rounded-full border border-primary bg-background shadow-sm ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:outline-hidden focus-visible:ring-4 disabled:pointer-events-none disabled:opacity-50"
 				/>
