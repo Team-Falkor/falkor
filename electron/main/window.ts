@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { db } from "@backend/database";
+import { createIPCHandler } from "@janwirth/electron-trpc-link/main";
 import {
 	app,
 	BrowserWindow,
@@ -10,20 +11,21 @@ import {
 	shell,
 	Tray,
 } from "electron";
-import { createIPCHandler } from "trpc-electron/main";
 import type { ToastNotification } from "@/@types";
 import { appRouter } from "../api/trpc/root";
 import { SettingsManager } from "../handlers/settings/settings";
 import { INDEX_HTML, PRELOAD_PATH, VITE_DEV_SERVER_URL } from "./constants";
+import { handleDeepLink } from "./deep-link";
 
-// Types
 export interface WindowOptions {
 	enableDevTools?: boolean;
 	showOnStartup?: boolean;
 	createTray?: boolean;
+	// Used to handle deep links when app is launched via URL protocol
+	initialDeepLink?: string;
 }
 
-// State variables
+// Main window and tray instances
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isWindowReady = false;
@@ -36,42 +38,31 @@ const settings = SettingsManager.getInstance();
 export async function createWindow(
 	options: WindowOptions = {},
 ): Promise<BrowserWindow> {
-	// Return existing window if already created
 	if (win) {
 		console.log("Window already exists, returning existing instance");
 		return win;
 	}
 
 	try {
-		// Get screen dimensions
 		const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
-		// Get window style from settings
 		const titleBarStyle = settings.get("titleBarStyle");
 		const frame = titleBarStyle === "native" || titleBarStyle === "none";
-
-		// Resolve icon path
 		const iconPath = path.join(
 			process.env.VITE_PUBLIC ?? "",
 			"icon-256x256.png",
 		);
-
 		const iconExists = existsSync(iconPath);
-
 		if (!iconExists) {
 			console.warn(`Icon not found at path: ${iconPath}`);
 		}
-
 		const devToolsOverride = import.meta.env.VITE_DEVTOOLS_OVERRIDE === "true";
 
-		// Create the browser window
 		win = new BrowserWindow({
 			title: "Falkor",
 			icon: iconExists ? iconPath : undefined,
 			webPreferences: {
 				preload: PRELOAD_PATH,
 				devTools: devToolsOverride || options.enableDevTools || !app.isPackaged,
-				// devTools: true,
 				contextIsolation: true,
 				nodeIntegration: false,
 			},
@@ -86,20 +77,17 @@ export async function createWindow(
 			show: options.showOnStartup ?? true,
 		});
 
-		// TODO: add a setting for this
 		win.maximize();
 
-		// Load the app URL
 		if (VITE_DEV_SERVER_URL) {
 			await win.loadURL(VITE_DEV_SERVER_URL);
 		} else {
 			await win.loadFile(INDEX_HTML);
 		}
 
-		// Set up window event handlers
-		setupWindowEvents(win);
+		// Set up window event handlers and IPC communication
+		setupWindowEvents(win, options);
 
-		// Create tRPC IPC handler
 		createIPCHandler({
 			router: appRouter,
 			windows: [win],
@@ -111,12 +99,10 @@ export async function createWindow(
 			},
 		});
 
-		app.whenReady().then(() => {
-			// Initialize tray if needed
-			if (options.createTray ?? true) {
-				createTray();
-			}
-		});
+		// Create system tray icon if enabled (default: true)
+		if (options.createTray ?? true) {
+			createTray();
+		}
 
 		console.log("Main window created successfully");
 		return win;
@@ -130,24 +116,31 @@ export async function createWindow(
 /**
  * Sets up event handlers for the main window
  */
-function setupWindowEvents(windowInstance: BrowserWindow): void {
-	// Make all links open with the browser, not with the application
+// Sets up window event handlers and deep link handling
+function setupWindowEvents(
+	windowInstance: BrowserWindow,
+	options: WindowOptions,
+): void {
 	windowInstance.webContents.setWindowOpenHandler(({ url }) => {
 		if (url.startsWith("https:")) shell.openExternal(url);
 		return { action: "deny" };
 	});
 
-	// Send initial message when window loads
 	windowInstance.webContents.on("did-finish-load", () => {
 		windowInstance.webContents.send(
 			"main-process-message",
 			new Date().toLocaleString(),
 		);
+
+		// Process any deep links after window content is loaded
+		if (options.initialDeepLink) {
+			console.log(`Handling initial deep link: ${options.initialDeepLink}`);
+			handleDeepLink(options.initialDeepLink);
+		}
 	});
 
 	// Listen for frontend ready signal
 	windowInstance.webContents.on("did-finish-load", () => {
-		// Add a small delay to ensure React/frontend is fully initialized
 		setTimeout(() => {
 			isWindowReady = true;
 			processPendingToasts();

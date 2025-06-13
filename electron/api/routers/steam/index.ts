@@ -4,8 +4,6 @@ import { SteamApi } from "@backend/handlers/api-wrappers/steam";
 const steamApi = SteamApi.getInstance();
 const returnTo = "https://falkor.moe/deep-link/steam-login";
 
-console.log(steamApi.getLoginUrl(returnTo));
-
 export const steamRouter = router({
 	getLoginUrl: publicProcedure.query(() => {
 		return steamApi.getLoginUrl(returnTo);

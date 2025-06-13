@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import type { ButtonHTMLAttributes, FunctionComponent, JSX } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 type NavItemProps =
 	| {
 			title: string;
-			href: string;
+			href: LinkProps["to"];
 			icon: JSX.Element;
 			type?: "link";
 	  }

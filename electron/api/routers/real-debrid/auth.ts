@@ -27,10 +27,10 @@ export const realDebridAuthRouter = router({
 				deviceCode: z.string(),
 			}),
 		)
-		.subscription(async function* ({ input }) {
+		.subscription(async function* ({ input, signal }) {
+			console.log("startPolling");
 			const { deviceCode } = input;
 
-			// Forward authService events to our emitter
 			const onToken = (payload: { token: RealDebridToken }) =>
 				emitter.emit("token", payload.token);
 			const onError = (payload: { error: Error }) =>
@@ -39,11 +39,9 @@ export const realDebridAuthRouter = router({
 			authService.on("token", onToken);
 			authService.on("error", onError);
 
-			// Start the polling process
 			authService.startPollingForToken(deviceCode);
 
 			try {
-				// Wait for either 'token' or 'error'
 				const result = await Promise.race([
 					emitOnce<RealDebridToken>(emitter, "token").then((token) => ({
 						token,
@@ -51,13 +49,17 @@ export const realDebridAuthRouter = router({
 					emitOnce<Error>(emitter, "error").then((error) => ({ error })),
 				]);
 
-				// Yield the result back to the client
 				yield result;
+			} catch (error) {
+				console.error(error);
+				return;
 			} finally {
-				// Cleanup listeners to prevent memory leaks
 				authService.off("token", onToken);
 				authService.off("error", onError);
+				// authService.stopPollingForToken(deviceCode);
 			}
+
+			return;
 		}),
 
 	// Step 3: refresh token

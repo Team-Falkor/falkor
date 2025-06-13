@@ -31,7 +31,7 @@ const RealDebridDialogContent = ({
 				deviceCode: deviceCodeInfo?.device_code ?? "",
 			},
 			{
-				enabled: !!deviceCodeInfo,
+				enabled: !!deviceCodeInfo && !isGettingCode && !codeError && open,
 				onData: (result) => {
 					if ("token" in result) {
 						// Authenticated successfully
@@ -42,6 +42,10 @@ const RealDebridDialogContent = ({
 						console.error("Polling error:", result.error);
 						toast.error("Real Debrid authentication failed");
 					}
+				},
+				onError: (error) => {
+					console.error("Subscription error:", error);
+					toast.error("Real Debrid authentication failed");
 				},
 			},
 		);

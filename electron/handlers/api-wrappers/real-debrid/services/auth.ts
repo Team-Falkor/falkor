@@ -94,6 +94,7 @@ export class RealDebridAuthService extends EventEmitter {
 	}
 
 	private async pollForCredentials(deviceCode: string): Promise<void> {
+		console.log("Polling for credentials...");
 		const url = `${this.oauthUrl}/device/credentials?client_id=${this.clientId}&code=${deviceCode}`;
 
 		try {
@@ -117,6 +118,7 @@ export class RealDebridAuthService extends EventEmitter {
 
 					this.emit("token", { token, account });
 				} catch (error) {
+					console.error("Error obtaining access token:", error);
 					this.emit("error", { error });
 				}
 			} else if (response.status === 403 || response.status === 400) {
@@ -130,6 +132,10 @@ export class RealDebridAuthService extends EventEmitter {
 					error: new Error(
 						data.error || `Polling failed with status ${response.status}`,
 					),
+				});
+				console.log({
+					data,
+					response,
 				});
 			}
 		} catch (error) {

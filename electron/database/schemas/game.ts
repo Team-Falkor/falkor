@@ -1,9 +1,11 @@
+import { relations } from "drizzle-orm";
 import {
 	integer,
 	sqliteTable,
 	text,
 	uniqueIndex,
 } from "drizzle-orm/sqlite-core";
+import { achievements } from "./achievement";
 
 export const libraryGames = sqliteTable(
 	"library_games",
@@ -28,3 +30,7 @@ export const libraryGames = sqliteTable(
 		uniqueIndex("library_games_game_id_unique").on(table.gameId),
 	],
 );
+
+export const libraryGamesRelations = relations(libraryGames, ({ many }) => ({
+	achievements: many(achievements),
+}));
