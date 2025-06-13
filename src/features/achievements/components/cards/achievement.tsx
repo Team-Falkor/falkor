@@ -2,8 +2,7 @@ import type { RouterOutputs } from "@/@types";
 import { TypographyMuted, TypographySmall } from "@/components/ui/typography";
 import { cn } from "@/lib";
 
-type Props =
-	RouterOutputs["achachievements"]["getUnlockedWithGameData"][number];
+type Props = RouterOutputs["achievements"]["getUnlockedWithGameData"][number];
 
 export const AchievementCard = ({
 	displayName,

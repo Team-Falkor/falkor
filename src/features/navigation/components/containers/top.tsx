@@ -1,6 +1,6 @@
 import logo from "@resources/icon.png";
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, HomeIcon, LibraryIcon } from "lucide-react";
+import { CalendarDays, HomeIcon, LibraryIcon, User2Icon } from "lucide-react";
 import {
 	Tooltip,
 	TooltipContent,
@@ -34,6 +34,8 @@ const NavBarTop = () => {
 
 			<div className="grid gap-2 pb-4">
 				<Search />
+
+				<NavItem href="/profile" title={t("home")} icon={<User2Icon />} />
 
 				<NavItem href="/" title={t("home")} icon={<HomeIcon />} />
 

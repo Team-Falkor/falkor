@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import type { RouterOutputs } from "@/@types";
 import { ButtonWithIcon } from "@/components/buttonWithIcon";
 import { Dialog } from "@/components/ui/dialog";
 import {
@@ -11,27 +12,28 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RealDebridDialogContent from "@/features/debrid/components/real-debrid/real-debrid-dialog-content";
-// import TorBoxDialogContent from "@/features/torBox/components/torBoxDialogContent";
-import { cn, trpc } from "@/lib";
+import { cn } from "@/lib";
 
-const AddAccountButton = () => {
-	const utils = trpc.useUtils();
+type Account = RouterOutputs["accounts"]["getAll"];
+
+// 1. Define props for the component
+interface AddAccountButtonProps {
+	accounts: Account;
+	onAccountAdded: () => void;
+}
+
+const AddAccountButton = ({
+	accounts,
+	onAccountAdded,
+}: AddAccountButtonProps) => {
 	const [isRealDebridDialogOpen, setIsRealDebridDialogOpen] = useState(false);
-	const [isTorBoxDialogOpen, setIsTorBoxDialogOpen] = useState(false);
+	const [_isTorBoxDialogOpen, setIsTorBoxDialogOpen] = useState(false);
 	const [open, setOpen] = useState(false);
-	const { data: accounts } = trpc.accounts.getAll.useQuery();
 
 	const realDebrid = accounts?.find(
 		(account) => account.type === "real-debrid",
 	);
 	const torBox = accounts?.find((account) => account.type === "torbox");
-
-	const handleAuthenticated = async () => {
-		await utils.accounts.invalidate(undefined, {
-			refetchType: "all",
-			type: "all",
-		});
-	};
 
 	return (
 		<DropdownMenu open={open} onOpenChange={setOpen}>
@@ -75,7 +77,7 @@ const AddAccountButton = () => {
 				<RealDebridDialogContent
 					setOpen={setIsRealDebridDialogOpen}
 					open={isRealDebridDialogOpen}
-					onAuthenticated={handleAuthenticated}
+					onAuthenticated={onAccountAdded}
 				/>
 			</Dialog>
 

@@ -17,7 +17,7 @@ import { steamRouter } from "../routers/steam";
 import { router } from ".";
 
 export const appRouter = router({
-	achachievements: achievementsRouter,
+	achievements: achievementsRouter,
 	downloads: downloadQueueRouter,
 	accounts: externalAccountsRouter,
 	igdb: igdbRouter,

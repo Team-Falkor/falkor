@@ -4,7 +4,7 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-
+import { useMemo } from "react";
 import {
 	Table,
 	TableBody,
@@ -23,8 +23,10 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
+	const memoData = useMemo(() => data, [data]);
+
 	const table = useReactTable({
-		data,
+		data: memoData,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	});

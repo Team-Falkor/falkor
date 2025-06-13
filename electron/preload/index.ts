@@ -1,5 +1,5 @@
+import { exposeElectronTRPC } from "@janwirth/electron-trpc-link/main";
 import { contextBridge, ipcRenderer } from "electron";
-import { exposeElectronTRPC } from "trpc-electron/main";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {

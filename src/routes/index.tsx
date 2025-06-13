@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({ component: Index });
 
 function Index() {
 	return (
-		<MainContainer id="main-page" className="w-full overflow-hidden">
+		<MainContainer id="home-screen" className="w-full overflow-hidden">
 			<HeroSection />
 			<FeaturedGames />
 			<GameCategories />
