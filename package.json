@@ -55,6 +55,7 @@
 		"@trpc/client": "^11.1.2",
 		"@trpc/react-query": "^11.1.2",
 		"@trpc/server": "^11.1.2",
+		"@zip.js/zip.js": "^2.7.62",
 		"audio-decode": "^2.2.2",
 		"auto-launch": "^5.0.6",
 		"babel-plugin-react-compiler": "^19.1.0-rc.1",

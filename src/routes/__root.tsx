@@ -51,7 +51,7 @@ function Root() {
 		return () => {
 			window.ipcRenderer.removeListener("toast:show", handleToastEvent);
 		};
-	}, [toast]);
+	}, []);
 
 	return (
 		<TooltipProvider>

@@ -39,10 +39,10 @@ export const AccountsDisplay = ({ accounts }: Props) => {
 			<Card className="w-full transition-shadow hover:shadow-md">
 				<CardContent className="flex flex-col items-center justify-center py-12">
 					<UserIcon className="mb-4 h-12 w-12 text-muted-foreground" />
-					<p className="text-lg font-medium text-muted-foreground">
+					<p className="font-medium text-lg text-muted-foreground">
 						No accounts found
 					</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted-foreground text-sm">
 						Add an account to get started
 					</p>
 				</CardContent>

@@ -78,7 +78,7 @@ const InfoRow = ({
 }) => (
 	<div className="flex items-center gap-2">
 		<Icon className="h-4 w-4 text-muted-foreground" />
-		<span className="text-sm font-medium">{label}:</span>
+		<span className="font-medium text-sm">{label}:</span>
 		<span className="text-sm">{value}</span>
 	</div>
 );
@@ -102,10 +102,10 @@ const SecretField = ({
 		<div className="flex items-center justify-between">
 			<div className="flex items-center gap-2">
 				<KeyIcon className="h-4 w-4 text-muted-foreground" />
-				<span className="text-sm font-medium">{label}:</span>
+				<span className="font-medium text-sm">{label}:</span>
 			</div>
 			{expiryTime && (
-				<div className="flex items-center gap-1 text-xs text-muted-foreground">
+				<div className="flex items-center gap-1 text-muted-foreground text-xs">
 					<ClockIcon className="h-3 w-3" />
 					<span>Expires: {formatExpiryTime(expiryTime)}</span>
 				</div>
@@ -187,14 +187,14 @@ export const AccountCard = ({
 										{account.type && (
 											<Badge
 												variant="secondary"
-												className="capitalize bg-muted-foreground/10"
+												className="bg-muted-foreground/10 capitalize"
 											>
 												{accountTypeDisplay}
 											</Badge>
 										)}
 									</div>
 									{account.username && account.email && (
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted-foreground text-sm">
 											{account.email}
 										</p>
 									)}
@@ -210,11 +210,11 @@ export const AccountCard = ({
 				</CollapsibleTrigger>
 
 				<CollapsibleContent>
-					<CardContent className="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 sm:pt-4">
+					<CardContent className="px-4 pt-2 pb-4 sm:px-6 sm:pt-4 sm:pb-6">
 						<div className="grid gap-6">
 							{/* Basic Information */}
 							<div className="grid gap-3">
-								<h4 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+								<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
 									Account Information
 								</h4>
 								{account.username && (
@@ -236,7 +236,7 @@ export const AccountCard = ({
 							{/* API Credentials */}
 							{(account.clientId || account.clientSecret) && (
 								<div className="grid gap-3">
-									<h4 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+									<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
 										API Credentials
 									</h4>
 									{account.clientId && (
@@ -263,7 +263,7 @@ export const AccountCard = ({
 							{/* Tokens */}
 							{(account.accessToken || account.refreshToken) && (
 								<div className="grid gap-3">
-									<h4 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+									<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
 										Authentication Tokens
 									</h4>
 									{account.accessToken && (

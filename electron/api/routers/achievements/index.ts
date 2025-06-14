@@ -104,12 +104,12 @@ export const achievementsRouter = router({
 
 	getAll: publicProcedure.query(async ({ ctx }) => {
 		try {
-      const data = await ctx.db.query.achievements.findMany({
-        with: {
-          game: true,
-        },
-      });
-      
+			const data = await ctx.db.query.achievements.findMany({
+				with: {
+					game: true,
+				},
+			});
+
 			return data;
 		} catch (error) {
 			console.error("[tRPC][achievements.getAll]", error);
