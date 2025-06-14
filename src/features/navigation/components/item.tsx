@@ -42,7 +42,7 @@ const NavItem: FunctionComponent<NavItemProps> = (props) => {
 						<div className="*:size-5">{icon}</div>
 					</Link>
 				</TooltipTrigger>
-				<TooltipContent side="right" sideOffset={8}>
+				<TooltipContent side="right" sideOffset={8} className="capitalize">
 					{title}
 				</TooltipContent>
 			</Tooltip>
