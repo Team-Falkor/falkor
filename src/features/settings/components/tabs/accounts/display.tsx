@@ -1,7 +1,10 @@
 import { UserIcon } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import type { RouterOutputs } from "@/@types";
 import { Card, CardContent } from "@/components/ui/card";
+import { useSettings } from "@/features/settings/hooks/useSettings";
+import { trpc } from "@/lib";
 import { AccountCard } from "./account-card";
 
 type Account = RouterOutputs["accounts"]["getAll"];
@@ -11,8 +14,28 @@ type Props = {
 };
 
 export const AccountsDisplay = ({ accounts }: Props) => {
+	const { settings, updateSetting } = useSettings();
+
 	const [openAccounts, setOpenAccounts] = useState<Set<number>>(new Set());
 	const [visibleTokens, setVisibleTokens] = useState<Set<string>>(new Set());
+
+	const utils = trpc.useUtils();
+	const { mutate: deleteAccount } = trpc.accounts.delete.useMutation({
+		onSuccess: async () => {
+			await utils.accounts.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
+
+			toast.success("Account deleted");
+		},
+
+		onError: (error) => {
+			toast.error("Error deleting account", {
+				description: error.message,
+			});
+		},
+	});
 
 	const toggleAccount = (accountId: number) => {
 		const newOpen = new Set(openAccounts);
@@ -52,18 +75,34 @@ export const AccountsDisplay = ({ accounts }: Props) => {
 
 	return (
 		<div className="grid grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-4">
-			{accounts?.map((account) => (
-				<AccountCard
-					key={account.id}
-					account={account}
-					isOpen={openAccounts.has(account.id)}
-					onToggle={toggleAccount}
-					visibleTokens={visibleTokens}
-					onToggleToken={toggleTokenVisibility}
-					onDelete={console.log}
-					onSetPreferred={console.log}
-				/>
-			))}
+			{accounts?.map((account) => {
+				const isPreferred = settings?.preferredDebridService === account.type;
+
+				return (
+					<AccountCard
+						key={account.id}
+						account={{
+							...account,
+							isPreferred,
+						}}
+						isOpen={openAccounts.has(account.id)}
+						onToggle={toggleAccount}
+						visibleTokens={visibleTokens}
+						onToggleToken={toggleTokenVisibility}
+						onDelete={async (id) => {
+							if (!id) return;
+							deleteAccount(id);
+						}}
+						onSetPreferred={(type) => {
+							if (!type) return;
+							updateSetting({
+								path: "preferredDebridService",
+								value: type,
+							});
+						}}
+					/>
+				);
+			})}
 		</div>
 	);
 };

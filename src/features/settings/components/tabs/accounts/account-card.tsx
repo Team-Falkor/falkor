@@ -12,6 +12,7 @@ import {
 	UserIcon,
 } from "lucide-react";
 import type { RouterOutputs } from "@/@types";
+import Confirmation from "@/components/confirmation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ type AccountCardProps = {
 	visibleTokens: Set<string>;
 	onToggleToken: (tokenKey: string) => void;
 	// Adding handlers makes the component's actions configurable from the parent
-	onSetPreferred: (accountId: number) => void;
+	onSetPreferred: (accountType: Account["type"]) => void;
 	onDelete: (accountId: number) => void;
 };
 
@@ -290,20 +291,21 @@ export const AccountCard = ({
 						</div>
 					</CardContent>
 
-					{/* --- IMPROVED FOOTER --- */}
 					<CardFooter className="flex justify-end gap-2 border-t bg-muted/30 px-6 py-4">
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={() => onDelete(account.id)}
+						<Confirmation
+							onConfirm={() => onDelete(account.id)}
+							title="Are you sure?"
+							description="This will delete the account and all associated data."
 						>
-							<TrashIcon />
-							Delete
-						</Button>
+							<Button variant="destructive" size="sm">
+								<TrashIcon />
+								Delete
+							</Button>
+						</Confirmation>
 						<Button
 							variant={account.isPreferred ? "active" : "functional"}
 							size="sm"
-							onClick={() => onSetPreferred(account.id)}
+							onClick={() => onSetPreferred(account.type)}
 							disabled={account.isPreferred}
 						>
 							<StarIcon className={cn(account.isPreferred && "fill-current")} />
