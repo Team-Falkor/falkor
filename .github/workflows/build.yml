@@ -16,6 +16,7 @@ jobs:
       VITE_STEAMGRIDDB_API_KEY: ${{ secrets.VITE_STEAMGRIDDB_API_KEY }}
       VITE_RD_CLIENT_ID: ${{ secrets.VITE_RD_CLIENT_ID }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VITE_STEAM_API_KEY: ${{ secrets.VITE_STEAM_API_KEY }}
     
     steps:
       - name: Checkout repository
@@ -58,6 +59,7 @@ jobs:
       VITE_STEAMGRIDDB_API_KEY: ${{ secrets.VITE_STEAMGRIDDB_API_KEY }}
       VITE_RD_CLIENT_ID: ${{ secrets.VITE_RD_CLIENT_ID }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VITE_STEAM_API_KEY: ${{ secrets.VITE_STEAM_API_KEY }}
 
     steps:
       - name: Checkout repository
