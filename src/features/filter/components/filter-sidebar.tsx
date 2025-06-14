@@ -15,13 +15,12 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib";
 
-export type FilterOptions = RouterInputs["igdb"]["filter"]["options"];
+export type FilterOptions = RouterInputs["igdb"]["filter"];
 
 interface FilterSidebarProps {
 	initialFilters: FilterOptions;
 }
 
-// Generic factory for date/number range handlers
 function makeRangeHandler<
 	OP extends Record<string, any>,
 	K1 extends keyof OP,
