@@ -30,6 +30,11 @@ interface DownloadState {
 	speedSamples: number[];
 	/** The number of times a download has been retried after an error. */
 	retryCount: number;
+	/**
+	 * Flag to prevent a race condition where a stream `finish` event fires
+	 * after an `error` event, incorrectly marking a failed download as complete.
+	 */
+	hasError: boolean;
 }
 
 /**
@@ -72,6 +77,7 @@ export class HttpDownloadHandler extends EventEmitter {
 			lastProgressUpdate: 0,
 			speedSamples: [],
 			retryCount: 0,
+			hasError: false,
 		});
 
 		try {
@@ -93,6 +99,9 @@ export class HttpDownloadHandler extends EventEmitter {
 	private async initiateDownload(item: DownloadItem): Promise<void> {
 		const downloadInfo = this.downloads.get(item.id);
 		if (!downloadInfo) return;
+
+		// Ensure the error flag is reset for new attempts (including retries).
+		downloadInfo.hasError = false;
 
 		const filePath = path.join(item.path, item.name);
 		const requestOptions: http.RequestOptions = {};
@@ -182,6 +191,12 @@ export class HttpDownloadHandler extends EventEmitter {
 			});
 
 			fileStream.on("finish", () => {
+				// If an error has occurred, the handleError method is in control.
+				// We must not mark the download as complete, as it could be
+				// in the middle of a retry cycle.
+				if (downloadInfo.hasError) {
+					return;
+				}
 				fileStream.close(() => this.completeDownload(item.id));
 			});
 
@@ -390,6 +405,10 @@ export class HttpDownloadHandler extends EventEmitter {
 		const item = downloadQueue.getDownload(id);
 		const downloadInfo = this.downloads.get(id);
 		if (!item || !downloadInfo) return;
+
+		// Set the error flag *before* closing the stream. This prevents the
+		// 'finish' event from incorrectly marking the download as complete.
+		downloadInfo.hasError = true;
 
 		downloadInfo.request?.destroy();
 		downloadInfo.fileStream?.close();
