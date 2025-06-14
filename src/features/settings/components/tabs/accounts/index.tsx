@@ -1,6 +1,5 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import AccountsTable from "@/features/accounts/components/table";
 import { useSettings } from "@/features/settings/hooks/useSettings";
 import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
@@ -8,6 +7,7 @@ import { SettingsSection } from "../../section";
 import SettingTitle from "../../title";
 import SettingsContainer from "../container";
 import AddAccountButton from "./addAccountButton";
+import { AccountsDisplay } from "./display";
 
 const AccountSettings = () => {
 	const { t } = useLanguageContext();
@@ -59,7 +59,8 @@ const AccountSettings = () => {
 					{isPending ? (
 						<div>Loading...</div>
 					) : (
-						<AccountsTable data={accounts ?? []} />
+						// <AccountsTable data={accounts ?? []} />
+						<AccountsDisplay accounts={accounts ?? []} />
 					)}
 				</SettingsSection>
 			</SettingsContainer>
