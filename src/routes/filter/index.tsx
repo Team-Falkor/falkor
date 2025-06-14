@@ -5,19 +5,26 @@ import { FilterSidebar } from "@/features/filter/components/filter-sidebar";
 import { GameGrid } from "@/features/filter/components/game-grid";
 import { trpc } from "@/lib/trpc";
 
+// 1. The Zod schema now matches the flattened tRPC input exactly.
+//    - Renamed 'genres' to 'genreIds' and changed type to number array.
+//    - Added all other optional filter keys.
 const filterSearchSchema = z.object({
+	limit: z.number().int().positive().optional().default(50),
+	offset: z.number().int().min(0).optional().default(0),
 	sort: z.string().optional(),
-	platforms: z.array(z.number()).optional(),
-	themes: z.array(z.number()).optional(),
-	minRating: z.number().optional(),
-	maxRating: z.number().optional(),
-	releaseDateFrom: z.number().optional(),
-	releaseDateTo: z.number().optional(),
+	platforms: z.array(z.number().int().positive()).optional(),
+	genreIds: z.array(z.number().int().positive()).optional(), // Corrected name and type
+	themes: z.array(z.number().int().positive()).optional(),
+	gameModes: z.array(z.number().int().positive()).optional(),
+	playerPerspectiveIds: z.array(z.number().int().positive()).optional(),
+	minRating: z.number().min(0).max(100).optional(),
+	maxRating: z.number().min(0).max(100).optional(),
+	minRatingCount: z.number().int().min(0).optional(),
+	releaseDateFrom: z.number().int().positive().optional(),
+	releaseDateTo: z.number().int().positive().optional(),
+	minHypes: z.number().int().min(0).optional(),
+	onlyMainGames: z.boolean().optional(),
 	excludeVersions: z.boolean().optional(),
-	gameModes: z.array(z.number()).optional(),
-	genres: z.array(z.string()).optional(),
-	limit: z.number().default(50),
-	offset: z.number().default(0),
 });
 
 export const Route = createFileRoute("/filter/")({
@@ -27,11 +34,10 @@ export const Route = createFileRoute("/filter/")({
 
 function RouteComponent() {
 	const search = Route.useSearch();
-	const { data, isLoading } = trpc.igdb.filter.useQuery({
-		options: search,
-		limit: search.limit,
-		offset: search.offset,
-	});
+
+	// 2. The input for useQuery is now the flattened 'search' object directly.
+	//    This matches the new tRPC procedure's input schema.
+	const { data, isLoading } = trpc.igdb.filter.useQuery(search);
 
 	return (
 		<div className="flex flex-col lg:flex-row">

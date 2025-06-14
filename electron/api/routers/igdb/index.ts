@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../../../api/trpc";
-import { IGDBWrapper } from "../../../handlers/api-wrappers/igdb";
+import {
+	type GameFilters,
+	IGDBWrapper,
+} from "../../../handlers/api-wrappers/igdb";
 
 const igdb = IGDBWrapper.getInstance();
 
@@ -8,183 +11,143 @@ export const igdbRouter = router({
 	search: publicProcedure
 		.input(
 			z.object({
-				query: z.string(),
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				query: z.string().min(1, "Search query cannot be empty"),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.search(input.query, input.limit, input.offset);
-		}),
+		.query(({ input }) => igdb.search(input.query, input.limit, input.offset)),
 
 	info: publicProcedure
 		.input(z.object({ id: z.string() }))
-		.query(async ({ input }) => {
-			return await igdb.info(input.id);
-		}),
+		.query(({ input }) => igdb.info(input.id)),
 
 	top_rated: publicProcedure
 		.input(
 			z.object({
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.topRated(input.limit, input.offset);
-		}),
+		.query(({ input }) => igdb.topRated(input.limit, input.offset)),
 
 	new_releases: publicProcedure
 		.input(
 			z.object({
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.newReleases(input.limit, input.offset);
-		}),
+		.query(({ input }) => igdb.newReleases(input.limit, input.offset)),
 
 	most_anticipated: publicProcedure
 		.input(
 			z.object({
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.mostAnticipated(input.limit, input.offset);
-		}),
+		.query(({ input }) => igdb.mostAnticipated(input.limit, input.offset)),
 
 	by_genre: publicProcedure
 		.input(
 			z.object({
 				genre: z.string(),
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.byGenre(input.genre, input.limit, input.offset);
-		}),
+		.query(({ input }) => igdb.byGenre(input.genre, input.limit, input.offset)),
 
 	by_multiple_genres: publicProcedure
 		.input(
 			z.object({
-				genreIds: z.array(z.number()),
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				genreIds: z.array(z.number().int().positive()).min(1),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.byMultipleGenres(
-				input.genreIds,
-				input.limit,
-				input.offset,
-			);
-		}),
+		.query(({ input }) =>
+			igdb.byMultipleGenres(input.genreIds, input.limit, input.offset),
+		),
 
 	similar_games: publicProcedure
 		.input(
 			z.object({
 				gameId: z.string(),
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.similarGames(input.gameId, input.limit, input.offset);
-		}),
-
-	top_rated_new_releases: publicProcedure
-		.input(
-			z.object({
-				limit: z.number().default(20),
-				offset: z.number().default(0),
-				minRating: z.number().default(75),
-			}),
-		)
-		.query(async ({ input }) => {
-			return await igdb.topRatedNewReleases(
-				input.limit,
-				input.offset,
-				input.minRating,
-			);
-		}),
+		.query(({ input }) =>
+			igdb.similarGames(input.gameId, input.limit, input.offset),
+		),
 
 	genres: publicProcedure
 		.input(
 			z.object({
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.getGenres(input.limit, input.offset);
-		}),
+		.query(({ input }) => igdb.getGenres(input.limit, input.offset)),
 
 	themes: publicProcedure
 		.input(
 			z.object({
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await igdb.getThemes(input.limit, input.offset);
-		}),
+		.query(({ input }) => igdb.getThemes(input.limit, input.offset)),
 
 	filter: publicProcedure
 		.input(
 			z.object({
-				options: z.object({
-					sort: z.string().optional(),
-					platforms: z.array(z.number()).optional(),
-					genreIds: z.array(z.number()).optional(),
-					themes: z.array(z.number()).optional(),
-					gameModes: z.array(z.number()).optional(),
-					playerPerspectiveIds: z.array(z.number()).optional(),
-					minRating: z.number().optional(),
-					maxRating: z.number().optional(),
-					minRatingCount: z.number().optional(),
-					releaseDateFrom: z.number().optional(),
-					releaseDateTo: z.number().optional(),
-					minHypes: z.number().optional(),
-					onlyMainGames: z.boolean().optional(),
-					excludeVersions: z.boolean().optional(),
-				}),
-				limit: z.number().default(20),
-				offset: z.number().default(0),
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
+				sort: z.string().optional(),
+				platforms: z.array(z.number().int().positive()).optional(),
+				genreIds: z.array(z.number().int().positive()).optional(),
+				themes: z.array(z.number().int().positive()).optional(),
+				gameModes: z.array(z.number().int().positive()).optional(),
+				playerPerspectiveIds: z.array(z.number().int().positive()).optional(),
+				minRating: z.number().min(0).max(100).optional(),
+				maxRating: z.number().min(0).max(100).optional(),
+				minRatingCount: z.number().int().min(0).optional(),
+				releaseDateFrom: z.number().int().positive().optional(),
+				releaseDateTo: z.number().int().positive().optional(),
+				minHypes: z.number().int().min(0).optional(),
+				onlyMainGames: z.boolean().optional(),
+				excludeVersions: z.boolean().optional(),
 			}),
 		)
-		.query(async ({ input }) => {
-			const { sort, ...filters } = input.options;
-			return await igdb.filter(filters, sort, input.limit, input.offset);
+		.query(({ input }) => {
+			const { limit, offset, sort, ...filters } = input;
+			return igdb.filter(filters, sort, limit, offset);
 		}),
 
 	calendarReleases: publicProcedure
 		.input(
 			z.object({
-				year: z.number(), // e.g. 2025
-				month: z.number().min(0).max(11), // 0 = January, 11 = December
-				limit: z.number().default(100),
-				offset: z.number().default(0),
+				year: z.number().int().min(1970).max(2100),
+				month: z.number().int().min(0).max(11),
+				limit: z.number().int().positive().optional().default(100),
+				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(({ input }) => {
 			const { year, month, limit, offset } = input;
-			const startDate = Math.floor(new Date(year, month, 1).getTime() / 1000);
-			const endDate = Math.floor(new Date(year, month + 1, 1).getTime() / 1000);
+			const startDate = new Date(year, month, 1).getTime();
+			const endDate = new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
 
-			return await igdb.filter(
-				{
-					releaseDateFrom: startDate * 1000,
-					releaseDateTo: endDate * 1000,
-					onlyMainGames: true,
-				},
-				"release_dates.date desc",
-				limit,
-				offset,
-			);
+			const filters: GameFilters = {
+				releaseDateFrom: startDate,
+				releaseDateTo: endDate,
+				onlyMainGames: true,
+				excludeVersions: true,
+			};
+
+			return igdb.filter(filters, "first_release_date asc", limit, offset);
 		}),
 });
