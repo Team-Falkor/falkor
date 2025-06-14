@@ -62,7 +62,6 @@ export default function SearchCommand() {
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="h-3/4 max-w-2xl p-0">
-				{/* The Command component is now a flex container that fills the dialog */}
 				<Command shouldFilter={false} className="flex h-full flex-col">
 					<CommandInput
 						placeholder="Type to search for a game..."
@@ -104,7 +103,6 @@ export default function SearchCommand() {
 						)}
 					</CommandList>
 
-					{/* This dedicated footer is only shown with recent searches */}
 					{!loading && !query && recentSearches.length > 0 && (
 						<>
 							<CommandSeparator />
