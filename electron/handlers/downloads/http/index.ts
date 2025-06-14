@@ -13,22 +13,27 @@ import {
 import { downloadQueue } from "../queue";
 
 /**
- * Class that handles HTTP downloads
+ * Defines the state we need to track for each individual download.
+ */
+interface DownloadState {
+	request?: http.ClientRequest;
+	fileStream?: fs.WriteStream;
+	startTime: number;
+	downloadedBytes: number;
+	totalBytes: number;
+	// We'll track the last byte count to calculate speed more accurately.
+	lastDownloadedBytes: number;
+	lastProgressUpdate: number;
+	speedSamples: number[];
+	retryCount: number;
+}
+
+/**
+ * Class that handles the entire lifecycle of an HTTP/HTTPS download,
+ * including starting, pausing, resuming, and canceling.
  */
 export class HttpDownloadHandler extends EventEmitter {
-	private downloads: Map<
-		string,
-		{
-			request?: http.ClientRequest;
-			fileStream?: fs.WriteStream;
-			startTime: number;
-			downloadedBytes: number;
-			totalBytes: number;
-			lastProgressUpdate: number;
-			speedSamples: number[];
-			retryCount: number;
-		}
-	>;
+	private downloads: Map<string, DownloadState>;
 
 	constructor() {
 		super();
@@ -36,25 +41,32 @@ export class HttpDownloadHandler extends EventEmitter {
 	}
 
 	/**
-	 * Start a HTTP download
+	 * Kicks off a new download or resumes a previously paused one.
+	 * @param item - The download item containing URL, path, and other details.
 	 */
 	public async startDownload(item: DownloadItem): Promise<void> {
-		// Create download tracking object
+		// If we're already handling this download, don't start another one.
+		if (this.downloads.has(item.id)) {
+			console.warn(`Download ${item.id} is already in progress.`);
+			return;
+		}
+
+		// Create a new state object to track this download's progress.
 		this.downloads.set(item.id, {
 			startTime: Date.now(),
 			downloadedBytes: 0,
-			totalBytes: 0,
-			lastProgressUpdate: Date.now(),
+			lastDownloadedBytes: 0,
+			totalBytes: item.size || 0,
+			lastProgressUpdate: 0,
 			speedSamples: [],
 			retryCount: 0,
 		});
 
 		try {
-			// Create directory if it doesn't exist
-			const downloadDir = path.dirname(path.join(item.path, item.name));
-			await fs.promises.mkdir(downloadDir, { recursive: true, mode: 0o755 });
+			// First, make sure the directory where we want to save the file actually exists.
+			await fs.promises.mkdir(item.path, { recursive: true, mode: 0o755 });
 
-			// Start the download
+			// Now, let's start the real download process.
 			this.initiateDownload(item);
 		} catch (error) {
 			this.handleError(item.id, getErrorMessage(error));
@@ -62,56 +74,56 @@ export class HttpDownloadHandler extends EventEmitter {
 	}
 
 	/**
-	 * Initiate the HTTP download
+	 * The core method that makes the HTTP request and handles the response.
+	 * @param item - The download item to process.
 	 */
 	private async initiateDownload(item: DownloadItem): Promise<void> {
 		const downloadInfo = this.downloads.get(item.id);
 		if (!downloadInfo) return;
 
-		// Parse URL
 		const parsedUrl = new URL(item.url);
 		const protocol = parsedUrl.protocol === "https:" ? https : http;
-
-		// Check if file exists and get its size
 		const filePath = path.join(item.path, item.name);
+
+		const headers: Record<string, string> = {};
 		let existingSize = 0;
+
+		// Let's see if a part of the file already exists.
 		try {
 			const stats = await fs.promises.stat(filePath);
 			existingSize = stats.size;
-		} catch {}
-
-		// Create request with range header if file exists
-		const headers: Record<string, string> = {};
-
-		if (existingSize > 0) {
-			headers.Range = `bytes=${existingSize}-`;
+			if (existingSize > 0) {
+				// If it does, we'll tell the server to send us the rest of the file.
+				headers.Range = `bytes=${existingSize}-`;
+				downloadInfo.downloadedBytes = existingSize;
+				downloadInfo.lastDownloadedBytes = existingSize;
+			}
+		} catch {
+			// No file exists, so we'll start from scratch.
 		}
 
 		const request = protocol.get(item.url, { headers });
-
-		// Store request reference
 		downloadInfo.request = request;
 
-		// Handle response
 		request.on("response", (response) => {
-			// Check for redirect
+			// Handle server redirects (e.g., 301, 302).
 			if (
 				response.statusCode &&
 				response.statusCode >= 300 &&
 				response.statusCode < 400 &&
 				response.headers.location
 			) {
-				// Handle redirect
 				request.destroy();
 				item.url = new URL(response.headers.location, item.url).toString();
-				this.initiateDownload(item);
+				this.initiateDownload(item); // Try again with the new URL.
 				return;
 			}
 
-			// Check for error status codes
+			// Handle server or client errors.
 			if (
 				response.statusCode &&
-				(response.statusCode < 200 || response.statusCode >= 400)
+				(response.statusCode < 200 || response.statusCode >= 300) &&
+				response.statusCode !== 206 // 206 Partial Content is a success for resumes.
 			) {
 				this.handleError(
 					item.id,
@@ -120,14 +132,20 @@ export class HttpDownloadHandler extends EventEmitter {
 				return;
 			}
 
-			// Get content length
-			const contentLength = response.headers["content-length"];
-			if (contentLength) {
-				downloadInfo.totalBytes = Number.parseInt(contentLength, 10);
-				item.size = downloadInfo.totalBytes;
+			const isResuming = response.statusCode === 206;
+
+			// --- Filename and Size Determination ---
+
+			// The server's response headers can give us the real filename and size.
+			const contentDisposition = response.headers["content-disposition"];
+			if (contentDisposition) {
+				const filenameMatch = /filename="?([^"]+)"?/i.exec(contentDisposition);
+				if (filenameMatch?.[1]) {
+					item.name = filenameMatch[1];
+				}
 			}
 
-			// Extract filename and extension from URL if not already set
+			// If we still don't have a proper filename, try to get one from the URL.
 			if (!item.name || !path.extname(item.name)) {
 				const urlPath = new URL(item.url).pathname;
 				const urlFilename = path.basename(urlPath);
@@ -136,86 +154,61 @@ export class HttpDownloadHandler extends EventEmitter {
 				}
 			}
 
-			// Get filename from Content-Disposition if available
-			const contentDisposition = response.headers["content-disposition"];
-			if (contentDisposition) {
-				const filenameMatch = /filename="?([^"]+)"?/i.exec(contentDisposition);
-				if (filenameMatch?.[1]) {
-					const dispositionFilename = filenameMatch[1];
-					// Only use Content-Disposition filename if it has an extension
-					if (path.extname(dispositionFilename)) {
-						item.name = dispositionFilename;
-					}
-				}
-			}
-
-			// If still no extension, try to add one based on content type
-			if (!path.extname(item.name)) {
-				const contentType = response.headers["content-type"];
-				if (contentType) {
-					const ext = contentType.split("/").pop();
-					if (ext && ext !== "octet-stream") {
-						item.name = `${item.name}.${ext}`;
-					}
-				}
-			}
-
-			// Handle 206 Partial Content response
-			if (response.statusCode === 206) {
+			// --- Total Size Calculation (Crucial Fix) ---
+			if (isResuming) {
+				// For resumes, Content-Length is the *remaining* size.
+				// We must parse Content-Range to get the *total* size.
+				// e.g., "bytes 1000-2000/5000" -> 5000 is the total.
 				const contentRange = response.headers["content-range"];
-				if (contentRange) {
-					const match = /bytes (\d+)-\d+\/\d+/.exec(contentRange);
-					if (match?.[1]) {
-						downloadInfo.downloadedBytes = Number.parseInt(match[1], 10);
-					}
+				const totalMatch = contentRange ? /\/(\d+)/.exec(contentRange) : null;
+				if (totalMatch?.[1]) {
+					downloadInfo.totalBytes = Number.parseInt(totalMatch[1], 10);
+				}
+			} else {
+				// For new downloads, Content-Length is the total size.
+				const contentLength = response.headers["content-length"];
+				if (contentLength) {
+					downloadInfo.totalBytes = Number.parseInt(contentLength, 10);
 				}
 			}
+			item.size = downloadInfo.totalBytes;
 
-			// Create file stream in append mode if resuming, otherwise write mode
-			const filePath = path.join(item.path, item.name);
-			const fileStream = fs.createWriteStream(filePath, {
-				flags: response.statusCode === 206 ? "a" : "w",
+			// Now that we have the final filename, create the write stream.
+			const finalFilePath = path.join(item.path, item.name);
+			const fileStream = fs.createWriteStream(finalFilePath, {
+				flags: isResuming ? "a" : "w", // 'a' to append, 'w' to write new.
 			});
 			downloadInfo.fileStream = fileStream;
 
-			// Pipe response to file
 			response.pipe(fileStream);
 
-			// Handle data chunks
 			response.on("data", (chunk) => {
 				downloadInfo.downloadedBytes += chunk.length;
 				this.updateProgress(item.id);
 			});
 
-			// Handle download completion
 			fileStream.on("finish", () => {
 				fileStream.close();
 				this.completeDownload(item.id);
 			});
 
-			// Handle errors
-			response.on("error", (error) => {
-				this.handleError(item.id, error.message);
-			});
-
-			fileStream.on("error", (error) => {
-				this.handleError(item.id, error.message);
-			});
+			response.on("error", (error) => this.handleError(item.id, error.message));
+			fileStream.on("error", (error) =>
+				this.handleError(item.id, error.message),
+			);
 		});
 
-		// Handle request errors
-		request.on("error", (error) => {
-			this.handleError(item.id, error.message);
-		});
+		request.on("error", (error) => this.handleError(item.id, error.message));
 
-		// Set timeout
 		request.setTimeout(30000, () => {
-			this.handleError(item.id, "Request timed out");
+			request.destroy();
+			this.handleError(item.id, "Request timed out after 30 seconds");
 		});
 	}
 
 	/**
-	 * Update download progress
+	 * Calculates and broadcasts download progress.
+	 * @param id - The ID of the download to update.
 	 */
 	private updateProgress(id: string): void {
 		const item = downloadQueue.getDownload(id);
@@ -223,50 +216,37 @@ export class HttpDownloadHandler extends EventEmitter {
 		if (!item || !downloadInfo) return;
 
 		const now = Date.now();
-		const timeDiff = now - downloadInfo.lastProgressUpdate;
-
-		// Only update progress every 500ms to avoid excessive updates
-		if (timeDiff < 500) return;
-
-		// Calculate progress percentage
-		let progress = 0;
-		if (downloadInfo.totalBytes > 0) {
-			progress = Math.min(
-				100,
-				(downloadInfo.downloadedBytes / downloadInfo.totalBytes) * 100,
-			);
+		// We throttle updates to avoid overwhelming the system.
+		if (now - downloadInfo.lastProgressUpdate < 500) {
+			return;
 		}
 
-		// Calculate download speed (bytes per second)
-		const elapsedSeconds = timeDiff / 1000;
-		const bytesPerSecond =
-			(downloadInfo.downloadedBytes -
-				(item.progress / 100) * downloadInfo.totalBytes) /
-			elapsedSeconds;
+		const timeDiff = (now - downloadInfo.lastProgressUpdate) / 1000; // in seconds
+		const bytesDiff =
+			downloadInfo.downloadedBytes - downloadInfo.lastDownloadedBytes;
+		const speed = timeDiff > 0 ? bytesDiff / timeDiff : 0; // Bytes per second
 
-		// Add to speed samples (keep last 5 samples for smoothing)
-		downloadInfo.speedSamples.push(bytesPerSecond);
+		// Use a moving average for a smoother speed display.
+		downloadInfo.speedSamples.push(speed);
 		if (downloadInfo.speedSamples.length > 5) {
 			downloadInfo.speedSamples.shift();
 		}
-
-		// Calculate average speed
 		const avgSpeed =
-			downloadInfo.speedSamples.reduce((sum, speed) => sum + speed, 0) /
+			downloadInfo.speedSamples.reduce((sum, s) => sum + s, 0) /
 			downloadInfo.speedSamples.length;
 
-		// Calculate time remaining
-		let timeRemaining = 0;
-		if (avgSpeed > 0) {
-			const bytesRemaining =
-				downloadInfo.totalBytes - downloadInfo.downloadedBytes;
-			timeRemaining = bytesRemaining / avgSpeed;
-		}
+		const progress =
+			downloadInfo.totalBytes > 0
+				? (downloadInfo.downloadedBytes / downloadInfo.totalBytes) * 100
+				: 0;
 
-		// Update last progress time
+		const bytesRemaining =
+			downloadInfo.totalBytes - downloadInfo.downloadedBytes;
+		const timeRemaining = avgSpeed > 0 ? bytesRemaining / avgSpeed : Infinity;
+
 		downloadInfo.lastProgressUpdate = now;
+		downloadInfo.lastDownloadedBytes = downloadInfo.downloadedBytes;
 
-		// Create progress update
 		const progressUpdate: DownloadProgress = {
 			id,
 			progress,
@@ -275,18 +255,16 @@ export class HttpDownloadHandler extends EventEmitter {
 			status: DownloadStatus.DOWNLOADING,
 		};
 
-		// Update download queue
 		downloadQueue.updateProgress(progressUpdate);
 	}
 
 	/**
-	 * Complete a download
+	 * Finalizes a successful download.
+	 * @param id - The ID of the completed download.
 	 */
 	private completeDownload(id: string): void {
-		const downloadInfo = this.downloads.get(id);
-		if (!downloadInfo) return;
+		if (!this.downloads.has(id)) return;
 
-		// Create progress update for completion
 		const progressUpdate: DownloadProgress = {
 			id,
 			progress: 100,
@@ -294,102 +272,140 @@ export class HttpDownloadHandler extends EventEmitter {
 			timeRemaining: 0,
 			status: DownloadStatus.COMPLETED,
 		};
-
-		// Update download queue
 		downloadQueue.updateProgress(progressUpdate);
 
-		// Clean up
+		// Clean up the tracking state.
 		this.downloads.delete(id);
 	}
 
 	/**
-	 * Handle download error
+	 * Handles any error during the download, with a retry mechanism.
+	 * @param id - The ID of the failed download.
+	 * @param errorMessage - The error message to report.
 	 */
-	private handleError(id: string, _errorMessage: string): void {
-		// Using errorMessage parameter to avoid unused variable warning
+	private handleError(id: string, errorMessage: string): void {
 		const item = downloadQueue.getDownload(id);
 		const downloadInfo = this.downloads.get(id);
 		if (!item || !downloadInfo) return;
 
-		// Close file stream if open
-		if (downloadInfo.fileStream) {
-			downloadInfo.fileStream.close();
-		}
+		// Clean up existing connections.
+		downloadInfo.request?.destroy();
+		downloadInfo.fileStream?.close();
 
-		// Abort request if active
-		if (downloadInfo.request) {
-			downloadInfo.request.destroy();
-		}
-
-		// Check if we should retry
-		const maxRetries = 3; // This could be configurable
+		const maxRetries = 3;
 		if (downloadInfo.retryCount < maxRetries) {
 			downloadInfo.retryCount++;
+			const delay = 1000 * downloadInfo.retryCount; // Exponential backoff
 			console.log(
-				`Retrying download ${id} (attempt ${downloadInfo.retryCount} of ${maxRetries})`,
+				`Download ${id} failed. Retrying in ${delay}ms... (Attempt ${downloadInfo.retryCount}/${maxRetries})`,
 			);
-
-			// Wait before retrying
-			setTimeout(() => {
-				this.initiateDownload(item);
-			}, 1000 * downloadInfo.retryCount); // Exponential backoff
-
+			setTimeout(() => this.initiateDownload(item), delay);
 			return;
 		}
 
-		// Create progress update for failure
+		// If we've exhausted retries, mark the download as failed.
+		console.error(`Download ${id} failed permanently: ${errorMessage}`);
 		const progressUpdate: DownloadProgress = {
 			id,
 			progress: item.progress,
 			speed: 0,
 			timeRemaining: 0,
 			status: DownloadStatus.FAILED,
+			// Pass the actual error message for better diagnostics.
+			// Note: This assumes the DownloadProgress type can hold an error.
+			error: errorMessage,
 		};
-
-		// Update download queue with error
 		downloadQueue.updateProgress(progressUpdate);
 
-		// Clean up
+		// Clean up the tracking state.
 		this.downloads.delete(id);
 	}
 
 	/**
-	 * Pause a download
+	 * Pauses an active download without deleting the file.
+	 * @param id - The ID of the download to pause.
+	 * @returns True if the download was found and paused, otherwise false.
 	 */
 	public pauseDownload(id: string): boolean {
 		const downloadInfo = this.downloads.get(id);
 		if (!downloadInfo) return false;
 
-		// Abort request if active
-		if (downloadInfo.request) {
-			downloadInfo.request.destroy();
+		// Stop the network request and file writing.
+		downloadInfo.request?.destroy();
+		downloadInfo.fileStream?.close();
+
+		// Update the status in the main queue.
+		const item = downloadQueue.getDownload(id);
+		if (item) {
+			const progressUpdate: DownloadProgress = {
+				id,
+				progress: item.progress,
+				speed: 0,
+				timeRemaining: 0,
+				status: DownloadStatus.PAUSED,
+			};
+			downloadQueue.updateProgress(progressUpdate);
 		}
 
-		// Close file stream if open
-		if (downloadInfo.fileStream) {
-			downloadInfo.fileStream.close();
-		}
-
-		// Clean up
+		// Important: We keep the partial file on disk for resuming.
+		// We only remove the *active* download state.
 		this.downloads.delete(id);
-
 		return true;
 	}
 
 	/**
-	 * Resume a download
-	 * Note: HTTP resume requires range support from the server
-	 * This is a simplified implementation
+	 * Resumes a paused download.
+	 * This is an alias for startDownload, which already contains resume logic.
+	 * @param item - The download item to resume.
 	 */
 	public async resumeDownload(item: DownloadItem): Promise<void> {
 		await this.startDownload(item);
 	}
 
 	/**
-	 * Cancel a download
+	 * Cancels a download and deletes the partially downloaded file.
+	 * @param id - The ID of the download to cancel.
+	 * @returns True if the download was found and canceled, otherwise false.
 	 */
-	public cancelDownload(id: string): boolean {
-		return this.pauseDownload(id);
+	public async cancelDownload(id: string): Promise<boolean> {
+		const downloadInfo = this.downloads.get(id);
+		const item = downloadQueue.getDownload(id);
+
+		if (!item) return false;
+
+		// If the download is actively running, stop it first.
+		if (downloadInfo) {
+			downloadInfo.request?.destroy();
+			downloadInfo.fileStream?.close();
+			this.downloads.delete(id);
+		}
+
+		// This is the key difference from pause: we delete the file.
+		const filePath = path.join(item.path, item.name);
+		try {
+			await fs.promises.unlink(filePath);
+			console.log(`Canceled download ${id} and deleted partial file.`);
+		} catch (error: any) {
+			// It's okay if the file doesn't exist, but log other errors.
+			if (error.code !== "ENOENT") {
+				console.error(
+					`Error deleting file for canceled download ${id}:`,
+					error,
+				);
+			}
+		}
+
+		// Update the queue to reflect the cancellation.
+		const progressUpdate: DownloadProgress = {
+			id,
+			progress: 0,
+			speed: 0,
+			timeRemaining: 0,
+			status: DownloadStatus.CANCELLED,
+		};
+		downloadQueue.updateProgress(progressUpdate);
+
+		return true;
 	}
 }
 
