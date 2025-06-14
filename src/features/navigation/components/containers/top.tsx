@@ -6,8 +6,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import Search from "@/features/search/components/search";
-
+import SearchCommand from "@/features/search/components/SearchCommand";
 import { useLanguageContext } from "@/i18n/I18N";
 import NavItem from "../item";
 
@@ -33,7 +32,7 @@ const NavBarTop = () => {
 			</div>
 
 			<div className="grid gap-2 pb-4">
-				<Search />
+				<SearchCommand />
 
 				<NavItem href="/profile" title={t("home")} icon={<User2Icon />} />
 

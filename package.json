@@ -43,6 +43,7 @@
 	"dependencies": {
 		"@hookform/resolvers": "^5.0.1",
 		"@janwirth/electron-trpc-link": "^11.1.2-bugfix-1",
+		"@radix-ui/react-dialog": "^1.1.14",
 		"@radix-ui/react-icons": "^1.3.2",
 		"@radix-ui/react-slot": "^1.2.3",
 		"@tailwindcss/vite": "^4.1.5",
@@ -62,6 +63,7 @@
 		"better-sqlite3": "^11.9.1",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
+		"cmdk": "^1.1.1",
 		"date-fns": "^4.1.0",
 		"drizzle-orm": "^0.44.2",
 		"electron-updater": "^6.6.2",
