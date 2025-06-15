@@ -17,9 +17,8 @@ import { useUpdater } from "@/hooks/useUpdater";
 import { useLanguageContext } from "@/i18n/I18N";
 import { parseHtmlString, trpc } from "@/lib";
 
-// Helper function to get ordinal suffix
 const getOrdinal = (day: number): string => {
-	if (day > 3 && day < 21) return "th"; // Handle special cases for teens
+	if (day > 3 && day < 21) return "th";
 	switch (day % 10) {
 		case 1:
 			return "st";
@@ -32,9 +31,8 @@ const getOrdinal = (day: number): string => {
 	}
 };
 
-// Format date with ordinal suffix
 const formatWithOrdinal = (date: Date): string => {
-	const day = Number.parseInt(format(date, "d"), 10); // Extract day as a number
+	const day = date.getDate();
 	const ordinal = getOrdinal(day);
 	return `${day}${ordinal} ${format(date, "LLLL, yyyy")}`;
 };
@@ -42,16 +40,15 @@ const formatWithOrdinal = (date: Date): string => {
 const Updater = () => {
 	const { t } = useLanguageContext();
 	const { updateAvailable, installUpdate, progress, updateInfo } = useUpdater();
-	const [open, setOpen] = useState(false);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const isUpdating = progress !== undefined && progress > 0;
 
 	const { data: appInfo, isPending, isError } = trpc.app.appInfo.useQuery();
 
 	useEffect(() => {
-		if (updateAvailable === true) {
-			setOpen(true);
-			return;
+		if (updateAvailable) {
+			setIsDialogOpen(true);
 		}
-		setOpen(false);
 	}, [updateAvailable]);
 
 	useEffect(() => {
@@ -62,17 +59,19 @@ const Updater = () => {
 		window.ipcRenderer.on("updater:error", handleError);
 
 		return () => {
-			window.ipcRenderer.removeAllListeners("updater:error");
+			window.ipcRenderer.removeListener("updater:error", handleError);
 		};
 	}, []);
 
-	useEffect(() => {
-		console.log(updateInfo);
-	}, [updateInfo]);
-
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogContent>
+		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+			<DialogContent
+				onInteractOutside={(e) => {
+					if (isUpdating) {
+						e.preventDefault();
+					}
+				}}
+			>
 				<DialogHeader>
 					<DialogTitle>{t("update_available")}</DialogTitle>
 					<DialogDescription>{t("update_description")}</DialogDescription>
@@ -120,27 +119,20 @@ const Updater = () => {
 						</div>
 					)}
 
-					{progress !== undefined && progress > 0 && (
-						<div className="mt-4 flex items-center gap-2">
+					{isUpdating && (
+						<div className="mt-4 flex flex-col items-center gap-2">
 							<Progress value={progress} />
+							<TypographyMuted>{`${t("downloading_update")}... ${progress}%`}</TypographyMuted>
 						</div>
 					)}
 				</div>
 				<DialogFooter>
-					<DialogClose asChild>
+					{/* FIX: Disable the "Later" button during the update */}
+					<DialogClose asChild disabled={isUpdating}>
 						<Button variant="destructive">{t("later")}</Button>
 					</DialogClose>
-					<Button
-						type="button"
-						onClick={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							setOpen(true);
-							installUpdate();
-						}}
-						disabled={progress !== undefined && progress > 0}
-					>
-						{t("update_now")}
+					<Button type="button" onClick={installUpdate} disabled={isUpdating}>
+						{isUpdating ? t("updating") : t("update_now")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

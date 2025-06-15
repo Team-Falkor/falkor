@@ -26,7 +26,6 @@ function RouteComponent() {
 	useEffect(() => {
 		if (!searchParams.tab) return;
 
-		// find the tab with the matching title
 		const tab = tabs.find((tab) => tab.titleKey === searchParams.tab);
 		if (!tab) {
 			setCurrentTab(0);

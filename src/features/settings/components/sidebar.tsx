@@ -1,9 +1,12 @@
+import { DownloadCloud } from "lucide-react";
 import type { ReactElement } from "react";
 import { FaDiscord, FaGithub } from "react-icons/fa6";
 import { SiKofi } from "react-icons/si";
 import type { LinkItemType } from "@/@types";
+import { Button } from "@/components/ui/button";
 // import { useUpdater } from "@/hooks/useUpdater";
 import { H3, H4, TypographyMuted } from "@/components/ui/typography";
+import { useUpdater } from "@/hooks";
 import { useLanguageContext } from "@/i18n/I18N";
 import { cn, shouldHideTitleBar, trpc } from "@/lib";
 import SettingsLinkGroup from "./linkGroup";
@@ -34,7 +37,7 @@ const SettingsSidebar = ({
 }: {
 	settingsTabs: ReactElement[];
 }) => {
-	// const { updateAvailable, installUpdate } = useUpdater(false);
+	const { updateAvailable, installUpdate } = useUpdater();
 	const { t } = useLanguageContext();
 	const { data: settings } = trpc.settings.read.useQuery();
 
@@ -58,16 +61,16 @@ const SettingsSidebar = ({
 					<div className="flex flex-col gap-0.5">
 						<div className="flex items-center gap-3">
 							<H4>{t("falkor")}</H4>
-							{/* {updateAvailable && (
-                <Button
-                  variant={"ghost"}
-                  size={"icon"}
-                  onClick={installUpdate}
-                  className="size-7"
-                >
-                  <DownloadCloud className="size-5" />
-                </Button>
-              )} */}
+							{updateAvailable && (
+								<Button
+									variant={"ghost"}
+									size={"icon"}
+									onClick={installUpdate}
+									className="size-7"
+								>
+									<DownloadCloud className="size-5" />
+								</Button>
+							)}
 						</div>
 						<TypographyMuted>
 							{t("version")}: {data?.appVersion}
