@@ -1,9 +1,9 @@
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import { UpdateStatus } from "@/@types";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
-	DialogClose,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
@@ -13,7 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { H5, TypographyMuted } from "@/components/ui/typography";
-import { useUpdater } from "@/hooks/useUpdater";
+import { useUpdater } from "@/hooks";
 import { useLanguageContext } from "@/i18n/I18N";
 import { parseHtmlString, trpc } from "@/lib";
 
@@ -39,42 +39,55 @@ const formatWithOrdinal = (date: Date): string => {
 
 const Updater = () => {
 	const { t } = useLanguageContext();
-	const { updateAvailable, installUpdate, progress, updateInfo } = useUpdater();
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const isUpdating = progress !== undefined && progress > 0;
+	const { status, updateInfo, progress, downloadUpdate, installUpdate } =
+		useUpdater();
+
+	const [hasBeenDismissed, setHasBeenDismissed] = useState(false);
 
 	const { data: appInfo, isPending, isError } = trpc.app.appInfo.useQuery();
 
+	const isDownloading = status === UpdateStatus.DOWNLOADING;
+	const isDownloaded = status === UpdateStatus.DOWNLOADED;
+
+	const isDialogOpen =
+		(status === UpdateStatus.UPDATE_AVAILABLE ||
+			isDownloading ||
+			isDownloaded) &&
+		!hasBeenDismissed;
+
 	useEffect(() => {
-		if (updateAvailable) {
-			setIsDialogOpen(true);
+		if (status === UpdateStatus.IDLE) {
+			setHasBeenDismissed(false);
 		}
-	}, [updateAvailable]);
+	}, [status]);
 
-	useEffect(() => {
-		const handleError = (_: unknown, error: string) => {
-			console.error("Error updating app:", error);
-		};
-
-		window.ipcRenderer.on("updater:error", handleError);
-
-		return () => {
-			window.ipcRenderer.removeListener("updater:error", handleError);
-		};
-	}, []);
+	if (!isDialogOpen) {
+		return null;
+	}
 
 	return (
-		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+		<Dialog
+			open={isDialogOpen}
+			onOpenChange={(open) => !open && setHasBeenDismissed(true)}
+		>
 			<DialogContent
 				onInteractOutside={(e) => {
-					if (isUpdating) {
+					if (isDownloading) {
 						e.preventDefault();
 					}
 				}}
 			>
 				<DialogHeader>
-					<DialogTitle>{t("update_available")}</DialogTitle>
-					<DialogDescription>{t("update_description")}</DialogDescription>
+					<DialogTitle>
+						{isDownloaded
+							? t("update_ready_to_install")
+							: t("update_available")}
+					</DialogTitle>
+					<DialogDescription>
+						{isDownloaded
+							? t("update_ready_description")
+							: t("update_description")}
+					</DialogDescription>
 				</DialogHeader>
 				<div className="flex flex-col">
 					{appInfo && !isPending && !isError && appInfo.appVersion && (
@@ -119,7 +132,7 @@ const Updater = () => {
 						</div>
 					)}
 
-					{isUpdating && (
+					{isDownloading && (
 						<div className="mt-4 flex flex-col items-center gap-2">
 							<Progress value={progress} />
 							<TypographyMuted>{`${t("downloading_update")}... ${progress}%`}</TypographyMuted>
@@ -127,13 +140,24 @@ const Updater = () => {
 					)}
 				</div>
 				<DialogFooter>
-					{/* FIX: Disable the "Later" button during the update */}
-					<DialogClose asChild disabled={isUpdating}>
-						<Button variant="destructive">{t("later")}</Button>
-					</DialogClose>
-					<Button type="button" onClick={installUpdate} disabled={isUpdating}>
-						{isUpdating ? t("updating") : t("update_now")}
-					</Button>
+					{isDownloaded ? (
+						<Button className="w-full" onClick={installUpdate}>
+							{t("restart_and_install")}
+						</Button>
+					) : (
+						<>
+							<Button
+								variant="destructive"
+								onClick={() => setHasBeenDismissed(true)}
+								disabled={isDownloading}
+							>
+								{t("later")}
+							</Button>
+							<Button onClick={downloadUpdate} disabled={isDownloading}>
+								{isDownloading ? t("updating") : t("update_now")}
+							</Button>
+						</>
+					)}
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

@@ -1,13 +1,15 @@
+import { emitToFrontend } from "@backend/main/window";
 import { app, ipcMain } from "electron";
+import { UpdateStatus } from "@/@types";
 import updater from ".";
 
 /**
- * Registers an event handler with IPC Main.
+ * A robust, generic wrapper for registering ipcMain.handle events.
+ * It provides centralized logging and error handling.
  *
  * @param eventName The name of the event to handle.
  * @param handler The function to call when the event is received.
- * @param options Additional options for event registration
- * @returns void
+ * @param options Additional options for event registration.
  */
 export function registerEvent<
 	HandlerArgs extends Array<unknown>,
@@ -20,24 +22,17 @@ export function registerEvent<
 	) => HandlerOutput | Promise<HandlerOutput>,
 	options: { silent?: boolean } = {},
 ): void {
-	// Validate event name
 	if (!eventName || typeof eventName !== "string") {
 		throw new Error("Event name must be a non-empty string");
 	}
 
-	// Log registration unless silent option is enabled
 	if (!app.isPackaged && !options.silent) {
-		console.log("info", `[EVENT] registering: ${eventName}`);
+		console.log(`[IPC] Registering handler for: ${eventName}`);
 	}
 
-	// Remove any existing handler to prevent duplicates
-	try {
-		ipcMain.removeHandler(eventName);
-	} catch {
-		// Ignore errors when removing non-existent handlers
-	}
+	// Remove any existing handler to prevent duplicates during hot-reloading
+	ipcMain.removeHandler(eventName);
 
-	// Register the new handler with error handling
 	ipcMain.handle(
 		eventName,
 		async (
@@ -49,9 +44,9 @@ export function registerEvent<
 			} catch (error) {
 				const errorMessage =
 					error instanceof Error ? error.message : String(error);
-				console.log(
-					"error",
-					`[EVENT] Error in handler for ${eventName}: ${errorMessage}`,
+				console.error(
+					`[IPC] Error in handler for '${eventName}':`,
+					errorMessage,
 				);
 				return { error: errorMessage };
 			}
@@ -59,29 +54,63 @@ export function registerEvent<
 	);
 }
 
-const checkForUpdate = async (_event: Electron.IpcMainInvokeEvent) => {
-	console.log("Checking for update...");
-	try {
-		const check = await updater.checkForUpdates();
-
-		return { success: true, data: check };
-	} catch (error) {
-		console.error("Error checking for updates:", error);
-		return { success: false, error };
-	}
+const handleCheckForUpdate = async () => {
+	await updater.checkForUpdates();
+	return { success: true };
 };
 
-const installUpdate = async (_event: Electron.IpcMainInvokeEvent) => {
-	console.log("Installing update...");
-	try {
-		updater.installUpdate();
-		return { success: true };
-	} catch (error) {
-		console.error("Error installing update: ", error);
-		return { success: false, error };
-	}
+/**
+ * Triggers the download of an available update.
+ */
+const handleDownloadUpdate = async () => {
+	await updater.downloadUpdate();
+	return { success: true };
 };
 
-// Register the event handler
-registerEvent("updater:check-for-update", checkForUpdate);
-registerEvent("updater:install", installUpdate);
+/**
+ * Triggers the installation of a downloaded update.
+ * This will cause the application to quit and restart.
+ * The frontend will not receive a response.
+ */
+const handleInstallUpdate = () => {
+	updater.installUpdate();
+};
+
+/**
+ * Gets the current status of the updater.
+ */
+const handleGetStatus = (): { status: UpdateStatus } => {
+	return { status: updater.getStatus() };
+};
+
+// --- Register All Updater Event Handlers ---
+
+console.log("[IPC] Initializing Updater events...");
+registerEvent("updater:check-for-update", handleCheckForUpdate);
+registerEvent("updater:download-update", handleDownloadUpdate);
+registerEvent("updater:install-update", handleInstallUpdate);
+registerEvent("updater:get-status", handleGetStatus);
+
+if (process.env.NODE_ENV === "development") {
+	console.log("🛠️  [DevTools] Updater simulation handlers registered.");
+
+	// This handler now triggers the REAL update check process.
+	// electron-updater will use your dev-app-update.yml to find a release.
+	ipcMain.on("dev:trigger-real-update-check", async () => {
+		console.log("🛠️  [DevTools] Triggering a real update check...");
+		try {
+			// This calls the actual checkForUpdates method on your Updater instance
+			await updater.checkForUpdates();
+		} catch (error) {
+			console.error("🛠️  [DevTools] Error during simulated check:", error);
+		}
+	});
+
+	// This handler is still useful for testing UI error states.
+	ipcMain.on("dev:simulate-error", () => {
+		console.log("🛠️  [DevTools] Simulating 'error' event...");
+		// Manually set the status and emit the event for UI testing
+		updater.setStatus(UpdateStatus.ERROR);
+		emitToFrontend("updater:error", "This is a simulated update error.");
+	});
+}

@@ -2,9 +2,15 @@ import { DownloadCloud } from "lucide-react";
 import type { ReactElement } from "react";
 import { FaDiscord, FaGithub } from "react-icons/fa6";
 import { SiKofi } from "react-icons/si";
-import type { LinkItemType } from "@/@types";
+import type { LinkItemType } from "@/@types"; // Import UpdateStatus
 import { Button } from "@/components/ui/button";
-// import { useUpdater } from "@/hooks/useUpdater";
+// Import Tooltip components for a better UX
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { H3, H4, TypographyMuted } from "@/components/ui/typography";
 import { useUpdater } from "@/hooks";
 import { useLanguageContext } from "@/i18n/I18N";
@@ -37,11 +43,23 @@ const SettingsSidebar = ({
 }: {
 	settingsTabs: ReactElement[];
 }) => {
-	const { updateAvailable, installUpdate } = useUpdater();
+	const { status, downloadUpdate, installUpdate } = useUpdater();
 	const { t } = useLanguageContext();
 	const { data: settings } = trpc.settings.read.useQuery();
-
 	const { data, isPending, isError } = trpc.app.appInfo.useQuery();
+
+	// Derive boolean flags from the status for cleaner JSX
+	const isUpdateAvailable = status === "UPDATE_AVAILABLE";
+	const isUpdateDownloaded = status === "DOWNLOADED";
+	const showUpdateButton = isUpdateAvailable || isUpdateDownloaded;
+
+	const handleUpdateClick = () => {
+		if (isUpdateAvailable) {
+			downloadUpdate();
+		} else if (isUpdateDownloaded) {
+			installUpdate();
+		}
+	};
 
 	return (
 		<div
@@ -61,15 +79,28 @@ const SettingsSidebar = ({
 					<div className="flex flex-col gap-0.5">
 						<div className="flex items-center gap-3">
 							<H4>{t("falkor")}</H4>
-							{updateAvailable && (
-								<Button
-									variant={"ghost"}
-									size={"icon"}
-									onClick={installUpdate}
-									className="size-7"
-								>
-									<DownloadCloud className="size-5" />
-								</Button>
+							{showUpdateButton && (
+								<TooltipProvider delayDuration={100}>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Button
+												variant={"ghost"}
+												size={"icon"}
+												onClick={handleUpdateClick}
+												className="size-7 animate-pulse text-primary"
+											>
+												<DownloadCloud className="size-5" />
+											</Button>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>
+												{isUpdateDownloaded
+													? t("restart_to_install")
+													: t("update_available")}
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
 							)}
 						</div>
 						<TypographyMuted>

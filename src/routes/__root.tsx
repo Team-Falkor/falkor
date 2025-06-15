@@ -2,6 +2,7 @@ import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import type { ToastNotification } from "@/@types";
+import DisplayDevTools from "@/components/dev/DisplayDevTools";
 import TitleBar from "@/components/title-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NavBar from "@/features/navigation/components/navbar";
@@ -60,6 +61,7 @@ function Root() {
 
 				{/* Wrapper for Updater and main content */}
 				<Updater />
+				<DisplayDevTools />
 				<div
 					className={cn("relative flex min-h-screen w-full bg-muted/40", {
 						"pt-8": !shouldHideTitleBar(titleBarStyle),

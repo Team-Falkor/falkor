@@ -1,85 +1,147 @@
 import { emitToFrontend } from "@backend/main/window";
-import { app } from "electron";
-import electronUpdater from "electron-updater";
+import electronUpdater, { type UpdateInfo } from "electron-updater";
+import { UpdateStatus } from "@/@types";
 import { SettingsManager } from "../settings/settings";
-
-const settings = SettingsManager.getInstance();
 
 const { autoUpdater } = electronUpdater;
 
-autoUpdater.setFeedURL({
-	provider: "github",
-	owner: "team-falkor",
-	repo: "app",
-});
-
-autoUpdater.allowDowngrade = false;
-autoUpdater.autoInstallOnAppQuit = false;
-autoUpdater.autoDownload = false;
-autoUpdater.forceDevUpdateConfig = true;
-autoUpdater.fullChangelog = false;
-
 class Updater {
-	private settings = settings;
-	public updateAvailable = false;
+	private settings: SettingsManager;
+	private status: UpdateStatus = UpdateStatus.IDLE;
+	private lastUpdateInfo: UpdateInfo | null = null;
 
 	constructor() {
-		autoUpdater.on("update-available", (info) => {
-			this.updateAvailable = true;
+		this.settings = SettingsManager.getInstance();
 
-			if (info.version <= app.getVersion()) return;
+		autoUpdater.autoDownload = false;
+		autoUpdater.autoInstallOnAppQuit = false;
+		autoUpdater.allowDowngrade = false;
+		autoUpdater.forceDevUpdateConfig = process.env.NODE_ENV === "development";
+		autoUpdater.fullChangelog = false;
 
-			// Extract release notes from GitHub release info
-			const updateInfo = {
-				...info,
-				releaseNotes: info.releaseNotes || "No changelog available",
-			};
+		this.log("Updater initialized.");
+		this.log(
+			`forceDevUpdateConfig is set to: ${autoUpdater.forceDevUpdateConfig}`,
+		);
 
-			emitToFrontend("updater:update-available", updateInfo);
-		});
-		autoUpdater.on("update-not-available", () => {
-			this.updateAvailable = false;
-		});
-		autoUpdater.on("error", (error) => {
-			console.error("Error checking for updates: ", error);
-			emitToFrontend("updater:error", error);
-		});
+		this.registerEventListeners();
+	}
+
+	private log(message: string, ...args: unknown[]) {
+		console.log(`[Updater] ${message}`, ...args);
+	}
+
+	public setStatus(status: UpdateStatus) {
+		if (this.status === status) return;
+		this.status = status;
+		this.log(`Status changed to: ${status}`);
+		emitToFrontend("updater:status-changed", status);
+	}
+
+	public getStatus(): UpdateStatus {
+		return this.status;
+	}
+
+	public getUpdateInfo(): UpdateInfo | null {
+		return this.lastUpdateInfo;
+	}
+
+	private registerEventListeners() {
+		this.log("Registering event listeners...");
+
 		autoUpdater.on("checking-for-update", () => {
-			console.log("Checking for updates...");
+			this.log("Event: checking-for-update");
+			this.setStatus(UpdateStatus.CHECKING);
 		});
-		autoUpdater.on("update-downloaded", () => {
-			console.log("Update downloaded.");
-			this.updateAvailable = false;
-			// No auto call to quitAndInstall here!
-		});
-		autoUpdater.on("download-progress", (progressObj) => {
-			console.log("Download progress: ", progressObj);
 
-			emitToFrontend("updater:download-progress", progressObj.percent);
+		autoUpdater.on("update-available", (info: UpdateInfo) => {
+			this.log("Event: update-available", info);
+			this.lastUpdateInfo = info;
+			this.setStatus(UpdateStatus.UPDATE_AVAILABLE);
+			emitToFrontend("updater:update-available", info);
+		});
+
+		autoUpdater.on("update-not-available", (info) => {
+			this.log("Event: update-not-available", info);
+			this.setStatus(UpdateStatus.IDLE);
+		});
+
+		autoUpdater.on("download-progress", (progress) => {
+			this.log(`Event: download-progress - ${Math.floor(progress.percent)}%`);
+			if (this.status !== UpdateStatus.DOWNLOADING) {
+				this.setStatus(UpdateStatus.DOWNLOADING);
+			}
+			emitToFrontend("updater:download-progress", Math.floor(progress.percent));
+		});
+
+		autoUpdater.on("update-downloaded", (info: UpdateInfo) => {
+			this.log("Event: update-downloaded", info);
+			this.setStatus(UpdateStatus.DOWNLOADED);
+			emitToFrontend("updater:update-downloaded", info);
+		});
+
+		autoUpdater.on("error", (error: Error) => {
+			this.log("Event: error", error);
+			this.setStatus(UpdateStatus.ERROR);
+			emitToFrontend(
+				"updater:error",
+				error.message || "An unknown error occurred",
+			);
 		});
 	}
 
-	public async checkForUpdates() {
-		if (!this.settings.get("autoCheckForUpdates")) return null;
-		const check = await autoUpdater.checkForUpdates();
+	public async checkForUpdates(): Promise<void> {
+		this.log("Action: checkForUpdates called.");
+		const autoCheckEnabled = this.settings.get("autoCheckForUpdates");
+		if (!autoCheckEnabled) {
+			this.log("Check skipped: autoCheckForUpdates setting is disabled.");
+			return;
+		}
 
-		if (!check) return false;
+		if (this.status !== UpdateStatus.IDLE) {
+			this.log(
+				`Check skipped: updater is not idle (current status: ${this.status}).`,
+			);
+			return;
+		}
 
-		if (check?.updateInfo?.version <= app.getVersion()) return false;
-
-		console.log(`App version: ${app.getVersion()}`);
-		console.log(`Update version: ${check?.updateInfo?.version}`);
-
-		return true;
+		try {
+			this.log("Executing autoUpdater.checkForUpdates()...");
+			const result = await autoUpdater.checkForUpdates();
+			this.log("checkForUpdates() completed.", result);
+		} catch (error) {
+			this.log("Error during checkForUpdates execution.", error);
+		}
 	}
 
-	public async downloadUpdate() {
-		const updateAvailable = await this.checkForUpdates();
-		if (!updateAvailable) return false;
-		return await autoUpdater.downloadUpdate();
+	public async downloadUpdate(): Promise<void> {
+		this.log("Action: downloadUpdate called.");
+		if (this.status !== UpdateStatus.UPDATE_AVAILABLE) {
+			this.log(
+				`Download skipped: no update available (current status: ${this.status}).`,
+			);
+			return;
+		}
+
+		try {
+			this.log("Executing autoUpdater.downloadUpdate()...");
+			const result = await autoUpdater.downloadUpdate();
+			this.log("downloadUpdate() completed.", result);
+		} catch (error) {
+			this.log("Error during downloadUpdate execution.", error);
+		}
 	}
 
-	public installUpdate() {
+	public installUpdate(): void {
+		this.log("Action: installUpdate called.");
+		if (this.status !== UpdateStatus.DOWNLOADED) {
+			this.log(
+				`Install skipped: no update downloaded (current status: ${this.status}).`,
+			);
+			return;
+		}
+
+		this.log("Executing autoUpdater.quitAndInstall()...");
 		autoUpdater.quitAndInstall();
 	}
 }
