@@ -2,7 +2,7 @@ import { createLazyFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { Tab } from "@/@types";
 import ActiveLibrary from "@/features/library/components/active-library";
-import { NewGameModal } from "@/features/library/components/modals/new-game";
+import { NewGameDialog } from "@/features/library/components/modals/new-game-new";
 import { NewListButton } from "@/features/library/components/new-list-button";
 import { TabCarousel } from "@/features/library/components/TabCarousel"; // Import the new component
 import { NewListDialog } from "@/features/lists/components/new-list-dialog";
@@ -121,7 +121,11 @@ function LibraryPage() {
 	return (
 		<div className="w-full p-0 py-0">
 			<div className="flex justify-between bg-background p-4">
-				<NewGameModal
+				{/* <NewGameModal
+					open={isNewGameModalOpen}
+					setOpen={setIsNewGameModalOpen}
+				/> */}
+				<NewGameDialog
 					open={isNewGameModalOpen}
 					setOpen={setIsNewGameModalOpen}
 				/>
