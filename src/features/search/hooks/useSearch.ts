@@ -22,7 +22,7 @@ export default function useSearch(
 	);
 
 	useEffect(() => {
-		const handler = setTimeout(() => setDebouncedQuery(query), 300);
+		const handler = setTimeout(() => setDebouncedQuery(query), 400);
 		return () => clearTimeout(handler);
 	}, [query]);
 

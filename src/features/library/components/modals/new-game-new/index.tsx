@@ -10,6 +10,8 @@ import { useNewGameStore } from "@/features/library/stores/new-game";
 import { trpc } from "@/lib";
 import { getFilenameFromPath } from "@/lib/helpers/get-filename";
 import { NewGameButton } from "../../new-game";
+import { DisplayResultsStop } from "./steps/display-results";
+import { StoreIDsStep } from "./steps/store-ids";
 
 type Props = {
 	open: boolean;
@@ -18,7 +20,7 @@ type Props = {
 
 export const NewGameDialog = ({ setOpen, open }: Props) => {
 	const [start, setStart] = useState(false);
-	const [filename, setFilename] = useState("");
+	const [filenameNoExt, setFilenameNoExt] = useState("");
 
 	const { updateGame } = useNewGameStore();
 	const openDialog = trpc.app.openDialog.useMutation();
@@ -59,15 +61,17 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 
 		const selectedPath = selected.result.filePaths[0];
 		const filename = getFilenameFromPath(selectedPath);
+		const filenameNoExt = filename?.split(".")[0];
 
 		if (!selectedPath || !filename) {
 			handleClose();
 			return;
 		}
-
-		setFilename(filename);
+		setFilenameNoExt(filenameNoExt);
 		updateGame({
-			gameName: filename,
+			gameName: filenameNoExt,
+			gamePath: selectedPath,
+			installed: true,
 		});
 
 		setStart(true);
@@ -88,22 +92,24 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 			<NewGameButton onClick={() => setOpen(true)} />
 			<MultiStepDialog
 				isOpen={start}
+				resetOnCancel={true}
 				onClose={handleClose}
+				confirmLabel="Add Game"
 				steps={[
 					{
 						title: "Select Game",
 						description: "Which game are you trying to add?",
-						component: "Which game are you trying to add?",
+						component: <DisplayResultsStop filename={filenameNoExt} />,
 					},
 					{
 						title: "Store Game ids",
 						description:
 							"Store ids are not needed, but is used for achievements",
-						component: "Store ids are not needed, but is used for achievements",
+						component: <StoreIDsStep filename={filenameNoExt} />,
 					},
 					{
 						title: "Is this the correct game?",
-						description: `Is this the correct game? ${filename}`,
+						description: `Is this the correct game? ${filenameNoExt}`,
 						component: "Is this the correct game?",
 					},
 				]}

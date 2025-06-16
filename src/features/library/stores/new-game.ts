@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { IGDBReturnDataType } from "@/@types";
 
 /**
  * The core data structure for a game in the library.
@@ -17,6 +18,8 @@ export type Game = {
 };
 
 interface NewGameState {
+	/** the currntly selected game */
+	selectedGame?: IGDBReturnDataType | null;
 	/** The game data being progressively built. */
 	game: Partial<Game>;
 	/** An error message, if any. */
@@ -38,9 +41,11 @@ interface NewGameActions {
 	setError: (message: string) => void;
 	/** Resets the store to its initial state, ready for a new entry. */
 	reset: () => void;
+	setSelectedGame: (game: IGDBReturnDataType | null) => void;
 }
 
 const initialState: NewGameState = {
+	selectedGame: undefined,
 	game: {},
 	error: null,
 };
@@ -62,4 +67,6 @@ export const useNewGameStore = create<NewGameState & NewGameActions>((set) => ({
 	setError: (message) => set({ error: message }),
 
 	reset: () => set(initialState),
+
+	setSelectedGame: (game) => set({ selectedGame: game }),
 }));
