@@ -1,145 +1,152 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Dispatch, SetStateAction } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter, // Import DialogFooter
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useEffect,
+	useState,
+} from "react";
+import { toast } from "sonner";
+import { MultiStepDialog } from "@/components/MultiStepDialog";
 import { useGames } from "@/features/library/hooks/use-games";
-import { useLanguageContext } from "@/i18n/I18N";
+import { useNewGameStore } from "@/features/library/stores/new-game";
+import { createSlug, trpc } from "@/lib";
+import { getFilenameFromPath } from "@/lib/helpers/get-filename";
 import { NewGameButton } from "../../new-game";
-import NewGameMetadataForm from "./forms/metadata";
-import NewGameSettingsForm from "./forms/settings";
-import { type NewGameFormSchema, newGameFormSchema } from "./schema";
+import { ConfirmationStep } from "./steps/confirmation";
+import { DisplayResultsStop } from "./steps/display-results";
 
-interface NewGameModalProps {
+type Props = {
 	open: boolean;
 	setOpen: Dispatch<SetStateAction<boolean>>;
-}
+};
 
-export const NewGameModal = ({ open, setOpen }: NewGameModalProps) => {
-	const { t } = useLanguageContext();
+export const NewGameDialog = ({ setOpen, open }: Props) => {
+	const [start, setStart] = useState(false);
 	const { createGame } = useGames();
+	const [filenameNoExt, setFilenameNoExt] = useState("");
 
-	const form = useForm<NewGameFormSchema>({
-		resolver: zodResolver(newGameFormSchema),
-		defaultValues: {
-			gameArgs: "",
-			gameCommand: "",
-			gameIcon: "",
-			gameId: "",
-			gameName: "",
-			gamePath: "",
-			igdbId: "",
-			steamId: "",
-			winePrefixFolder: "",
-		},
-	});
+	const { game, setInitialData } = useNewGameStore();
+	const openDialog = trpc.app.openDialog.useMutation();
 
-	const handleAddGame = async (values: NewGameFormSchema) => {
-		const {
-			gameName,
-			gamePath,
-			gameId,
-			igdbId,
-			gameIcon,
-			gameArgs,
-			gameCommand,
-			steamId,
-			winePrefixFolder,
-		} = values;
-
-		try {
-			createGame(
+	const handleFileSelect = useCallback(async () => {
+		const selected = await openDialog.mutateAsync({
+			properties: ["openFile"],
+			filters: [
 				{
-					gameName,
-					gamePath,
-					gameId,
-					gameIcon,
-					gameArgs,
-					gameCommand,
-					igdbId: igdbId ? Number(igdbId) : undefined,
-					gameSteamId: steamId,
-					winePrefixFolder: winePrefixFolder,
+					name: "Executable",
+					extensions: [
+						"exe",
+						"bat",
+						"cmd",
+						"sh",
+						"run",
+						"AppImage",
+						"jar",
+						"url",
+					],
 				},
-				{
-					onSuccess: () => {
-						form.reset();
-					},
-					onError: (err) => {
-						console.error("Failed to add game:", err);
-						toast.error("Failed to add game", {
-							description: err.message,
-						});
-					},
-				},
-			);
-			// setOpen(false); // Optionally close dialog on success
-		} catch (err) {
-			console.error("Failed to add game:", err);
+			],
+		});
+
+		if (!selected.success || !selected.result) {
+			console.log("No file selected");
+			handleClose();
+			return;
 		}
-	};
+		if (selected.result.canceled) {
+			console.log("User canceled");
+			handleClose();
+			return;
+		}
+		if (!selected.result.filePaths.length) {
+			console.log("No file selected");
+			handleClose();
+			return;
+		}
+
+		const selectedPath = selected.result.filePaths[0];
+		const filename = getFilenameFromPath(selectedPath);
+		const filenameNoExt = filename?.split(".")[0];
+
+		console.log({
+			selectedPath,
+			filename,
+			filenameNoExt,
+		});
+
+		if (!selectedPath || !filename) {
+			handleClose();
+			return;
+		}
+		setFilenameNoExt(filenameNoExt);
+		setInitialData({
+			gameName: filenameNoExt,
+			gamePath: selectedPath,
+			installed: true,
+		});
+
+		setStart(true);
+	}, [openDialog.mutateAsync, setInitialData]);
+
+	useEffect(() => {
+		if (!open) return;
+		if (start) return;
+		handleFileSelect();
+	}, [open, handleFileSelect, start]);
+
+	const handleClose = useCallback(() => {
+		setOpen(false);
+		setStart(false);
+	}, [setOpen]);
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<NewGameButton onClick={() => setOpen(true)} />
-			</DialogTrigger>
+		<>
+			<NewGameButton onClick={() => setOpen(true)} />
+			<MultiStepDialog
+				isOpen={start}
+				resetOnCancel={true}
+				onClose={handleClose}
+				confirmLabel="Add Game"
+				dialogContentClassName="w-full sm:max-w-2xl flex flex-col h-[85vh]"
+				onConfirm={() => {
+					const gameName = game.gameName;
+					const gamePath = game.gamePath;
+					if (!gameName || !gamePath) return;
 
-			<DialogContent className="flex h-[calc(100vh-10rem)] flex-col">
-				<DialogHeader>
-					<DialogTitle>{t("new_game")}</DialogTitle>
-					<DialogDescription>
-						{t("new_game_modal.description")}
-					</DialogDescription>
-				</DialogHeader>
-
-				<Tabs
-					defaultValue="metadata"
-					className="flex flex-1 flex-col overflow-hidden"
-				>
-					<TabsList className="flex w-full justify-between">
-						<TabsTrigger value="metadata" className="flex-1">
-							{t("sections.metadata")}
-						</TabsTrigger>
-						<TabsTrigger value="settings" className="flex-1">
-							{t("sections.settings")}
-						</TabsTrigger>
-					</TabsList>
-
-					<Form {...form}>
-						<form
-							className="flex flex-1 flex-col overflow-hidden"
-							autoComplete="off"
-							onSubmit={form.handleSubmit(handleAddGame)}
-						>
-							<div className="flex-1 overflow-y-auto">
-								<ScrollArea className="h-full px-1 py-4">
-									<TabsContent value="metadata" className="mt-0">
-										<NewGameMetadataForm form={form} />
-									</TabsContent>
-									<TabsContent value="settings" className="mt-0">
-										<NewGameSettingsForm form={form} />
-									</TabsContent>
-								</ScrollArea>
-							</div>
-							<DialogFooter className="mt-auto pt-4">
-								<Button type="submit">{t("add_game")}</Button>
-							</DialogFooter>
-						</form>
-					</Form>
-				</Tabs>
-			</DialogContent>
-		</Dialog>
+					try {
+						createGame({
+							gameId: createSlug(gameName),
+							gameName: gameName,
+							gamePath: gamePath,
+							gameArgs: game.gameArgs,
+							gameIcon: game.gameIcon,
+							gameCommand: game.gameCommand,
+							igdbId: game.igdbId ? Number.parseInt(game.igdbId) : undefined,
+							gameSteamId: game.steamId,
+							installed: !!gamePath,
+							winePrefixFolder: game.winePrefixFolder,
+						});
+						toast.success("Game added");
+					} catch (error) {
+						console.log(error);
+						toast.error("Error adding game");
+					}
+					handleClose();
+				}}
+				steps={[
+					{
+						title: "Select Game",
+						description: "Which game are you trying to add?",
+						component: <DisplayResultsStop filename={filenameNoExt} />,
+					},
+					{
+						title: "Confirm & Finalize",
+						description:
+							"Review and adjust the game details before adding to your library",
+						component: <ConfirmationStep />,
+					},
+				]}
+			/>
+		</>
 	);
 };
