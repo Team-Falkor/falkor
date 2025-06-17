@@ -1,9 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import MainContainer from "@/components/containers/mainContainer";
-import FeaturedGames from "@/features/home/components/FeaturedGames";
-import GameCategories from "@/features/home/components/GameCategories";
-import GameRows from "@/features/home/components/GameRows";
-import HeroSection from "@/features/home/components/HeroSection";
+import { lazy } from "react";
+
+const MainContainer = lazy(
+	() => import("@/components/containers/mainContainer"),
+);
+const FeaturedGames = lazy(
+	() => import("@/features/home/components/FeaturedGames"),
+);
+const GameCategories = lazy(
+	() => import("@/features/home/components/GameCategories"),
+);
+const GameRows = lazy(() => import("@/features/home/components/GameRows"));
+const HeroSection = lazy(
+	() => import("@/features/home/components/HeroSection"),
+);
 
 export const Route = createFileRoute("/")({ component: Index });
 

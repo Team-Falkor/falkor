@@ -15,7 +15,7 @@ export const NewGameButton = ({ onClick, disabled, ...props }: Props) => {
 			{...props}
 			disabled={disabled}
 		>
-			<PlusIcon strokeWidth={3} />
+			<PlusIcon strokeWidth={4} />
 			<H5>New Game</H5>
 		</Button>
 	);

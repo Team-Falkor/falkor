@@ -68,12 +68,6 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 		const filename = getFilenameFromPath(selectedPath);
 		const filenameNoExt = filename?.split(".")[0];
 
-		console.log({
-			selectedPath,
-			filename,
-			filenameNoExt,
-		});
-
 		if (!selectedPath || !filename) {
 			handleClose();
 			return;
