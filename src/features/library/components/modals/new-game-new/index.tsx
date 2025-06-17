@@ -107,7 +107,7 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 				resetOnCancel={true}
 				onClose={handleClose}
 				confirmLabel="Add Game"
-				dialogContentClassName="w-full sm:max-w-2xl flex flex-col h-[85vh]"
+				dialogContentClassName="w-full sm:max-w-3xl flex flex-col h-[85vh]"
 				onConfirm={() => {
 					const gameName = game.gameName;
 					const gamePath = game.gamePath;
