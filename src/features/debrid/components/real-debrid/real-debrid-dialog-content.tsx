@@ -1,6 +1,5 @@
 import { type Dispatch, type SetStateAction, useCallback } from "react";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { P, TypographyMuted } from "@/components/ui/typography";
@@ -25,15 +24,29 @@ const RealDebridDialogContent = ({
 		enabled: open,
 	});
 
-	const { error: pollError } =
+	const handleCopyAndOpen = useCallback(() => {
+		if (!deviceCodeInfo?.user_code) return;
+		navigator.clipboard.writeText(deviceCodeInfo.user_code).then(
+			() => {
+				toast.success("Code copied to clipboard!");
+			},
+			(err) => {
+				console.error("Failed to copy code:", err);
+				toast.error("Could not copy code.");
+			},
+		);
+	}, [deviceCodeInfo?.user_code]);
+
+	const { data: pollResult, error: pollError } =
 		trpc.realdebrid.auth.startPolling.useSubscription(
 			{
 				deviceCode: deviceCodeInfo?.device_code ?? "",
 			},
 			{
-				enabled: !!deviceCodeInfo && !isGettingCode && !codeError && open,
+				enabled: !!deviceCodeInfo,
 				onData: (result) => {
 					if ("token" in result) {
+						// Authenticated successfully
 						onAuthenticated?.(result.token.access_token);
 						setOpen(false);
 						toast.success("Real Debrid authenticated successfully");
@@ -48,19 +61,6 @@ const RealDebridDialogContent = ({
 				},
 			},
 		);
-
-	const handleCopyAndOpen = useCallback(() => {
-		if (!deviceCodeInfo?.user_code) return;
-		navigator.clipboard.writeText(deviceCodeInfo.user_code).then(
-			() => {
-				toast.success("Code copied to clipboard!");
-			},
-			(err) => {
-				console.error("Failed to copy code:", err);
-				toast.error("Could not copy code.");
-			},
-		);
-	}, [deviceCodeInfo?.user_code]);
 
 	return (
 		<DialogContent className="max-h-1/2 max-w-1/2">
