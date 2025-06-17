@@ -54,6 +54,7 @@ export const libraryGamesRouter = router({
 					.transform((val) => (val ? new Date(val) : undefined)),
 				igdbId: z.number().int().optional(),
 				installed: z.boolean().default(true),
+				runAsAdmin: z.boolean().optional().default(false),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -90,6 +91,7 @@ export const libraryGamesRouter = router({
 						.transform((val) => (val ? new Date(val) : undefined)),
 					igdbId: z.number().int().optional(),
 					installed: z.boolean().optional(),
+					runAsAdmin: z.boolean().optional(),
 				}),
 			}),
 		)

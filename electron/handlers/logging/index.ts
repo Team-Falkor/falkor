@@ -1,5 +1,4 @@
 import * as fs from "node:fs";
-import * as path from "node:path";
 import type { LogEntry, LoggerFilterOptions, LogLevel } from "@/@types";
 import { constants } from "../../utils/constants";
 import { JsonFileEditor } from "../json/jsonFileEditor";
@@ -33,10 +32,9 @@ class Logger {
 		this.jsonFileEditor = new JsonFileEditor<Array<LogEntry>>({
 			filePath: this.logsPath,
 			defaultContent: [],
+			createDirs: false,
+			verbose: true,
 		});
-
-		// Create logs directory if it doesn't exist
-		const logsDir = path.dirname(this.logsPath);
 
 		// Load existing logs
 		this.logs = this.jsonFileEditor.read() || [];

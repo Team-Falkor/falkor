@@ -1,0 +1,1 @@
+ALTER TABLE `library_games` ADD `run_as_admin` integer DEFAULT false NOT NULL;

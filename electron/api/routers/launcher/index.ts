@@ -4,11 +4,12 @@ import { libraryGames } from "@backend/database/schemas";
 import GameProcessLauncher from "@backend/handlers/launcher/game-process-launcher";
 import { gamesLaunched } from "@backend/handlers/launcher/games-launched";
 import { emitOnce } from "@backend/utils/emit-once";
+import { getErrorMessage } from "@backend/utils/utils";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 const emitter = new EventEmitter();
-// Store event listeners in a WeakMap to allow garbage collection
+
 const eventListeners = new WeakMap<
 	GameProcessLauncher,
 	{ onPlaying: (gameId: string) => void; onStopped: (gameId: string) => void }
@@ -44,14 +45,21 @@ export const gameLauncherRouter = router({
 				winePrefixPath: game.winePrefixFolder ?? undefined,
 			});
 
-			// Create and store event listeners
+			if (game.runAsAdmin) {
+				try {
+					await launcher.launchAsAdmin(input.args);
+					return { success: true };
+				} catch (error) {
+					return { success: false, error: getErrorMessage(error) };
+				}
+			}
+
 			const listeners = {
 				onPlaying: (gameId: string) => emitter.emit("game:playing", gameId),
 				onStopped: (gameId: string) => emitter.emit("game:stopped", gameId),
 			};
 			eventListeners.set(launcher, listeners);
 
-			// Attach listeners
 			launcher.on("game:playing", listeners.onPlaying);
 			launcher.on("game:stopped", listeners.onStopped);
 
@@ -59,7 +67,6 @@ export const gameLauncherRouter = router({
 				launcher.launch(input.args);
 				return { success: true };
 			} catch (error) {
-				// Clean up listeners on launch failure
 				const storedListeners = eventListeners.get(launcher);
 				if (storedListeners) {
 					launcher.off("game:playing", storedListeners.onPlaying);
@@ -95,7 +102,6 @@ export const gameLauncherRouter = router({
 		const cleanup = () => {
 			emitter.removeAllListeners("game:playing");
 			emitter.removeAllListeners("game:stopped");
-			// Clean up any remaining launcher listeners
 			for (const launcher of gamesLaunched.values()) {
 				const listeners = eventListeners.get(launcher);
 				if (listeners) {
@@ -108,7 +114,6 @@ export const gameLauncherRouter = router({
 
 		try {
 			while (true) {
-				// Wait for either playing or stopped event
 				const result = await Promise.race([
 					emitOnce<string>(emitter, "game:playing").then((gameId) => ({
 						type: "playing" as const,
