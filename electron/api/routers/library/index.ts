@@ -107,27 +107,39 @@ export const libraryGamesRouter = router({
 		}),
 
 	delete: publicProcedure
-		.input(z.object({ id: z.number() }))
+		.input(z.object({ gameId: z.string() }))
 		.mutation(async ({ input, ctx }) => {
 			try {
-				const deletedGameRecord = await ctx.db.transaction((tx) => {
-					tx.delete(listsToGames)
-						.where(eq(listsToGames.gameId, input.id))
-						.run();
+				const game = ctx.db
+					.select({ id: libraryGames.id })
+					.from(libraryGames)
+					.where(eq(libraryGames.gameId, input.gameId))
+					.get();
 
-					const deletedGames = tx
-						.delete(libraryGames)
-						.where(eq(libraryGames.gameId, input.id.toString()))
-						.returning()
-						.get();
+				if (!game) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: `Game with gameId '${input.gameId}' not found.`,
+					});
+				}
 
-					return deletedGames;
-				});
+				ctx.db
+					.delete(listsToGames)
+					.where(eq(listsToGames.gameId, game.id))
+					.run();
 
-				return deletedGameRecord;
+				const [deletedGame] = await ctx.db
+					.delete(libraryGames)
+					.where(eq(libraryGames.id, game.id))
+					.returning();
+
+				return deletedGame ?? null;
 			} catch (error) {
-				console.error("Failed to delete game:", error);
+				if (error instanceof TRPCError) {
+					throw error;
+				}
 
+				console.error("Failed to delete game:", error);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "An unexpected error occurred while deleting the game.",
