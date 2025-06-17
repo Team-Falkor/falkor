@@ -44,7 +44,7 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 					return (
 						<DefaultCard
 							key={game.id}
-							id={game.id}
+							id={game.igdbId}
 							name={game.gameName}
 							cover={{
 								image: imageURL,
@@ -104,7 +104,7 @@ const ActiveLibraryContent = (props: ActiveLibraryProps) => {
 					return (
 						<DefaultCard
 							key={game.id}
-							id={game.id}
+							id={game.igdbId}
 							name={game.gameName}
 							cover={{
 								image: imageURL,
