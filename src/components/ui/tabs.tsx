@@ -1,7 +1,7 @@
-import { Tabs as TabsPrimitive } from "radix-ui";
+"use client";
 
-import type * as React from "react";
-
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 function Tabs({
@@ -21,15 +21,67 @@ function TabsList({
 	className,
 	...props
 }: React.ComponentProps<typeof TabsPrimitive.List>) {
+	const listRef = useRef<React.ElementRef<typeof TabsPrimitive.List>>(null);
+	const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
+
+	useEffect(() => {
+		const listElement = listRef.current;
+		if (!listElement) return;
+
+		const updateIndicator = () => {
+			const activeTrigger = listElement.querySelector<HTMLButtonElement>(
+				'[data-state="active"]',
+			);
+
+			if (activeTrigger) {
+				setIndicatorStyle({
+					left: activeTrigger.offsetLeft,
+					width: activeTrigger.offsetWidth,
+				});
+			}
+		};
+
+		updateIndicator();
+
+		const observer = new MutationObserver((mutations) => {
+			for (const mutation of mutations) {
+				if (
+					mutation.type === "attributes" &&
+					mutation.attributeName === "data-state"
+				) {
+					updateIndicator();
+					break;
+				}
+			}
+		});
+
+		observer.observe(listElement, {
+			attributes: true,
+			subtree: true,
+			attributeFilter: ["data-state"],
+		});
+
+		return () => observer.disconnect();
+	}, []);
+
 	return (
-		<TabsPrimitive.List
-			data-slot="tabs-list"
-			className={cn(
-				"inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-[3px] text-muted-foreground",
-				className,
-			)}
-			{...props}
-		/>
+		<div className="relative inline-block">
+			<TabsPrimitive.List
+				ref={listRef}
+				data-slot="tabs-list"
+				className={cn(
+					"relative inline-flex h-10 items-center justify-center rounded-full bg-muted p-1 text-muted-foreground",
+					className,
+				)}
+				{...props}
+			>
+				<div
+					className="absolute top-1 bottom-1 left-0 rounded-full border-2 border-primary bg-primary/80 transition-all duration-300 ease-in-out"
+					style={indicatorStyle}
+				/>
+				{props.children}
+			</TabsPrimitive.List>
+		</div>
 	);
 }
 
@@ -41,7 +93,7 @@ function TabsTrigger({
 		<TabsPrimitive.Trigger
 			data-slot="tabs-trigger"
 			className={cn(
-				"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-2 py-1 font-medium text-foreground text-sm transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:shadow-sm dark:text-muted-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+				"relative z-10 inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 font-medium text-sm ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-primary-foreground",
 				className,
 			)}
 			{...props}
