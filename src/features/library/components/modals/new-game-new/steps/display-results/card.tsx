@@ -19,8 +19,8 @@ export const GameResultCard = ({
 		: "N/A";
 
 	const summary =
-		result.summary?.substring(0, 120) +
-			(result.summary.length > 120 ? "..." : "") || "No summary available.";
+		result?.summary?.substring(0, 120) +
+			(result?.summary?.length > 120 ? "..." : "") || "No summary available.";
 
 	return (
 		<button

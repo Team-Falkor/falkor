@@ -17,7 +17,7 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 	const [searchQuery, setSearchQuery] = useState(filename);
 	const { results, loading, error } = useSearch(searchQuery);
 
-	const { selectedGame, setSelectedGame, updateGame, game, reset } =
+	const { selectedGame, setSelectedGame, updateGame, reset } =
 		useNewGameStore();
 
 	console.log(`${LOG_PREFIX} Render. Initial filename:`, {
@@ -57,7 +57,7 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 		if (!loading && results) {
 			if (results.length > 0) {
 				console.log(
-					`${LOG_PREFIX} Found ${results.length} results. Auto-selecting first result.`,
+					`${LOG_PREFIX} Found ${results?.length} results. Auto-selecting first result.`,
 				);
 				handleGameSelection(results[0]);
 			} else {
@@ -69,7 +69,7 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 	}, [results, loading, error, handleGameSelection, setSelectedGame, reset]);
 
 	return (
-		<div className="flex h-full w-full flex-1 flex-col gap-4 py-4">
+		<div className="flex h-full w-full flex-col gap-4 overflow-hidden py-4">
 			<Input
 				value={searchQuery}
 				onChange={(e) => setSearchQuery(e.target.value)}
@@ -84,7 +84,7 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 						An error occurred while searching.
 					</div>
 				)}
-				{!loading && results.length === 0 && (
+				{!loading && results?.length === 0 && (
 					<div className="p-4 text-center text-muted-foreground">
 						No results found for "{searchQuery}".
 					</div>

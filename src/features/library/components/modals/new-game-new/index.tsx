@@ -3,7 +3,6 @@ import {
 	type SetStateAction,
 	useCallback,
 	useEffect,
-	useRef,
 	useState,
 } from "react";
 import { toast } from "sonner";
@@ -21,169 +20,84 @@ type Props = {
 	setOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-const EXECUTABLE_EXTENSIONS = [
-	"exe",
-	"bat",
-	"cmd",
-	"sh",
-	"run",
-	"AppImage",
-	"jar",
-	"url",
-] as const;
-
 export const NewGameDialog = ({ setOpen, open }: Props) => {
 	const [start, setStart] = useState(false);
+	const { createGame } = useGames();
 	const [filenameNoExt, setFilenameNoExt] = useState("");
 
-	// Use ref to track if component is mounted
-	const isMountedRef = useRef(true);
-	const abortControllerRef = useRef<AbortController | null>(null);
-
-	const { createGame } = useGames();
-	const { game, setInitialData, reset } = useNewGameStore();
+	const { game, setInitialData } = useNewGameStore();
 	const openDialog = trpc.app.openDialog.useMutation();
 
-	// Cleanup on unmount
-	useEffect(() => {
-		return () => {
-			isMountedRef.current = false;
-			abortControllerRef.current?.abort();
-		};
-	}, []);
-
 	const handleFileSelect = useCallback(async () => {
-		abortControllerRef.current = new AbortController();
+		const selected = await openDialog.mutateAsync({
+			properties: ["openFile"],
+			filters: [
+				{
+					name: "Executable",
+					extensions: [
+						"exe",
+						"bat",
+						"cmd",
+						"sh",
+						"run",
+						"AppImage",
+						"jar",
+						"url",
+					],
+				},
+			],
+		});
 
-		try {
-			const selected = await openDialog.mutateAsync({
-				properties: ["openFile"],
-				filters: [
-					{
-						name: "Executable",
-						extensions: [...EXECUTABLE_EXTENSIONS],
-					},
-				],
-			});
-
-			// Check if component is still mounted
-			if (!isMountedRef.current) return;
-
-			if (
-				!selected.success ||
-				!selected.result ||
-				selected.result.canceled ||
-				!selected.result.filePaths.length
-			) {
-				console.log("No file selected or user canceled");
-				handleClose();
-				return;
-			}
-
-			const selectedPath = selected.result.filePaths[0];
-			const filename = getFilenameFromPath(selectedPath);
-
-			if (!selectedPath || !filename) {
-				console.log("Invalid file path or filename");
-				handleClose();
-				return;
-			}
-
-			const filenameWithoutExt =
-				filename.split(".").slice(0, -1).join(".") || filename;
-
-			console.log({
-				selectedPath,
-				filename,
-				filenameNoExt: filenameWithoutExt,
-			});
-
-			// Only update state if component is still mounted
-			if (isMountedRef.current) {
-				setFilenameNoExt(filenameWithoutExt);
-				setInitialData({
-					gameName: filenameWithoutExt,
-					gamePath: selectedPath,
-					installed: true,
-				});
-				setStart(true);
-			}
-		} catch (error) {
-			if (!isMountedRef.current) return;
-
-			console.error("Error selecting file:", error);
-			toast.error("Failed to select file");
+		if (!selected.success || !selected.result) {
+			console.log("No file selected");
 			handleClose();
+			return;
 		}
-	}, [openDialog.mutateAsync, setInitialData]);
-
-	// Trigger file selection when dialog opens
-	useEffect(() => {
-		if (!open || start) return;
-
-		let isCancelled = false;
-
-		const initializeFileSelection = async () => {
-			// Small delay to ensure dialog state is properly set
-			await new Promise((resolve) => setTimeout(resolve, 100));
-
-			if (!isCancelled && isMountedRef.current) {
-				await handleFileSelect();
-			}
-		};
-
-		initializeFileSelection();
-
-		return () => {
-			isCancelled = true;
-		};
-	}, [open, start, handleFileSelect]);
-
-	const handleClose = useCallback(() => {
-		abortControllerRef.current?.abort();
-		setOpen(false);
-		setStart(false);
-		reset(); // Reset store state
-	}, [setOpen, reset]);
-
-	const handleConfirm = useCallback(async () => {
-		const {
-			gameName,
-			gamePath,
-			gameArgs,
-			gameIcon,
-			gameCommand,
-			igdbId,
-			steamId,
-			winePrefixFolder,
-		} = game;
-
-		if (!gameName || !gamePath) {
-			toast.error("Game name and path are required");
+		if (selected.result.canceled) {
+			console.log("User canceled");
+			handleClose();
+			return;
+		}
+		if (!selected.result.filePaths.length) {
+			console.log("No file selected");
+			handleClose();
 			return;
 		}
 
-		try {
-			await createGame({
-				gameId: createSlug(gameName),
-				gameName,
-				gamePath,
-				gameArgs,
-				gameIcon,
-				gameCommand,
-				igdbId: igdbId ? Number.parseInt(igdbId) : undefined,
-				gameSteamId: steamId,
-				installed: !!gamePath,
-				winePrefixFolder,
-			});
+		const selectedPath = selected.result.filePaths[0];
+		const filename = getFilenameFromPath(selectedPath);
+		const filenameNoExt = filename?.split(".")[0];
 
-			toast.success("Game added successfully");
+		console.log({
+			selectedPath,
+			filename,
+			filenameNoExt,
+		});
+
+		if (!selectedPath || !filename) {
 			handleClose();
-		} catch (error) {
-			console.error("Error adding game:", error);
-			toast.error("Failed to add game");
+			return;
 		}
-	}, [game, createGame, handleClose]);
+		setFilenameNoExt(filenameNoExt);
+		setInitialData({
+			gameName: filenameNoExt,
+			gamePath: selectedPath,
+			installed: true,
+		});
+
+		setStart(true);
+	}, [openDialog.mutateAsync, setInitialData]);
+
+	useEffect(() => {
+		if (!open) return;
+		if (start) return;
+		handleFileSelect();
+	}, [open, handleFileSelect, start]);
+
+	const handleClose = useCallback(() => {
+		setOpen(false);
+		setStart(false);
+	}, [setOpen]);
 
 	return (
 		<>
@@ -193,8 +107,32 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 				resetOnCancel={true}
 				onClose={handleClose}
 				confirmLabel="Add Game"
-				dialogContentClassName="w-full sm:max-w-5xl flex flex-col h-[85vh]"
-				onConfirm={handleConfirm}
+				dialogContentClassName="w-full sm:max-w-2xl flex flex-col h-[85vh]"
+				onConfirm={() => {
+					const gameName = game.gameName;
+					const gamePath = game.gamePath;
+					if (!gameName || !gamePath) return;
+
+					try {
+						createGame({
+							gameId: createSlug(gameName),
+							gameName: gameName,
+							gamePath: gamePath,
+							gameArgs: game.gameArgs,
+							gameIcon: game.gameIcon,
+							gameCommand: game.gameCommand,
+							igdbId: game.igdbId ? Number.parseInt(game.igdbId) : undefined,
+							gameSteamId: game.steamId,
+							installed: !!gamePath,
+							winePrefixFolder: game.winePrefixFolder,
+						});
+						toast.success("Game added");
+					} catch (error) {
+						console.log(error);
+						toast.error("Error adding game");
+					}
+					handleClose();
+				}}
 				steps={[
 					{
 						title: "Select Game",
