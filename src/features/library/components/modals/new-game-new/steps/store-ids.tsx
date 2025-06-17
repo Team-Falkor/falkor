@@ -1,13 +1,10 @@
-import type { GenericStepProps } from "@/features/library/@types";
 import { useNewGameStore } from "@/features/library/stores/new-game";
 
-interface Props extends GenericStepProps {}
-
-export const StoreIDsStep = ({ filename }: Props) => {
+export const StoreIDsStep = () => {
 	const { game } = useNewGameStore();
 
 	return (
-		<div>
+		<div className="flex h-full w-full flex-1 flex-col gap-4 py-4">
 			<h1>Store IDs</h1>
 			<p>Store IDs for {game.gameName}</p>
 			<pre>{JSON.stringify(game, null, 2)}</pre>

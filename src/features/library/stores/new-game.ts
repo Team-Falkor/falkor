@@ -31,7 +31,7 @@ interface NewGameActions {
 	 * Sets the initial data after file selection and parsing.
 	 * This should be the first action called in the flow.
 	 */
-	setInitialData: (data: { gameName: string; gamePath: string }) => void;
+	setInitialData: (data: Partial<Game>) => void;
 	/**
 	 * Merges new or updated data into the existing game object.
 	 * Use this for API results or manual user edits.
@@ -55,7 +55,7 @@ export const useNewGameStore = create<NewGameState & NewGameActions>((set) => ({
 
 	setInitialData: (data) =>
 		set({
-			game: { gameName: data.gameName, gamePath: data.gamePath },
+			game: data,
 			error: null,
 		}),
 

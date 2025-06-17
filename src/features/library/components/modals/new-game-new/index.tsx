@@ -3,89 +3,187 @@ import {
 	type SetStateAction,
 	useCallback,
 	useEffect,
+	useRef,
 	useState,
 } from "react";
+import { toast } from "sonner";
 import { MultiStepDialog } from "@/components/MultiStepDialog";
+import { useGames } from "@/features/library/hooks/use-games";
 import { useNewGameStore } from "@/features/library/stores/new-game";
-import { trpc } from "@/lib";
+import { createSlug, trpc } from "@/lib";
 import { getFilenameFromPath } from "@/lib/helpers/get-filename";
 import { NewGameButton } from "../../new-game";
+import { ConfirmationStep } from "./steps/confirmation";
 import { DisplayResultsStop } from "./steps/display-results";
-import { StoreIDsStep } from "./steps/store-ids";
 
 type Props = {
 	open: boolean;
 	setOpen: Dispatch<SetStateAction<boolean>>;
 };
 
+const EXECUTABLE_EXTENSIONS = [
+	"exe",
+	"bat",
+	"cmd",
+	"sh",
+	"run",
+	"AppImage",
+	"jar",
+	"url",
+] as const;
+
 export const NewGameDialog = ({ setOpen, open }: Props) => {
 	const [start, setStart] = useState(false);
 	const [filenameNoExt, setFilenameNoExt] = useState("");
 
-	const { updateGame } = useNewGameStore();
+	// Use ref to track if component is mounted
+	const isMountedRef = useRef(true);
+	const abortControllerRef = useRef<AbortController | null>(null);
+
+	const { createGame } = useGames();
+	const { game, setInitialData, reset } = useNewGameStore();
 	const openDialog = trpc.app.openDialog.useMutation();
 
-	const handleFileSelect = useCallback(async () => {
-		console.log("2");
-		const selected = await openDialog.mutateAsync({
-			properties: ["openFile"],
-			filters: [
-				{
-					name: "Executable",
-					extensions: [
-						"exe",
-						"bat",
-						"cmd",
-						"sh",
-						"run",
-						"AppImage",
-						"jar",
-						"url",
-					],
-				},
-			],
-		});
-
-		if (!selected.success || !selected.result) {
-			handleClose();
-			return;
-		}
-		if (selected.result.canceled) {
-			handleClose();
-			return;
-		}
-		if (!selected.result.filePaths.length) {
-			handleClose();
-			return;
-		}
-
-		const selectedPath = selected.result.filePaths[0];
-		const filename = getFilenameFromPath(selectedPath);
-		const filenameNoExt = filename?.split(".")[0];
-
-		if (!selectedPath || !filename) {
-			handleClose();
-			return;
-		}
-		setFilenameNoExt(filenameNoExt);
-		updateGame({
-			gameName: filenameNoExt,
-			gamePath: selectedPath,
-			installed: true,
-		});
-
-		setStart(true);
-	}, [openDialog.mutateAsync, updateGame]);
-
+	// Cleanup on unmount
 	useEffect(() => {
-		if (!open) return;
-		handleFileSelect();
-	}, [open, handleFileSelect]);
+		return () => {
+			isMountedRef.current = false;
+			abortControllerRef.current?.abort();
+		};
+	}, []);
+
+	const handleFileSelect = useCallback(async () => {
+		abortControllerRef.current = new AbortController();
+
+		try {
+			const selected = await openDialog.mutateAsync({
+				properties: ["openFile"],
+				filters: [
+					{
+						name: "Executable",
+						extensions: [...EXECUTABLE_EXTENSIONS],
+					},
+				],
+			});
+
+			// Check if component is still mounted
+			if (!isMountedRef.current) return;
+
+			if (
+				!selected.success ||
+				!selected.result ||
+				selected.result.canceled ||
+				!selected.result.filePaths.length
+			) {
+				console.log("No file selected or user canceled");
+				handleClose();
+				return;
+			}
+
+			const selectedPath = selected.result.filePaths[0];
+			const filename = getFilenameFromPath(selectedPath);
+
+			if (!selectedPath || !filename) {
+				console.log("Invalid file path or filename");
+				handleClose();
+				return;
+			}
+
+			const filenameWithoutExt =
+				filename.split(".").slice(0, -1).join(".") || filename;
+
+			console.log({
+				selectedPath,
+				filename,
+				filenameNoExt: filenameWithoutExt,
+			});
+
+			// Only update state if component is still mounted
+			if (isMountedRef.current) {
+				setFilenameNoExt(filenameWithoutExt);
+				setInitialData({
+					gameName: filenameWithoutExt,
+					gamePath: selectedPath,
+					installed: true,
+				});
+				setStart(true);
+			}
+		} catch (error) {
+			if (!isMountedRef.current) return;
+
+			console.error("Error selecting file:", error);
+			toast.error("Failed to select file");
+			handleClose();
+		}
+	}, [openDialog.mutateAsync, setInitialData]);
+
+	// Trigger file selection when dialog opens
+	useEffect(() => {
+		if (!open || start) return;
+
+		let isCancelled = false;
+
+		const initializeFileSelection = async () => {
+			// Small delay to ensure dialog state is properly set
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			if (!isCancelled && isMountedRef.current) {
+				await handleFileSelect();
+			}
+		};
+
+		initializeFileSelection();
+
+		return () => {
+			isCancelled = true;
+		};
+	}, [open, start, handleFileSelect]);
 
 	const handleClose = useCallback(() => {
+		abortControllerRef.current?.abort();
 		setOpen(false);
 		setStart(false);
-	}, [setOpen]);
+		reset(); // Reset store state
+	}, [setOpen, reset]);
+
+	const handleConfirm = useCallback(async () => {
+		const {
+			gameName,
+			gamePath,
+			gameArgs,
+			gameIcon,
+			gameCommand,
+			igdbId,
+			steamId,
+			winePrefixFolder,
+		} = game;
+
+		if (!gameName || !gamePath) {
+			toast.error("Game name and path are required");
+			return;
+		}
+
+		try {
+			await createGame({
+				gameId: createSlug(gameName),
+				gameName,
+				gamePath,
+				gameArgs,
+				gameIcon,
+				gameCommand,
+				igdbId: igdbId ? Number.parseInt(igdbId) : undefined,
+				gameSteamId: steamId,
+				installed: !!gamePath,
+				winePrefixFolder,
+			});
+
+			toast.success("Game added successfully");
+			handleClose();
+		} catch (error) {
+			console.error("Error adding game:", error);
+			toast.error("Failed to add game");
+		}
+	}, [game, createGame, handleClose]);
 
 	return (
 		<>
@@ -95,6 +193,8 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 				resetOnCancel={true}
 				onClose={handleClose}
 				confirmLabel="Add Game"
+				dialogContentClassName="w-full sm:max-w-5xl flex flex-col h-[85vh]"
+				onConfirm={handleConfirm}
 				steps={[
 					{
 						title: "Select Game",
@@ -102,15 +202,10 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 						component: <DisplayResultsStop filename={filenameNoExt} />,
 					},
 					{
-						title: "Store Game ids",
+						title: "Confirm & Finalize",
 						description:
-							"Store ids are not needed, but is used for achievements",
-						component: <StoreIDsStep filename={filenameNoExt} />,
-					},
-					{
-						title: "Is this the correct game?",
-						description: `Is this the correct game? ${filenameNoExt}`,
-						component: "Is this the correct game?",
+							"Review and adjust the game details before adding to your library",
+						component: <ConfirmationStep />,
 					},
 				]}
 			/>

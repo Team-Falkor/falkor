@@ -3,15 +3,17 @@ import type { HTMLAttributes } from "react";
 import { Button } from "@/components/ui/button";
 import { H5 } from "@/components/ui/typography";
 
-export const NewGameButton = ({
-	onClick,
-	...props
-}: HTMLAttributes<HTMLButtonElement>) => {
+interface Props extends HTMLAttributes<HTMLButtonElement> {
+	disabled?: boolean;
+}
+
+export const NewGameButton = ({ onClick, disabled, ...props }: Props) => {
 	return (
 		<Button
 			className="gap-1.5 rounded-full bg-linear-to-tr from-blue-400 to-purple-400 text-white transition-all focus-states:opacity-90"
 			onClick={onClick}
 			{...props}
+			disabled={disabled}
 		>
 			<PlusIcon strokeWidth={3} />
 			<H5>New Game</H5>
