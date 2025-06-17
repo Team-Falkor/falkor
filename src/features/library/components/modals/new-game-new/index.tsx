@@ -23,10 +23,15 @@ type Props = {
 export const NewGameDialog = ({ setOpen, open }: Props) => {
 	const [start, setStart] = useState(false);
 	const { createGame } = useGames();
-	const [filenameNoExt, setFilenameNoExt] = useState("");
 
-	const { game, setInitialData } = useNewGameStore();
+	const { game, setInitialData, reset: resetNewGameStore } = useNewGameStore();
 	const openDialog = trpc.app.openDialog.useMutation();
+
+	const handleClose = useCallback(() => {
+		setOpen(false);
+		setStart(false);
+		resetNewGameStore(); // Reset the store on dialog close
+	}, [setOpen, resetNewGameStore]);
 
 	const handleFileSelect = useCallback(async () => {
 		const selected = await openDialog.mutateAsync({
@@ -48,64 +53,72 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 			],
 		});
 
-		if (!selected.success || !selected.result) {
-			console.log("No file selected");
-			handleClose();
-			return;
-		}
-		if (selected.result.canceled) {
-			console.log("User canceled");
-			handleClose();
-			return;
-		}
-		if (!selected.result.filePaths.length) {
-			console.log("No file selected");
+		if (selected.canceled) {
+			console.log("User canceled file selection.");
 			handleClose();
 			return;
 		}
 
-		const selectedPath = selected.result.filePaths[0];
+		if (!selected.success || selected.filePaths.length === 0) {
+			console.log(
+				"File selection failed or no file selected.",
+				selected.message || "",
+			);
+			toast.error("File selection failed or no file was chosen."); // User feedback
+			handleClose();
+			return;
+		}
+
+		const selectedPath = selected.filePaths[0];
 		const filename = getFilenameFromPath(selectedPath);
-		const filenameNoExt = filename?.split(".")[0];
+		const filenameNoExt = filename ? filename.split(".")[0] : "";
 
-		if (!selectedPath || !filename) {
+		if (!selectedPath || !filenameNoExt) {
+			console.log("Invalid path or filename extracted.");
+			toast.error("Invalid game path selected."); // User feedback
 			handleClose();
 			return;
 		}
-		setFilenameNoExt(filenameNoExt);
+
+		// Ensure gamePath and gameName are set in the store
 		setInitialData({
 			gameName: filenameNoExt,
 			gamePath: selectedPath,
 			installed: true,
+			// Also initialize runAsAdmin to false here if you want it off by default
+			runAsAdmin: false,
 		});
 
-		setStart(true);
-	}, [openDialog.mutateAsync, setInitialData]);
+		setStart(true); // Proceed to the next step
+	}, [openDialog.mutateAsync, setInitialData, handleClose]);
 
 	useEffect(() => {
-		if (!open) return;
-		if (start) return;
-		handleFileSelect();
-	}, [open, handleFileSelect, start]);
-
-	const handleClose = useCallback(() => {
-		setOpen(false);
-		setStart(false);
-	}, [setOpen]);
+		if (!open) {
+			resetNewGameStore(); // Ensure store is reset when dialog is initially closed (e.g., after adding a game)
+			return;
+		}
+		if (!start) {
+			// Only trigger file select if the dialog just opened and we haven't started the flow
+			handleFileSelect();
+		}
+	}, [open, handleFileSelect, start, resetNewGameStore]);
 
 	return (
 		<>
 			<NewGameButton onClick={() => setOpen(true)} />
 			<MultiStepDialog
-				isOpen={start}
-				resetOnCancel={true}
+				isOpen={start} // Dialog opens when 'start' is true
+				resetOnCancel={true} // Keeps this behavior
 				onClose={handleClose}
 				confirmLabel="Add Game"
 				dialogContentClassName="w-full sm:max-w-3xl flex flex-col h-[85vh]"
 				onConfirm={() => {
 					const gameName = game.gameName;
 					const gamePath = game.gamePath;
-					if (!gameName || !gamePath) return;
+					if (!gameName || !gamePath) {
+						toast.error("Game name or path is missing. Please check details.");
+						return;
+					}
 
 					try {
 						createGame({
@@ -119,11 +132,12 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 							gameSteamId: game.steamId,
 							installed: !!gamePath,
 							winePrefixFolder: game.winePrefixFolder,
+							runAsAdmin: game.runAsAdmin, // Pass runAsAdmin from the store
 						});
-						toast.success("Game added");
+						toast.success("Game added successfully!");
 					} catch (error) {
-						console.log(error);
-						toast.error("Error adding game");
+						console.error("Error adding game:", error); // Use console.error for errors
+						toast.error("Error adding game. Please try again.");
 					}
 					handleClose();
 				}}
@@ -131,13 +145,13 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 					{
 						title: "Select Game",
 						description: "Which game are you trying to add?",
-						component: <DisplayResultsStop filename={filenameNoExt} />,
+						component: <DisplayResultsStop filename={game.gameName || ""} />,
 					},
 					{
 						title: "Confirm & Finalize",
 						description:
 							"Review and adjust the game details before adding to your library",
-						component: <ConfirmationStep />,
+						component: <ConfirmationStep />, // No gamePath prop needed here
 					},
 				]}
 			/>

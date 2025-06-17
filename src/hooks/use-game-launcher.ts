@@ -4,7 +4,7 @@ import type { LibraryGame } from "@/@types";
 import { trpc } from "@/lib";
 
 export function useGameLauncher(game: LibraryGame) {
-	const gameId = game.id?.toString();
+	const id = game.id;
 	const utils = trpc.useUtils();
 
 	const [isRunning, setIsRunning] = useState(false);
@@ -17,18 +17,18 @@ export function useGameLauncher(game: LibraryGame) {
 
 	// Initialize running state
 	useEffect(() => {
-		if (!gameId) return;
+		if (!id) return;
 
 		utils.launcher.isRunning
-			.fetch({ gameId })
+			.fetch({ id: id })
 			.then((res) => setIsRunning(res.running))
 			.finally(() => setInitializing(false));
-	}, [gameId, utils.launcher.isRunning]);
+	}, [id, utils.launcher.isRunning]);
 
 	// Subscribe to game state changes
 	trpc.launcher.onGameStateChange.useSubscription(undefined, {
 		onData(event) {
-			if (!gameId || event.gameId !== gameId) return;
+			if (!id || event.id !== id) return;
 			setIsRunning(event.type === "playing");
 		},
 	});
@@ -50,14 +50,14 @@ export function useGameLauncher(game: LibraryGame) {
 	);
 
 	const toggleGameState = useCallback(async () => {
-		if (!gameId) return;
+		if (!id) return;
 
 		try {
 			if (isRunning) {
-				await stop.mutateAsync({ gameId });
+				await stop.mutateAsync({ id });
 				toast("Game stopped", { description: game.gameName });
 			} else {
-				await launch.mutateAsync({ gameId });
+				await launch.mutateAsync({ id });
 				toast("Game launched", { description: game.gameName });
 			}
 		} catch (err) {
@@ -68,7 +68,7 @@ export function useGameLauncher(game: LibraryGame) {
 		} finally {
 			await invalidateAll();
 		}
-	}, [gameId, isRunning, stop, launch, game.gameName, invalidateAll]);
+	}, [id, isRunning, stop, launch, game.gameName, invalidateAll]);
 
 	return {
 		isRunning,

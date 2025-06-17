@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import type { Game } from "@/features/library/stores/new-game";
 import { useNewGameStore } from "@/features/library/stores/new-game";
 import { trpc } from "@/lib";
@@ -21,6 +22,11 @@ export const ConfirmationStep = () => {
 		const { name, value } = e.target;
 		console.log(`${LOG_PREFIX} Input changed:`, { name, value });
 		updateGame({ [name]: value } as Partial<Game>);
+	};
+
+	const handleRunAsAdminToggle = (checked: boolean) => {
+		console.log(`${LOG_PREFIX} runAsAdmin toggled to:`, checked);
+		updateGame({ runAsAdmin: checked });
 	};
 
 	const getInitials = (name?: string) => {
@@ -44,16 +50,22 @@ export const ConfirmationStep = () => {
 			console.log(`${LOG_PREFIX} Opening file dialog for:`, updateKey);
 			try {
 				const selected = await openDialog.mutateAsync(config);
-				if (selected.success && selected.result?.filePaths.length) {
-					const path = selected.result.filePaths[0];
-					console.log(`${LOG_PREFIX} File selected for ${updateKey}:`, path);
-					updateGame({ [updateKey]: path } as Partial<Game>);
-				} else {
-					console.log(
-						`${LOG_PREFIX} File selection canceled or failed for:`,
-						updateKey,
-					);
+				if (selected.canceled) {
+					console.log(`${LOG_PREFIX} File selection canceled for:`, updateKey);
+					return;
 				}
+				if (!selected.success || selected.filePaths.length === 0) {
+					console.log(
+						`${LOG_PREFIX} File selection failed or no file selected for:`,
+						updateKey,
+						selected.message || "",
+					);
+					return;
+				}
+
+				const path = selected.filePaths[0];
+				console.log(`${LOG_PREFIX} File selected for ${updateKey}:`, path);
+				updateGame({ [updateKey]: path } as Partial<Game>);
 			} catch (error) {
 				console.error(
 					`${LOG_PREFIX} Error opening file dialog for ${updateKey}:`,
@@ -100,7 +112,6 @@ export const ConfirmationStep = () => {
 
 	return (
 		<div className="flex-1 space-y-6 overflow-y-auto py-6 pr-4">
-			{/* Card 1: Game Details */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Game Details</CardTitle>
@@ -149,7 +160,6 @@ export const ConfirmationStep = () => {
 				</CardContent>
 			</Card>
 
-			{/* Card 2: Launch Configuration */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Launch Configuration</CardTitle>
@@ -185,10 +195,18 @@ export const ConfirmationStep = () => {
 							placeholder="e.g., -nolauncher --skip-intro"
 						/>
 					</div>
+
+					<div className="flex items-center space-x-2 pt-2">
+						<Switch
+							id="runAsAdmin"
+							checked={game.runAsAdmin ?? false}
+							onCheckedChange={handleRunAsAdminToggle}
+						/>
+						<Label htmlFor="runAsAdmin">Run as Administrator</Label>
+					</div>
 				</CardContent>
 			</Card>
 
-			{/* Card 3: Database IDs */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Database IDs</CardTitle>
@@ -219,7 +237,6 @@ export const ConfirmationStep = () => {
 				</CardContent>
 			</Card>
 
-			{/* Card 4: Advanced Configuration */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Advanced (Optional)</CardTitle>

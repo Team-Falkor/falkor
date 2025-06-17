@@ -97,12 +97,12 @@ if (process.env.NODE_ENV === "development") {
 	// This handler now triggers the REAL update check process.
 	// electron-updater will use your dev-app-update.yml to find a release.
 	ipcMain.on("dev:trigger-real-update-check", async () => {
-		console.log("🛠️  [DevTools] Triggering a real update check...");
+		console.log("[DevTools] Triggering a real update check...");
 		try {
 			// This calls the actual checkForUpdates method on your Updater instance
 			await updater.checkForUpdates();
 		} catch (error) {
-			console.error("🛠️  [DevTools] Error during simulated check:", error);
+			console.error("[DevTools] Error during simulated check:", error);
 		}
 	});
 

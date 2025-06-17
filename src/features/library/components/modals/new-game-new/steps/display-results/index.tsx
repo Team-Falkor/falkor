@@ -17,8 +17,7 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 	const [searchQuery, setSearchQuery] = useState(filename);
 	const { results, loading, error } = useSearch(searchQuery);
 
-	const { selectedGame, setSelectedGame, updateGame, reset } =
-		useNewGameStore();
+	const { selectedGame, setSelectedGame, updateGame } = useNewGameStore();
 
 	console.log(`${LOG_PREFIX} Render. Initial filename:`, {
 		filename,
@@ -33,7 +32,9 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 			const steamId = getSteamIdFromWebsites(selected.websites);
 			const gameUpdate = {
 				gameName: selected.name,
-				gameIcon: `https://images.igdb.com/igdb/image/upload/t_thumb/${selected.cover.image_id}.png`,
+				gameIcon: selected.cover
+					? `https://images.igdb.com/igdb/image/upload/t_thumb/${selected.cover.image_id}.png`
+					: undefined,
 				igdbId: selected.id?.toString(),
 				steamId: steamId,
 			};
@@ -61,12 +62,11 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 				);
 				handleGameSelection(results[0]);
 			} else {
-				console.log(`${LOG_PREFIX} No results found. Resetting store.`);
+				console.log(`${LOG_PREFIX} No results found.`);
 				setSelectedGame(null);
-				reset();
 			}
 		}
-	}, [results, loading, error, handleGameSelection, setSelectedGame, reset]);
+	}, [results, loading, error, handleGameSelection, setSelectedGame]);
 
 	return (
 		<div className="flex h-full w-full flex-col gap-4 overflow-hidden py-4">
@@ -86,7 +86,8 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 				)}
 				{!loading && results?.length === 0 && (
 					<div className="p-4 text-center text-muted-foreground">
-						No results found for "{searchQuery}".
+						No results found for "{searchQuery}". You can adjust details in the
+						next step.
 					</div>
 				)}
 				{(results ?? []).map((result) => (

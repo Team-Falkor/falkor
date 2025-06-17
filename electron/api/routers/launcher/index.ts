@@ -11,11 +11,11 @@ const emitter = new EventEmitter();
 // Store event listeners in a WeakMap to allow garbage collection
 const eventListeners = new WeakMap<
 	GameProcessLauncher,
-	{ onPlaying: (gameId: string) => void; onStopped: (gameId: string) => void }
+	{ onPlaying: (id: number) => void; onStopped: (id: number) => void }
 >();
 
 const launchInputSchema = z.object({
-	gameId: z.string(),
+	id: z.number(),
 	args: z.array(z.string()).optional(),
 });
 
@@ -26,7 +26,7 @@ export const gameLauncherRouter = router({
 			const game = await ctx.db
 				.select()
 				.from(libraryGames)
-				.where(eq(libraryGames.gameId, input.gameId))
+				.where(eq(libraryGames.id, input.id))
 				.get();
 
 			if (!game) return { success: false, error: "Game not found" };
@@ -34,7 +34,7 @@ export const gameLauncherRouter = router({
 				return { success: false, error: "Game path not found" };
 
 			const launcher = new GameProcessLauncher({
-				gameId: game.gameId,
+				id: game.id,
 				gamePath: game.gamePath,
 				gameName: game.gameName,
 				gameIcon: game.gameIcon ?? undefined,
@@ -42,12 +42,13 @@ export const gameLauncherRouter = router({
 				gameArgs: input.args,
 				commandOverride: game.gameCommand ?? undefined,
 				winePrefixPath: game.winePrefixFolder ?? undefined,
+				runAsAdmin: game.runAsAdmin,
 			});
 
 			// Create and store event listeners
 			const listeners = {
-				onPlaying: (gameId: string) => emitter.emit("game:playing", gameId),
-				onStopped: (gameId: string) => emitter.emit("game:stopped", gameId),
+				onPlaying: (id: number) => emitter.emit("game:playing", id),
+				onStopped: (id: number) => emitter.emit("game:stopped", id),
 			};
 			eventListeners.set(launcher, listeners);
 
@@ -71,9 +72,9 @@ export const gameLauncherRouter = router({
 		}),
 
 	stop: publicProcedure
-		.input(z.object({ gameId: z.string() }))
+		.input(z.object({ id: z.number() }))
 		.mutation(({ input }) => {
-			const launcher = gamesLaunched.get(input.gameId);
+			const launcher = gamesLaunched.get(input.id);
 			if (launcher) {
 				launcher.stop();
 				return { success: true };
@@ -82,9 +83,9 @@ export const gameLauncherRouter = router({
 		}),
 
 	isRunning: publicProcedure
-		.input(z.object({ gameId: z.string() }))
+		.input(z.object({ id: z.number() }))
 		.query(({ input }) => {
-			return { running: gamesLaunched.has(input.gameId) };
+			return { running: gamesLaunched.has(input.id) };
 		}),
 
 	getRunning: publicProcedure.query(() => {
@@ -110,13 +111,13 @@ export const gameLauncherRouter = router({
 			while (true) {
 				// Wait for either playing or stopped event
 				const result = await Promise.race([
-					emitOnce<string>(emitter, "game:playing").then((gameId) => ({
+					emitOnce<number>(emitter, "game:playing").then((id) => ({
 						type: "playing" as const,
-						gameId,
+						id,
 					})),
-					emitOnce<string>(emitter, "game:stopped").then((gameId) => ({
+					emitOnce<number>(emitter, "game:stopped").then((id) => ({
 						type: "stopped" as const,
-						gameId,
+						id,
 					})),
 				]);
 
