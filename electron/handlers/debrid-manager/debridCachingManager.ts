@@ -15,8 +15,6 @@ interface Options {
 
 const debridManager = DebridManager.getInstance();
 
-// TODO: instead of in interval to constantly check and download we need to just check the torrent info to not create mutiple downloads on debrid service
-
 export class DebridCachingManager extends EventEmitter {
 	// data from addDOwnload
 	private type: Type;
