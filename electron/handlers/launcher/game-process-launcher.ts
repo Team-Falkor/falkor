@@ -3,10 +3,8 @@ import EventEmitter from "node:events";
 import fs from "node:fs";
 import { db } from "@backend/database";
 import { libraryGames } from "@backend/database/schemas";
-import { exec } from "@expo/sudo-prompt"; // CORRECTED IMPORT
 import { eq } from "drizzle-orm";
 import ms from "ms";
-import open from "open";
 import { AchievementItem } from "../achievements/item";
 import logger from "../logging";
 import { gamesLaunched } from "./games-launched";
@@ -21,7 +19,6 @@ interface LauncherOptions {
 	gameArgs?: string[];
 	commandOverride?: string;
 	winePrefixPath?: string;
-	runAsAdmin?: boolean;
 }
 
 export default class GameProcessLauncher extends EventEmitter {
@@ -29,7 +26,6 @@ export default class GameProcessLauncher extends EventEmitter {
 	private readonly gamePath: string;
 	private readonly commandOverride?: string;
 	private readonly achievementItem?: AchievementItem;
-	private readonly launchType: "file" | "url";
 
 	private process: ChildProcess | null = null;
 	private startTime = 0;
@@ -39,36 +35,14 @@ export default class GameProcessLauncher extends EventEmitter {
 
 	constructor(opts: LauncherOptions) {
 		super();
+		const resolvedPath = resolveExecutablePath(opts.gamePath);
+		if (!fs.existsSync(resolvedPath) || !fs.statSync(resolvedPath).isFile()) {
+			throw new Error(`Invalid executable: ${opts.gamePath}`);
+		}
 
 		this.gameId = opts.gameId;
+		this.gamePath = resolvedPath;
 		this.commandOverride = opts.commandOverride;
-
-		// Determine the launch strategy based on the gamePath format
-		if (opts.gamePath.startsWith("steam://")) {
-			this.launchType = "url";
-			this.gamePath = opts.gamePath; // The path is the URL itself
-			logger.log("info", `Identified URL-based game: ${this.gamePath}`);
-		} else if (opts.gamePath.toLowerCase().endsWith(".url")) {
-			// Handle Windows Internet Shortcut files (.url)
-			logger.log("info", `Identified a .url shortcut: ${opts.gamePath}`);
-			const fileContent = fs.readFileSync(opts.gamePath, "utf-8");
-			const match = fileContent.match(/^URL=(.*)$/m);
-			if (match?.[1]) {
-				this.launchType = "url";
-				this.gamePath = match[1].trim(); // The real path is the extracted URL
-				logger.log("info", `Extracted target URL: ${this.gamePath}`);
-			} else {
-				throw new Error(`Invalid or malformed .url file: ${opts.gamePath}`);
-			}
-		} else {
-			// This is the original logic for file-based games
-			this.launchType = "file";
-			const resolvedPath = resolveExecutablePath(opts.gamePath);
-			if (!fs.existsSync(resolvedPath) || !fs.statSync(resolvedPath).isFile()) {
-				throw new Error(`Invalid executable file path: ${opts.gamePath}`);
-			}
-			this.gamePath = resolvedPath;
-		}
 
 		if (opts.steamId) {
 			this.achievementItem = new AchievementItem({
@@ -81,58 +55,25 @@ export default class GameProcessLauncher extends EventEmitter {
 		}
 	}
 
-	/**
-	 * Launches a game with elevated privileges. This is a "fire-and-forget"
-	 * method and does NOT support playtime tracking or process management.
-	 */
-	public async launchAsAdmin(args: string[] = []): Promise<void> {
-		if (this.launchType !== "file") {
-			throw new Error(
-				"Cannot launch as admin: This feature is only available for file-based games, not URL protocols.",
-			);
-		}
-
-		logger.log("info", `Attempting to launch ${this.gameId} as admin.`);
-		const fullCommand = [`"${this.gamePath}"`, ...args].join(" ");
-
-		try {
-			await exec(fullCommand, { name: "Falkor App" });
-			logger.log("info", `Successfully launched ${this.gameId} as admin.`);
-		} catch (error) {
-			logger.error(`Failed to launch ${this.gameId} as admin: ${error}`);
-			throw error;
-		}
-	}
-
-	/**
-	 * Launches the game using the determined strategy and begins tracking.
-	 */
-	public async launch(args: string[] = []): Promise<void> {
+	/** Launches the game process and begins tracking. */
+	public launch(args: string[] = []): void {
 		if (this.isActive) {
 			logger.log("warn", `Game ${this.gameId} is already running.`);
 			return;
 		}
 
-		try {
-			if (this.launchType === "url") {
-				// Use 'open' for protocols like steam:// to get a process handle
-				this.process = await open(this.gamePath, { wait: false });
-			} else {
-				// Use 'safeSpawn' for direct file execution
-				const executable = this.commandOverride || this.gamePath;
-				const spawnArgs = this.commandOverride
-					? [this.gamePath, ...args]
-					: args;
-				this.process = safeSpawn(executable, spawnArgs, { cwd: process.cwd() });
-			}
+		const executable = this.commandOverride || this.gamePath;
+		const spawnArgs = this.commandOverride ? [this.gamePath, ...args] : args;
 
-			// This tracking logic now works for BOTH launch types
+		try {
+			this.process = safeSpawn(executable, spawnArgs, { cwd: process.cwd() });
 			this.process.unref();
+
 			this.process.once("exit", (code, signal) =>
 				this.handleExit(code, signal),
 			);
 			this.process.once("error", (err) =>
-				logger.log("error", `Error launching process: ${err.message}`),
+				logger.log("error", `Error: ${err.message}`),
 			);
 
 			this.startTracking();
@@ -145,7 +86,6 @@ export default class GameProcessLauncher extends EventEmitter {
 				"error",
 				`Failed to launch ${this.gameId}: ${(err as Error).message}`,
 			);
-			throw err;
 		}
 	}
 
