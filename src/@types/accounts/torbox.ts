@@ -22,7 +22,6 @@ export interface TorBoxTorrentInfoResult {
 	download_present: boolean;
 	files: TorBoxTorrentInfoResultFile[];
 	download_path: string;
-	inactive_check: number;
 	availability: number;
 	download_finished: boolean;
 	tracker?: string | null;
@@ -34,46 +33,51 @@ export interface TorBoxTorrentInfoResult {
 	allow_zipped: boolean;
 	long_term_seeding: boolean;
 	tracker_message?: string;
+	cached_at?: Date;
 }
 
 export interface TorBoxTorrentInfoResultFile {
 	id: number;
-	md5: string;
+	md5?: string;
 	hash: string;
 	name: string;
 	size: number;
 	s3_path: string;
+	infected: boolean;
 	mimetype: string;
 	short_name: string;
 	absolute_path: string;
 }
 
 export interface TorBoxUser {
-	id?: number;
-	auth_id?: string;
-	created_at?: string;
-	updated_at?: string;
-	plan?: number;
-	total_downloaded?: number;
-	customer?: string;
-	is_subscribed?: boolean;
-	premium_expires_at?: string;
-	cooldown_until?: string;
-	email?: string;
-	user_referral?: string;
-	base_email?: string;
-	total_bytes_downloaded?: number;
-	total_bytes_uploaded?: number;
-	torrents_downloaded?: number;
-	web_downloads_downloaded?: number;
-	usenet_downloads_downloaded?: number;
-	additional_concurrent_slots?: number;
-	long_term_seeding?: boolean;
-	long_term_storage?: boolean;
+	id: number;
+	auth_id: string;
+	created_at: string;
+	updated_at: string;
+	plan: number;
+	total_downloaded: number;
+	customer: string;
+	is_subscribed: boolean;
+	premium_expires_at: string;
+	cooldown_until: string;
+	email: string;
+	user_referral: string;
+	base_email: string;
+	total_bytes_downloaded: number;
+	total_bytes_uploaded: number;
+	torrents_downloaded: number;
+	web_downloads_downloaded: number;
+	usenet_downloads_downloaded: number;
+	additional_concurrent_slots: number;
+	long_term_seeding: boolean;
+	long_term_storage: boolean;
+	is_vendor: boolean;
+	vendor_id?: string;
+	purchases_referred: number;
 }
 
 export interface TorBoxSimpleResponse {
-	success?: boolean;
+	success: boolean;
 	error?: string;
 	detail?: string;
 }
@@ -82,9 +86,8 @@ export interface TorBoxResponse<T> extends TorBoxSimpleResponse {
 	data?: T;
 }
 
-export interface TorBoxQueuedTorrent {
+export interface TorBoxQueuedDownload {
 	id: number;
-	auth_id: string;
 	created_at: Date;
 	magnet: string;
 	torrent_file?: string | null;
@@ -117,7 +120,6 @@ export const TorBoxDefaultInfo: TorBoxTorrentInfoResult = {
 	download_present: false,
 	files: [],
 	download_path: "",
-	inactive_check: 0,
 	availability: 0,
 	download_finished: false,
 	tracker: undefined,
@@ -147,28 +149,4 @@ export interface TorBoxAddTorrent {
 	hash?: string;
 	torrent_id?: number;
 	auth_id?: string;
-}
-
-export interface User {
-	id?: number;
-	auth_id?: string;
-	created_at?: string;
-	updated_at?: string;
-	plan?: number;
-	total_downloaded?: number;
-	customer?: string;
-	is_subscribed?: boolean;
-	premium_expires_at?: string;
-	cooldown_until?: string;
-	email?: string;
-	user_referral?: string;
-	base_email?: string;
-	total_bytes_downloaded?: number;
-	total_bytes_uploaded?: number;
-	torrents_downloaded?: number;
-	web_downloads_downloaded?: number;
-	usenet_downloads_downloaded?: number;
-	additional_concurrent_slots?: number;
-	long_term_seeding?: boolean;
-	long_term_storage?: boolean;
 }
