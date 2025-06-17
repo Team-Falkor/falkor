@@ -7,9 +7,10 @@ import {
 	RealDebridAuthService,
 	RealDebridClient,
 } from "../api-wrappers/real-debrid";
+import { TorBoxClient } from "../api-wrappers/torbox";
 import type { DebridCachingManager } from "./debridCachingManager";
 
-type DebridService = RealDebridClient;
+export type DebridService = RealDebridClient | TorBoxClient;
 type DebridServiceType = "real-debrid" | "torbox";
 
 export const debridProviders: Map<DebridServiceType, DebridService> = new Map();
@@ -143,6 +144,33 @@ export const initRealDebrid = async (
 	return client;
 };
 
+export const initTorBox = async (
+	currentApiKey: string,
+	forceReinitialize = false,
+): Promise<TorBoxClient> => {
+	if (!currentApiKey) {
+		throw new Error("TorBox: Missing required Api Key");
+	}
+
+	let client = debridProviders.get("torbox") as
+	| TorBoxClient
+	| undefined;
+
+	if (forceReinitialize || !client) {
+		const action = forceReinitialize
+			? "Re-creating client due to forceReinitialize"
+			: "Creating new client instance";
+		console.info(`RealDebrid: ${action}.`);
+
+		client = TorBoxClient.getInstance(currentApiKey);
+		debridProviders.set("torbox", client);
+	} else {
+		console.info("TorBox: Returning existing client instance.");
+	}
+
+	return client;
+};
+
 // Initialize providers from database
 const initializeProviders = async (): Promise<void> => {
 	if (isInitialized) return;
@@ -152,52 +180,78 @@ const initializeProviders = async (): Promise<void> => {
 		const realDebridFromDB = externalAccounts.find(
 			(account) => account.type === "real-debrid",
 		);
-
-		if (!realDebridFromDB) {
-			console.info("RealDebrid: No account found in database");
+		const torBoxFromDB = externalAccounts.find(
+			(account) => account.type === "torbox",
+		);
+		if (!realDebridFromDB && !torBoxFromDB) {
+			console.info("No RealDebrid or TorBox accounts found in database.");
 			isInitialized = true;
 			return;
 		}
+		if (realDebridFromDB) {
+			const now = new Date();
+			const expiresInTimestamp = realDebridFromDB.expiresIn ?? 0;
+			const hasExpired = expiresInTimestamp < now.getTime();
 
-		const now = new Date();
-		const expiresInTimestamp = realDebridFromDB.expiresIn ?? 0;
-		const hasExpired = expiresInTimestamp < now.getTime();
+			if (
+				realDebridFromDB.accessToken &&
+				realDebridFromDB.clientSecret &&
+				realDebridFromDB.clientId
+			) {
+				await initRealDebrid(
+					realDebridFromDB.accessToken,
+					realDebridFromDB.refreshToken,
+					realDebridFromDB.clientSecret,
+					realDebridFromDB.clientId,
+					hasExpired,
+					true,
+				);
+				console.info("RealDebrid: Successfully initialized from database");
+			} else {
+				// Determine which credentials are missing
+				const missingCredentials = [];
+				if (!realDebridFromDB.accessToken)
+					missingCredentials.push("Access Token");
+				if (!realDebridFromDB.clientSecret)
+					missingCredentials.push("Client Secret");
+				if (!realDebridFromDB.clientId) missingCredentials.push("Client ID");
 
-		if (
-			realDebridFromDB.accessToken &&
-			realDebridFromDB.clientSecret &&
-			realDebridFromDB.clientId
-		) {
-			await initRealDebrid(
-				realDebridFromDB.accessToken,
-				realDebridFromDB.refreshToken,
-				realDebridFromDB.clientSecret,
-				realDebridFromDB.clientId,
-				hasExpired,
-				true,
-			);
-			console.info("RealDebrid: Successfully initialized from database");
-		} else {
-			// Determine which credentials are missing
-			const missingCredentials = [];
-			if (!realDebridFromDB.accessToken)
-				missingCredentials.push("Access Token");
-			if (!realDebridFromDB.clientSecret)
-				missingCredentials.push("Client Secret");
-			if (!realDebridFromDB.clientId) missingCredentials.push("Client ID");
+				const missingItems = missingCredentials.join(", ");
 
-			const missingItems = missingCredentials.join(", ");
+				console.warn("RealDebrid: Missing required credentials in database");
 
-			console.warn("RealDebrid: Missing required credentials in database");
+				await setTimeout(5000);
 
-			await setTimeout(5000);
-
-			sendToastNotification({
-				type: "error",
-				message: "RealDebrid Configuration Error",
-				description: `Missing required credentials: ${missingItems}. Please reconfigure your RealDebrid account in settings.`,
-			});
+				sendToastNotification({
+					type: "error",
+					message: "RealDebrid Configuration Error",
+					description: `Missing required credentials: ${missingItems}. Please reconfigure your RealDebrid account in settings.`,
+				});
+			}
 		}
+
+		if (torBoxFromDB) {
+			if (torBoxFromDB.accessToken) {
+				await initTorBox(
+					torBoxFromDB.accessToken,
+					true,
+				);
+				console.info("TorBox: Successfully initialized from database");
+			} else {
+				console.warn("RealDebrid: Missing required credentials in database");
+
+				await setTimeout(5000);
+
+				sendToastNotification({
+					type: "error",
+					message: "TorBox Configuration Error",
+					description: `Missing API key. Please reconfigure your TorBox account in settings.`,
+				});
+			}
+
+		}
+
+		
 	} catch (error) {
 		console.error("RealDebrid: Failed to initialize from database:", error);
 	} finally {

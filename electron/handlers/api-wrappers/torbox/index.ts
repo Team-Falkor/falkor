@@ -1,6 +1,7 @@
 import { getInfoHashFromMagnet } from "@backend/utils/utils";
 import { Torrents } from "./services/torrents";
 import { User } from "./services/user";
+import { WebDownloads } from "./services/webDownloads";
 import { toast } from "sonner";
 import { TorBoxTorrentInfoResult } from "@/@types/accounts";
 
@@ -10,6 +11,7 @@ class TorBoxClient {
 
   public readonly user: 	User;
   public readonly torrents: Torrents;
+  public readonly webDownloads: WebDownloads;
 
   private constructor(apiKey: string) {
     if (!apiKey) {
@@ -20,6 +22,7 @@ class TorBoxClient {
     this.apiKey = apiKey;
     this.user = new User(apiKey);
     this.torrents = new Torrents(apiKey);
+	  this.webDownloads = new WebDownloads(apiKey);
   }
 
   public static getInstance(apiKey: string): TorBoxClient {
@@ -57,7 +60,7 @@ class TorBoxClient {
     return foundTorrent!;
   }
 
-  public async downloadTorrentFromMagnet(magnetLink: string): Promise<string> {
+  public async downloadTorrentFromMagnet(magnetLink: string): Promise<TorBoxTorrentInfoResult> {
     const torrentInfo = await this.getOrCreateTorrent(
       decodeURIComponent(magnetLink)
     );
@@ -69,14 +72,7 @@ class TorBoxClient {
       throw new Error("Torrent has not completed downloading.");
     }
 
-    const downloadLink = await this.torrents.getZipDL(
-      torrentInfo.id.toString()
-    );
-
-    if (downloadLink) {
-      return downloadLink;
-    }
-    throw Error("Could not obtain download link.");
+    return torrentInfo;
   }
 
   public async downloadFromFileHost(
@@ -100,4 +96,4 @@ class TorBoxClient {
   }
 }
 
-export default TorBoxClient;
+export { TorBoxClient };
