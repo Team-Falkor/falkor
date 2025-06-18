@@ -8,7 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import util from "node:util";
 import logger from "@backend/handlers/logging";
-import sudo from "@expo/sudo-prompt"; // Import the sudo-prompt package
+import sudo from "@expo/sudo-prompt";
 
 interface ExtendedSpawnOptions extends SpawnOptions {
 	runAsAdmin?: boolean;
@@ -20,6 +20,16 @@ interface SpawnResult {
 	requiresPolling: boolean;
 }
 
+/**
+ * Safely spawns a child process, with optional administrative privileges.
+ * Supports cross-platform elevation using @expo/sudo-prompt.
+ *
+ * @param command The command to execute.
+ * @param args Arguments to pass to the command.
+ * @param options Spawn options, including an optional `runAsAdmin` flag.
+ * @returns An object indicating the spawned process (if directly available) and
+ *          whether process polling is required for tracking.
+ */
 export function safeSpawn(
 	command: string,
 	args: string[] = [],
@@ -33,49 +43,56 @@ export function safeSpawn(
 			"info",
 			`Attempting to run as admin on ${platform} using @expo/sudo-prompt`,
 		);
-
-		// @expo/sudo-prompt handles platform differences internally
 		return handleSudoPromptLaunch(command, args, processName);
 	}
 
 	return spawnNonAdmin(command, args, options, processName);
 }
 
+/**
+ * Handles launching a command with administrative privileges using @expo/sudo-prompt.
+ * This method relies on process polling for tracking as it doesn't return a direct ChildProcess object.
+ *
+ * @param command The full path to the executable.
+ * @param args Arguments to pass to the command.
+ * @param processName The base name of the process for tracking.
+ * @returns A SpawnResult indicating that polling is required for process tracking.
+ */
 function handleSudoPromptLaunch(
-	command: string, // This is the full path to the executable
+	command: string,
 	args: string[],
 	processName: string,
 ): SpawnResult {
-	// Ensure the command path itself is quoted, then add the quoted arguments.
-	// Windows CMD requires double quotes, and if a path already contains double quotes
-	// (which is less common for simple paths but possible), it needs special handling.
-	// For most game paths, simple double quoting is sufficient.
-	const quotedCommand = `"${command}"`; // Quote the executable path
+	// Enclose the executable path in double quotes to handle spaces correctly.
+	const quotedCommand = `"${command}"`;
+	// Quote each argument and escape any existing double quotes within them.
 	const quotedArgs = args
 		.map((arg) => `"${arg.replace(/"/g, '\\"')}"`)
-		.join(" "); // Quote each argument and escape existing quotes if any
+		.join(" ");
 
-	// Combine the quoted command and its quoted arguments
-	const commandToRun = `${quotedCommand} ${quotedArgs}`.trim(); // Use trim() to avoid trailing space if no args
+	// Construct the full command string for sudo-prompt.
+	const commandToRun = `${quotedCommand} ${quotedArgs}`.trim();
 
-	// Options for sudo-prompt. You can customize the name and icon.
+	// Configuration for the sudo-prompt dialog.
 	const sudoOptions = {
-		name: "Falkor Game Launcher",
-		// icns: '/path/to/your/app.icns', // Optional: for macOS icon
+		name: "Falkor Game Launcher", // Name displayed in the UAC/sudo prompt.
 	};
 
 	logger.log("debug", `sudo-prompt command: ${commandToRun}`);
 
 	sudo.exec(commandToRun, sudoOptions, (error, stdout, stderr) => {
+		// Log non-zero exits or errors from the elevated command execution.
 		if (error) {
 			logger.log(
 				"warn",
 				`sudo-prompt command finished with error/non-zero exit: ${error.message}`,
 			);
 		}
+		// Log standard output from the elevated command.
 		if (stdout) {
 			logger.log("debug", `sudo-prompt stdout: ${stdout}`);
 		}
+		// Log standard error from the elevated command.
 		if (stderr) {
 			logger.log("warn", `sudo-prompt stderr: ${stderr}`);
 		}
@@ -93,8 +110,15 @@ function handleSudoPromptLaunch(
 	};
 }
 
-// ... rest of your code remains the same ...
-
+/**
+ * Spawns a child process without administrative privileges.
+ *
+ * @param command The command to execute.
+ * @param args Arguments to pass to the command.
+ * @param options Spawn options for the child process.
+ * @param processName The base name of the process for tracking.
+ * @returns A SpawnResult containing the ChildProcess object for direct tracking.
+ */
 function spawnNonAdmin(
 	command: string,
 	args: string[],
@@ -104,13 +128,14 @@ function spawnNonAdmin(
 	logger.log("info", `Spawning non-admin: ${command} ${args.join(" ")}`);
 
 	try {
+		// Include environment variables, specifically setting WINEDEBUG for potential Wine compatibility.
 		const env = { ...process.env, WINEDEBUG: "fixme-all" };
 		const spawnOptions: SpawnOptions = {
-			detached: options.detached ?? true,
-			stdio: options.stdio ?? "ignore",
-			cwd: options.cwd,
-			env,
-			windowsHide: true,
+			detached: options.detached ?? true, // Detach the child process from the parent.
+			stdio: options.stdio ?? "ignore", // Redirect child process I/O to ignore or inherit.
+			cwd: options.cwd, // Set the current working directory for the child process.
+			env, // Pass environment variables.
+			windowsHide: true, // Hide the console window on Windows.
 		};
 
 		const child = spawn(command, args, spawnOptions);
@@ -118,7 +143,7 @@ function spawnNonAdmin(
 		return {
 			process: child,
 			processName,
-			requiresPolling: false,
+			requiresPolling: false, // Direct process tracking is possible.
 		};
 	} catch (e) {
 		logger.log("error", `Failed to spawn process: ${(e as Error).message}`);
@@ -126,7 +151,12 @@ function spawnNonAdmin(
 	}
 }
 
-// Enhanced process detection utilities
+/**
+ * Finds process IDs (PIDs) by their name across different operating systems.
+ *
+ * @param processName The name of the process to find (e.g., "chrome", "notepad").
+ * @returns A promise that resolves to an array of PIDs.
+ */
 export async function findProcessByName(
 	processName: string,
 ): Promise<number[]> {
@@ -135,19 +165,23 @@ export async function findProcessByName(
 
 	try {
 		if (platform === "win32") {
-			// Ensure .exe is appended for Windows process names
+			// On Windows, use wmic to find processes by name and get their PIDs.
+			// Append ".exe" for common executable names.
 			const { stdout } = await util.promisify(exec)(
 				`wmic process where "name='${processName}.exe'" get ProcessId /format:csv`,
 			);
 
 			const lines = stdout.split("\n");
 			for (const line of lines) {
+				// Extract PIDs from the CSV formatted output.
 				const match = line.match(/,(\d+)$/);
 				if (match) {
 					pids.push(Number.parseInt(match[1], 10));
 				}
 			}
 		} else if (platform === "darwin" || platform === "linux") {
+			// On macOS and Linux, use pgrep for process lookup.
+			// The -x flag ensures an exact match for the process name.
 			const { stdout } = await util.promisify(exec)(
 				`pgrep -x "${processName}"`,
 			);
@@ -162,8 +196,8 @@ export async function findProcessByName(
 		}
 	} catch (error) {
 		const err = error as { code?: number; message: string };
+		// Ignore error code 1, which means no processes were found.
 		if (err.code !== 1) {
-			// Code 1 means no processes found, which is fine
 			logger.log("error", `Error finding processes: ${err.message}`);
 		}
 	}
@@ -171,11 +205,24 @@ export async function findProcessByName(
 	return pids;
 }
 
+/**
+ * Checks if any process with the given name is currently running.
+ *
+ * @param processName The name of the process to check.
+ * @returns A promise that resolves to `true` if the process is running, `false` otherwise.
+ */
 export async function isProcessRunning(processName: string): Promise<boolean> {
 	const pids = await findProcessByName(processName);
 	return pids.length > 0;
 }
 
+/**
+ * Waits for a process with the given name to start within a specified timeout.
+ *
+ * @param processName The name of the process to wait for.
+ * @param timeoutMs The maximum time (in milliseconds) to wait for the process to start.
+ * @returns A promise that resolves to the PID of the first found process, or `null` if the timeout is reached.
+ */
 export async function waitForProcessToStart(
 	processName: string,
 	timeoutMs = 10000,
@@ -192,7 +239,7 @@ export async function waitForProcessToStart(
 			return pids[0];
 		}
 
-		// Wait 500ms before checking again
+		// Wait for a short duration before checking again to avoid busy-waiting.
 		await new Promise((resolve) => setTimeout(resolve, 500));
 	}
 
