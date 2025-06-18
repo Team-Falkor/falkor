@@ -4,11 +4,11 @@ import {
 	type SpawnOptions,
 	spawn,
 } from "node:child_process";
-import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import util from "node:util";
 import logger from "@backend/handlers/logging";
+import sudo from "@expo/sudo-prompt"; // Import the sudo-prompt package
 
 interface ExtendedSpawnOptions extends SpawnOptions {
 	runAsAdmin?: boolean;
@@ -29,114 +29,61 @@ export function safeSpawn(
 	const processName = path.basename(command, path.extname(command));
 
 	if (options.runAsAdmin) {
-		logger.log("info", `Attempting to run as admin on ${platform}`);
+		logger.log(
+			"info",
+			`Attempting to run as admin on ${platform} using @expo/sudo-prompt`,
+		);
 
-		try {
-			if (platform === "win32") {
-				return handleWindowsAdminLaunch(command, args, processName);
-			}
-			if (platform === "darwin") {
-				return handleMacAdminLaunch(command, args, processName);
-			}
-			if (platform === "linux") {
-				return handleLinuxAdminLaunch(command, args, options, processName);
-			}
-
-			logger.log("warn", `Admin mode not supported on platform: ${platform}`);
-			// Fallback to non-admin
-			return spawnNonAdmin(command, args, options, processName);
-		} catch (e) {
-			logger.log(
-				"error",
-				`Failed to launch with admin privileges: ${(e as Error).message}`,
-			);
-			// Fallback to non-admin
-			return spawnNonAdmin(command, args, options, processName);
-		}
+		// @expo/sudo-prompt handles platform differences internally
+		return handleSudoPromptLaunch(command, args, processName);
 	}
 
 	return spawnNonAdmin(command, args, options, processName);
 }
 
-function handleWindowsAdminLaunch(
-	command: string,
+function handleSudoPromptLaunch(
+	command: string, // This is the full path to the executable
 	args: string[],
 	processName: string,
 ): SpawnResult {
-	const gameDir = path.dirname(command);
-	const argString = args.map((arg) => `"${arg.replace(/"/g, '`"')}"`).join(" ");
+	// Ensure the command path itself is quoted, then add the quoted arguments.
+	// Windows CMD requires double quotes, and if a path already contains double quotes
+	// (which is less common for simple paths but possible), it needs special handling.
+	// For most game paths, simple double quoting is sufficient.
+	const quotedCommand = `"${command}"`; // Quote the executable path
+	const quotedArgs = args
+		.map((arg) => `"${arg.replace(/"/g, '\\"')}"`)
+		.join(" "); // Quote each argument and escape existing quotes if any
 
-	// Use a batch file approach for better process tracking
-	const batchContent = `@echo off
-cd /d "${gameDir}"
-"${command}" ${argString}`;
+	// Combine the quoted command and its quoted arguments
+	const commandToRun = `${quotedCommand} ${quotedArgs}`.trim(); // Use trim() to avoid trailing space if no args
 
-	const tempDir = os.tmpdir();
-	const batchFile = path.join(tempDir, `game_launcher_${Date.now()}.bat`);
+	// Options for sudo-prompt. You can customize the name and icon.
+	const sudoOptions = {
+		name: "Falkor Game Launcher",
+		// icns: '/path/to/your/app.icns', // Optional: for macOS icon
+	};
 
-	try {
-		fs.writeFileSync(batchFile, batchContent);
+	logger.log("debug", `sudo-prompt command: ${commandToRun}`);
 
-		// Launch the batch file with admin privileges
-		const psCommand = `Start-Process -FilePath '${batchFile.replace(/'/g, "''")}' -Verb RunAs -WindowStyle Hidden -Wait`;
-
-		logger.log("debug", `PowerShell command: ${psCommand}`);
-
-		const _child = spawn("powershell", ["-Command", psCommand], {
-			detached: true,
-			stdio: "ignore",
-			windowsHide: true,
-		});
-
-		// Clean up batch file after a delay
-		setTimeout(() => {
-			try {
-				if (fs.existsSync(batchFile)) {
-					fs.unlinkSync(batchFile);
-				}
-			} catch (e) {
-				logger.log("warn", `Failed to cleanup batch file: ${e}`);
-			}
-		}, 5000);
-
-		logger.log(
-			"info",
-			"Windows admin launch initiated. Process tracking will use polling.",
-		);
-
-		return {
-			process: null,
-			processName,
-			requiresPolling: true,
-		};
-	} catch (e) {
-		logger.log("error", `Failed to create batch file: ${e}`);
-		throw e;
-	}
-}
-
-function handleMacAdminLaunch(
-	command: string,
-	args: string[],
-	processName: string,
-): SpawnResult {
-	const gameDir = path.dirname(command);
-	const quotedArgs = args.map((arg) => `'${arg.replace(/'/g, "'\\''")}'`);
-	const commandToRun = `"${command.replace(/"/g, '\\"')}" ${quotedArgs.join(" ")}`;
-
-	// Create a script that changes directory and runs the command
-	const script = `do shell script "cd \\"${gameDir.replace(/"/g, '\\"')}\\" && ${commandToRun}" with administrator privileges`;
-
-	logger.log("debug", `osascript command: ${script}`);
-
-	const _child = spawn("osascript", ["-e", script], {
-		detached: true,
-		stdio: "ignore",
+	sudo.exec(commandToRun, sudoOptions, (error, stdout, stderr) => {
+		if (error) {
+			logger.log(
+				"warn",
+				`sudo-prompt command finished with error/non-zero exit: ${error.message}`,
+			);
+		}
+		if (stdout) {
+			logger.log("debug", `sudo-prompt stdout: ${stdout}`);
+		}
+		if (stderr) {
+			logger.log("warn", `sudo-prompt stderr: ${stderr}`);
+		}
 	});
 
 	logger.log(
 		"info",
-		"macOS admin launch initiated. Process tracking will use polling.",
+		`Admin launch initiated via @expo/sudo-prompt. Process tracking will use polling for: ${processName}.`,
 	);
 
 	return {
@@ -146,42 +93,7 @@ function handleMacAdminLaunch(
 	};
 }
 
-function handleLinuxAdminLaunch(
-	command: string,
-	args: string[],
-	options: ExtendedSpawnOptions,
-	processName: string,
-): SpawnResult {
-	const elevator = determineLinuxElevator();
-	const cmdArgs = [command, ...args];
-
-	logger.log("info", `Using ${elevator} for elevation.`);
-
-	const child = spawn(elevator, cmdArgs, {
-		...options,
-		stdio: options.stdio || "inherit",
-		detached: true,
-	});
-
-	return {
-		process: child,
-		processName,
-		requiresPolling: false,
-	};
-}
-
-function determineLinuxElevator(): string {
-	if (process.env.DISPLAY && fs.existsSync("/usr/bin/pkexec")) {
-		return "pkexec";
-	}
-	if (fs.existsSync("/usr/bin/sudo")) {
-		return "sudo";
-	}
-	if (fs.existsSync("/usr/bin/doas")) {
-		return "doas";
-	}
-	return "sudo"; // Fallback
-}
+// ... rest of your code remains the same ...
 
 function spawnNonAdmin(
 	command: string,
@@ -223,6 +135,7 @@ export async function findProcessByName(
 
 	try {
 		if (platform === "win32") {
+			// Ensure .exe is appended for Windows process names
 			const { stdout } = await util.promisify(exec)(
 				`wmic process where "name='${processName}.exe'" get ProcessId /format:csv`,
 			);
