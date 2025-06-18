@@ -11,10 +11,17 @@ interface UseSearchResult {
 	clearRecent: () => void;
 }
 
+interface UseSearchOptions {
+	limit?: number;
+	enableRecentSearches?: boolean;
+}
+
 export default function useSearch(
 	query: string,
-	limit?: number,
+	options?: UseSearchOptions,
 ): UseSearchResult {
+	const { limit, enableRecentSearches = true } = options ?? {};
+
 	const [debouncedQuery, setDebouncedQuery] = useState(query);
 	const { recentSearches, addSearch, clearSearches } = useRecentSearches(
 		"recentSearches",
@@ -31,9 +38,10 @@ export default function useSearch(
 		{ enabled: Boolean(debouncedQuery) },
 	);
 
-	// Record successful searches
+	// Record successful searches conditionally
 	useEffect(() => {
 		if (
+			enableRecentSearches && // Check the improved option
 			debouncedQuery &&
 			data &&
 			data.length > 0 &&
@@ -41,7 +49,7 @@ export default function useSearch(
 		) {
 			addSearch(debouncedQuery);
 		}
-	}, [debouncedQuery, data, addSearch, recentSearches]);
+	}, [debouncedQuery, data, addSearch, recentSearches, enableRecentSearches]);
 
 	return {
 		results: data ?? [],

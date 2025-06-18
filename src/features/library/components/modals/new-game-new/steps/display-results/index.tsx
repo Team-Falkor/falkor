@@ -15,7 +15,10 @@ const LOG_PREFIX = "[DisplayResultsStop]";
 
 export const DisplayResultsStop = ({ filename }: Props) => {
 	const [searchQuery, setSearchQuery] = useState(filename);
-	const { results, loading, error } = useSearch(searchQuery);
+	const { results, loading, error } = useSearch(searchQuery, {
+		enableRecentSearches: false,
+		limit: 10,
+	});
 
 	const { selectedGame, setSelectedGame, updateGame } = useNewGameStore();
 
