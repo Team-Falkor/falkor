@@ -1,6 +1,6 @@
 import "@/@types/accounts/torbox";
 import { TorBoxAPI } from "./api";
-import {
+import type {
   TorBoxResponse,
   TorBoxWebDownloadItem,
   TorBoxAddWebDownload

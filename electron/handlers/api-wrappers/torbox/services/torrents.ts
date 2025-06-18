@@ -1,18 +1,15 @@
 import "@/@types/accounts/torbox";
 import { TorBoxAPI } from "./api";
 import {
-  TorBoxAddTorrent,
-  TorBoxAvailableTorrent,
+  type TorBoxAddTorrent,
+  type TorBoxAvailableTorrent,
   TorBoxDefaultInfo,
-  TorBoxQueuedDownload,
-  TorBoxResponse,
-  TorBoxTorrentInfoResult,
+  type TorBoxQueuedDownload,
+  type TorBoxResponse,
+  type TorBoxTorrentInfoResult,
 } from "@/@types/accounts/torbox";
 
 export class Torrents extends TorBoxAPI {
-  constructor(accessToken: string) {
-    super(accessToken);
-  }
   public async getHashInfo(
     hash: string
   ): Promise<TorBoxTorrentInfoResult | null> {
@@ -40,7 +37,7 @@ export class Torrents extends TorBoxAPI {
   public async getCurrent(): Promise<TorBoxTorrentInfoResult[] | null> {
     const response = await this.makeRequest<
       TorBoxResponse<TorBoxTorrentInfoResult[]>
-    >(`torrents/mylist?bypass_cache=true`, "GET", true);
+    >("torrents/mylist?bypass_cache=true", "GET", true);
 
     return response?.data || null;
   }
@@ -48,7 +45,7 @@ export class Torrents extends TorBoxAPI {
   public async getQueued(): Promise<TorBoxTorrentInfoResult[] | null> {
     const response = await this.makeRequest<
       TorBoxResponse<TorBoxQueuedDownload[]>
-    >("torrents/getqueued", "GET", true);
+    >("queued/getqueued?type=torrent", "GET", true);
 
     if (!response || !response.data) {
       return null;
@@ -151,7 +148,7 @@ export class Torrents extends TorBoxAPI {
       operation: "delete",
     });
     await this.makeRequest(
-      `torrents/controltorrent`,
+      "torrents/controltorrent",
       "POST",
       true,
       body.toString()

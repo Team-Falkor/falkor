@@ -1,10 +1,7 @@
-import { TorBoxResponse, TorBoxUser } from "@/@types/accounts";
+import type { TorBoxResponse, TorBoxUser } from "@/@types/accounts";
 import { TorBoxAPI } from "./api";
 
 export class User extends TorBoxAPI {
-  constructor(api_key: string) {
-    super(api_key);
-  }
 
   public async getUserInfo(): Promise<TorBoxUser | null> {
     const response = await this.makeRequest<TorBoxResponse<TorBoxUser>>(

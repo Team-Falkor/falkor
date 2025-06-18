@@ -131,6 +131,7 @@ export const TorBoxDefaultInfo: TorBoxTorrentInfoResult = {
 	allow_zipped: false,
 	long_term_seeding: false,
 	tracker_message: undefined,
+	cached_at: undefined,
 };
 
 export interface TorBoxAvailableTorrent {

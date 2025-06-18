@@ -3,13 +3,13 @@ import { Torrents } from "./services/torrents";
 import { User } from "./services/user";
 import { WebDownloads } from "./services/webDownloads";
 import { toast } from "sonner";
-import { TorBoxTorrentInfoResult } from "@/@types/accounts";
+import type { TorBoxTorrentInfoResult } from "@/@types/accounts";
 
 class TorBoxClient {
   private static instance: TorBoxClient | null = null;
   private readonly apiKey: string;
 
-  public readonly user: 	User;
+  public readonly user: User;
   public readonly torrents: Torrents;
   public readonly webDownloads: WebDownloads;
 
@@ -22,7 +22,8 @@ class TorBoxClient {
     this.apiKey = apiKey;
     this.user = new User(apiKey);
     this.torrents = new Torrents(apiKey);
-	  this.webDownloads = new WebDownloads(apiKey);
+    this.webDownloads = new WebDownloads(apiKey);
+    console.log("TorBoxClient initialized");
   }
 
   public static getInstance(apiKey: string): TorBoxClient {
@@ -57,20 +58,18 @@ class TorBoxClient {
     }
 
     foundTorrent = await this.torrents.getHashInfo(infoHash);
-    return foundTorrent!;
+    if (!foundTorrent) {
+      throw new Error("Failed to retrieve added torrent info.");
+    }
+    return foundTorrent;
   }
 
-  public async downloadTorrentFromMagnet(magnetLink: string): Promise<TorBoxTorrentInfoResult> {
+  public async downloadTorrentFromMagnet(
+    magnetLink: string
+  ): Promise<TorBoxTorrentInfoResult> {
     const torrentInfo = await this.getOrCreateTorrent(
       decodeURIComponent(magnetLink)
     );
-
-    if (!torrentInfo || !torrentInfo.download_present) {
-      toast.warning(
-        "Download has not been cached yet. Please try again later."
-      );
-      throw new Error("Torrent has not completed downloading.");
-    }
 
     return torrentInfo;
   }

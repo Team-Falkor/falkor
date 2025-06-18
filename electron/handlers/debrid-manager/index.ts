@@ -155,7 +155,7 @@ export class DebridManager {
 				returnData = {
 					url: url,
 					isCaching: !result.download_present,
-					type: !result.download_present ? "magnet" : "ddl",
+					type: "ddl",
 					provider: provider,
 					progress: result.progress,
 					fileSize: result.size,

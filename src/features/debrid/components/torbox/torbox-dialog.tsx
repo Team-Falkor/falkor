@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Dispatch, SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import { obtainTorBoxUser } from "@backend/handlers/api-wrappers/torbox/services/auth";
+import { obtainTorBoxUser } from "./auth";
 import { H3 } from "@/components/ui/typography";
 import { trpc } from "@/lib";
 
@@ -29,15 +29,15 @@ const TorBoxDialogContent = ({ open, setOpen }: TorBoxDialogContentProps) => {
 
 			if (data) {
 				const ok = await addAccount({
-          username: data.email,
-          email: data.email,
-          avatar: undefined,
-          clientId: undefined,
-          clientSecret: apiKey.trim(),
-          accessToken: apiKey.trim(),
-          refreshToken: apiKey.trim(),
-          expiresIn: -1,
-          type: "torbox",
+					username: data.email,
+					email: data.email,
+					avatar: undefined,
+					clientId: undefined,
+					clientSecret: apiKey.trim(),
+					accessToken: apiKey.trim(),
+					refreshToken: apiKey.trim(),
+					expiresIn: -1,
+					type: "torbox",
 				});
 
 				if (!ok) {
@@ -74,7 +74,7 @@ const TorBoxDialogContent = ({ open, setOpen }: TorBoxDialogContentProps) => {
 					onChange={(e) => setApiKey(e.target.value)}
 					placeholder="Enter API key"
 				/>
-				<div className="flex justify-end gap-3 mt-3">
+				<div className="mt-3 flex justify-end gap-3">
 					<Button onClick={handleClose} variant={"destructive"}>
 						Cancel
 					</Button>
