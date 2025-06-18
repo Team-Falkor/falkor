@@ -57,7 +57,7 @@ function TabsList({
 			});
 		};
 
-		handleUpdate(); // Initial update
+		handleUpdate();
 
 		const mutationObserver = new MutationObserver(handleUpdate);
 		mutationObserver.observe(listElement, {
@@ -69,7 +69,6 @@ function TabsList({
 		const resizeObserver = new ResizeObserver(handleUpdate);
 		resizeObserver.observe(listElement);
 
-		// Observe each direct child (TabsTrigger) for individual size changes
 		Array.from(listElement.children).forEach((child) => {
 			if (child instanceof HTMLElement) {
 				resizeObserver.observe(child);
@@ -91,10 +90,8 @@ function TabsList({
 				ref={listRef}
 				data-slot="tabs-list"
 				className={cn(
-					// Removed inline-flex, used just 'flex'
-					// Removed grid grid-cols-2
 					"relative flex h-10 items-center justify-center rounded-full bg-muted p-1 text-muted-foreground",
-					"w-full", // This remains crucial for spanning the parent's width
+					"w-full",
 					className,
 				)}
 				{...props}
