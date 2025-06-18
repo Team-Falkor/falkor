@@ -1,5 +1,4 @@
-import { StopIcon } from "@radix-ui/react-icons";
-import { Play } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import type { LibraryGame } from "@/@types";
 import { useGameLauncher } from "@/hooks/use-game-launcher";
 import { Button } from "./ui/button";
@@ -27,12 +26,12 @@ export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 		>
 			{isRunning ? (
 				<>
-					<StopIcon className="fill-black dark:fill-white" />
+					<Square className="fill-current" />
 					Stop Game
 				</>
 			) : (
 				<>
-					<Play className="fill-black dark:fill-white" />
+					<Play className="fill-current" />
 					Play Game
 				</>
 			)}
