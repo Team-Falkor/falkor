@@ -15,7 +15,6 @@ import PluginsSort, { type SortBy } from "./sort";
 const PluginSettings = () => {
 	const { t } = useLanguageContext();
 	const [open, setOpen] = useState(false);
-	const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 	const [showRows, setShowRows] = useState<boolean>(false);
 	const [sortBy, setSortBy] = useState<SortBy>("alphabetic-asc");
 	const [search, setSearch] = useState("");
@@ -39,12 +38,9 @@ const PluginSettings = () => {
 						</TabsList>
 
 						<div className="flex items-end justify-between gap-4 rounded-xl bg-muted/30 p-3.5">
-							<PluginSearch
-								isSearchExpanded={isSearchExpanded}
-								setIsSearchExpanded={setIsSearchExpanded}
-								search={search}
-								setSearch={setSearch}
-							/>
+							<div className="flex-1 md:max-w-xs xl:max-w-sm">
+								<PluginSearch search={search} setSearch={setSearch} />
+							</div>
 
 							<div className="flex items-center gap-2">
 								<PluginsSort
