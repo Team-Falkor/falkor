@@ -150,7 +150,6 @@ export const gameLauncherRouter = router({
 			if (isRunning) {
 				runningGames.push(launcher.getSessionInfo());
 			} else {
-				// Clean up stale launchers
 				launcher.stop();
 			}
 		}
