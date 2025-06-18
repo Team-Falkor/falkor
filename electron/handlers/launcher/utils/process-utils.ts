@@ -1,30 +1,5 @@
-import {
-	type ChildProcess,
-	type SpawnOptions,
-	spawn,
-} from "node:child_process";
 import path from "node:path";
 import { shell } from "electron";
-
-/**
- * Spawns a new child process in a cross-platform, secure manner.
- * Defaults to detached and ignores stdio unless overridden.
- */
-export function safeSpawn(
-	command: string,
-	args: string[] = [],
-	options: SpawnOptions = {},
-): ChildProcess {
-	const env = { ...process.env, WINEDEBUG: "fixme-all" };
-	const spawnOptions: SpawnOptions = {
-		detached: options.detached ?? true,
-		stdio: options.stdio ?? "ignore",
-		cwd: options.cwd,
-		env,
-		windowsHide: true,
-	};
-	return spawn(command, args, spawnOptions);
-}
 
 /**
  * Resolves actual executable path, following Windows shortcuts when needed.
@@ -40,8 +15,9 @@ export function resolveExecutablePath(shortcutOrPath: string): string {
 				? path.resolve(path.dirname(shortcutOrPath), link.target)
 				: shortcutOrPath;
 		}
-	} catch {
-		// TODO: Fallback to original path on error
+	} catch (error) {
+		// Fallback to original path on error
+		console.warn(`Failed to resolve shortcut ${shortcutOrPath}:`, error);
 	}
 	return shortcutOrPath;
 }

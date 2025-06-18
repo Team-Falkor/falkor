@@ -3,6 +3,7 @@ import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames } from "@backend/database/schemas";
 import GameProcessLauncher from "@backend/handlers/launcher/game-process-launcher";
 import { gamesLaunched } from "@backend/handlers/launcher/games-launched";
+import logger from "@backend/handlers/logging";
 import { emitOnce } from "@backend/utils/emit-once";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -33,6 +34,17 @@ export const gameLauncherRouter = router({
 			if (!game.gamePath)
 				return { success: false, error: "Game path not found" };
 
+			// Check if game is already running
+			const existingLauncher = gamesLaunched.get(input.id);
+			if (existingLauncher) {
+				const isRunning = await existingLauncher.isRunning();
+				if (isRunning) {
+					return { success: false, error: "Game is already running" };
+				}
+				// Clean up stale launcher
+				existingLauncher.stop();
+			}
+
 			const launcher = new GameProcessLauncher({
 				id: game.id,
 				gamePath: game.gamePath,
@@ -42,13 +54,26 @@ export const gameLauncherRouter = router({
 				gameArgs: input.args,
 				commandOverride: game.gameCommand ?? undefined,
 				winePrefixPath: game.winePrefixFolder ?? undefined,
-				runAsAdmin: game.runAsAdmin,
+				runAsAdmin: game.runAsAdmin ?? false,
 			});
 
 			// Create and store event listeners
 			const listeners = {
-				onPlaying: (id: number) => emitter.emit("game:playing", id),
-				onStopped: (id: number) => emitter.emit("game:stopped", id),
+				onPlaying: (id: number) => {
+					logger.log("info", `Game ${id} started playing`);
+					emitter.emit("game:playing", id);
+				},
+				onStopped: (id: number) => {
+					logger.log("info", `Game ${id} stopped`);
+					emitter.emit("game:stopped", id);
+					// Clean up listeners when game stops
+					const storedListeners = eventListeners.get(launcher);
+					if (storedListeners) {
+						launcher.off("game:playing", storedListeners.onPlaying);
+						launcher.off("game:stopped", storedListeners.onStopped);
+						eventListeners.delete(launcher);
+					}
+				},
 			};
 			eventListeners.set(launcher, listeners);
 
@@ -57,9 +82,17 @@ export const gameLauncherRouter = router({
 			launcher.on("game:stopped", listeners.onStopped);
 
 			try {
-				launcher.launch(input.args);
-				return { success: true };
+				await launcher.launch(input.args);
+				logger.log("info", `Successfully launched game ${input.id}`);
+				return {
+					success: true,
+					requiresPolling: launcher.getSessionInfo().requiresPolling,
+				};
 			} catch (error) {
+				logger.log(
+					"error",
+					`Failed to launch game ${input.id}: ${(error as Error).message}`,
+				);
 				// Clean up listeners on launch failure
 				const storedListeners = eventListeners.get(launcher);
 				if (storedListeners) {
@@ -67,30 +100,73 @@ export const gameLauncherRouter = router({
 					launcher.off("game:stopped", storedListeners.onStopped);
 					eventListeners.delete(launcher);
 				}
-				throw error;
+				return {
+					success: false,
+					error: `Launch failed: ${(error as Error).message}`,
+				};
 			}
 		}),
 
 	stop: publicProcedure
 		.input(z.object({ id: z.number() }))
-		.mutation(({ input }) => {
+		.mutation(async ({ input }) => {
 			const launcher = gamesLaunched.get(input.id);
 			if (launcher) {
-				launcher.stop();
-				return { success: true };
+				try {
+					await launcher.stop();
+					logger.log("info", `Successfully stopped game ${input.id}`);
+					return { success: true };
+				} catch (error) {
+					logger.log(
+						"error",
+						`Failed to stop game ${input.id}: ${(error as Error).message}`,
+					);
+					return {
+						success: false,
+						error: `Stop failed: ${(error as Error).message}`,
+					};
+				}
 			}
 			return { success: false, error: "Game not running" };
 		}),
 
 	isRunning: publicProcedure
 		.input(z.object({ id: z.number() }))
-		.query(({ input }) => {
-			return { running: gamesLaunched.has(input.id) };
+		.query(async ({ input }) => {
+			const launcher = gamesLaunched.get(input.id);
+			if (!launcher) {
+				return { running: false };
+			}
+
+			const isRunning = await launcher.isRunning();
+			return { running: isRunning };
 		}),
 
-	getRunning: publicProcedure.query(() => {
-		return Array.from(gamesLaunched.keys());
+	getRunning: publicProcedure.query(async () => {
+		const runningGames = [];
+
+		for (const [_, launcher] of gamesLaunched.entries()) {
+			const isRunning = await launcher.isRunning();
+			if (isRunning) {
+				runningGames.push(launcher.getSessionInfo());
+			} else {
+				// Clean up stale launchers
+				launcher.stop();
+			}
+		}
+
+		return runningGames;
 	}),
+
+	getSessionInfo: publicProcedure
+		.input(z.object({ id: z.number() }))
+		.query(({ input }) => {
+			const launcher = gamesLaunched.get(input.id);
+			if (!launcher) {
+				return null;
+			}
+			return launcher.getSessionInfo();
+		}),
 
 	onGameStateChange: publicProcedure.subscription(async function* () {
 		const cleanup = () => {
@@ -114,16 +190,22 @@ export const gameLauncherRouter = router({
 					emitOnce<number>(emitter, "game:playing").then((id) => ({
 						type: "playing" as const,
 						id,
+						timestamp: Date.now(),
 					})),
 					emitOnce<number>(emitter, "game:stopped").then((id) => ({
 						type: "stopped" as const,
 						id,
+						timestamp: Date.now(),
 					})),
 				]);
 
 				yield result;
 			}
 		} catch (error) {
+			logger.log(
+				"error",
+				`Game state subscription error: ${(error as Error).message}`,
+			);
 			cleanup();
 			throw error;
 		} finally {

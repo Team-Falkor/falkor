@@ -1,15 +1,17 @@
 import type { ChildProcess } from "node:child_process";
-import { exec } from "node:child_process";
 import EventEmitter from "node:events";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import util from "node:util";
 
 import { db } from "@backend/database";
 import { libraryGames } from "@backend/database/schemas";
 import logger from "@backend/handlers/logging";
-import { safeSpawn } from "@backend/utils/process-spawning";
+import {
+	findProcessByName,
+	isProcessRunning,
+	safeSpawn,
+	waitForProcessToStart,
+} from "@backend/utils/process-spawning";
 import { eq } from "drizzle-orm";
 import ms from "ms";
 import { AchievementItem } from "../achievements/item";
@@ -19,6 +21,7 @@ import { resolveExecutablePath } from "./utils/process-utils";
 interface TrackedProcessInfo {
 	pid: number | null;
 	name: string;
+	requiresPolling: boolean;
 }
 
 interface LauncherOptions {
@@ -74,7 +77,7 @@ export default class GameProcessLauncher extends EventEmitter {
 		}
 	}
 
-	public launch(args: string[] = []): void {
+	public async launch(args: string[] = []): Promise<void> {
 		if (this.isActive) {
 			logger.log("warn", `Game ${this.id} is already running.`);
 			return;
@@ -84,13 +87,21 @@ export default class GameProcessLauncher extends EventEmitter {
 		const spawnArgs = this.commandOverride ? [this.gamePath, ...args] : args;
 
 		try {
-			this.process = safeSpawn(executable, spawnArgs, {
-				cwd: process.cwd(),
+			const spawnResult = safeSpawn(executable, spawnArgs, {
+				cwd: path.dirname(this.gamePath),
 				runAsAdmin: this.runAsAdmin,
 				stdio: this.runAsAdmin ? "inherit" : "pipe",
 			});
 
+			this.process = spawnResult.process;
+			this.trackedProcessInfo = {
+				pid: spawnResult.process?.pid ?? null,
+				name: spawnResult.processName,
+				requiresPolling: spawnResult.requiresPolling,
+			};
+
 			if (this.process) {
+				// We have direct control over the process
 				this.process.unref();
 				this.process.once("exit", (code, signal) =>
 					this.handleExit(code, signal),
@@ -98,20 +109,32 @@ export default class GameProcessLauncher extends EventEmitter {
 				this.process.once("error", (err) =>
 					logger.log("error", `Error with spawned process: ${err.message}`),
 				);
-				this.trackedProcessInfo = {
-					pid: this.process.pid !== undefined ? this.process.pid : null,
-					name: this.gameName,
-				};
+
 				logger.log(
 					"info",
 					`Launched ${this.id} with direct control (PID: ${this.trackedProcessInfo.pid}).`,
 				);
 			} else {
 				logger.log(
-					"warn",
-					`Launched ${this.id} via external elevation. Will poll for process exit.`,
+					"info",
+					`Launched ${this.id} via admin elevation. Waiting for process to start...`,
 				);
-				this.trackedProcessInfo = { pid: null, name: this.gameName };
+
+				const detectedPid = await waitForProcessToStart(
+					spawnResult.processName,
+					15000,
+				);
+
+				if (detectedPid) {
+					this.trackedProcessInfo.pid = detectedPid;
+					logger.log("info", `Game process detected with PID: ${detectedPid}`);
+				} else {
+					logger.log(
+						"warn",
+						"Could not detect game process, will rely on name-based polling",
+					);
+				}
+
 				this.startProcessPolling();
 			}
 
@@ -125,6 +148,7 @@ export default class GameProcessLauncher extends EventEmitter {
 				`Failed to launch ${this.id}: ${(err as Error).message}`,
 			);
 			this.cleanupResources();
+			throw err;
 		}
 	}
 
@@ -158,6 +182,7 @@ export default class GameProcessLauncher extends EventEmitter {
 				}
 				return;
 			}
+
 			const isRunning = await this.isGameProcessRunning();
 			if (!isRunning) {
 				logger.log(
@@ -166,37 +191,30 @@ export default class GameProcessLauncher extends EventEmitter {
 				);
 				this.handleExit(0, null);
 			}
-		}, ms("5s"));
+		}, ms("3s")); // Check every 3 seconds for better responsiveness
+
 		logger.log("info", `Started polling for ${this.gameName} process.`);
 	}
 
 	private async isGameProcessRunning(): Promise<boolean> {
 		if (!this.trackedProcessInfo) return false;
 
-		const platform = os.platform();
-		const gameExecutableName = path.basename(this.gamePath);
-
 		try {
-			if (platform === "win32") {
-				const { stdout } = await util.promisify(exec)(
-					`tasklist /nh /fi "imagename eq ${gameExecutableName}"`,
-				);
-				return stdout.includes(gameExecutableName);
+			// If we have a specific PID, check that first
+			if (this.trackedProcessInfo.pid) {
+				const pids = await findProcessByName(this.trackedProcessInfo.name);
+				return pids.includes(this.trackedProcessInfo.pid);
 			}
-			if (platform === "darwin" || platform === "linux") {
-				const { stdout } = await util.promisify(exec)(
-					`pgrep -x "${gameExecutableName}"`,
-				);
-				return stdout.trim().length > 0;
-			}
+
+			// Otherwise, check by process name
+			return await isProcessRunning(this.trackedProcessInfo.name);
 		} catch (error) {
-			const err = error as { code?: number; message: string };
-			if (err.code === 1) {
-				return false;
-			}
-			logger.log("error", `Error checking process status: ${err.message}`);
+			logger.log(
+				"error",
+				`Error checking process status: ${(error as Error).message}`,
+			);
+			return false;
 		}
-		return true;
 	}
 
 	private async handleExit(
@@ -237,9 +255,12 @@ export default class GameProcessLauncher extends EventEmitter {
 				})
 				.where(eq(libraryGames.id, this.id));
 
-			logger.info(`Playtime saved: ${ms(newPlaytime)}.`);
+			logger.log(
+				"info",
+				`Playtime saved: ${ms(newPlaytime)} (session: ${ms(this.totalPlaytimeMs)}).`,
+			);
 		} catch (err) {
-			logger.error(`Failed to save playtime: ${(err as Error).message}`);
+			logger.log("error", `Failed to save playtime: ${(err as Error).message}`);
 		}
 	}
 
@@ -271,10 +292,27 @@ export default class GameProcessLauncher extends EventEmitter {
 		logger.log("info", `Cleaned up resources for ${this.id}.`);
 	}
 
-	public stop(): void {
+	public async stop(): Promise<void> {
 		if (this.isActive) {
 			if (this.process) {
+				// Direct process control
 				this.process.kill("SIGTERM");
+			} else if (this.trackedProcessInfo?.pid) {
+				// Try to kill the process by PID
+				try {
+					process.kill(this.trackedProcessInfo.pid, "SIGTERM");
+					logger.log(
+						"info",
+						`Sent SIGTERM to PID ${this.trackedProcessInfo.pid}`,
+					);
+				} catch (err) {
+					logger.log(
+						"warn",
+						`Could not kill process ${this.trackedProcessInfo.pid}: ${err}`,
+					);
+					// Force stop tracking
+					this.handleExit(0, null);
+				}
 			} else {
 				logger.log(
 					"warn",
@@ -283,5 +321,26 @@ export default class GameProcessLauncher extends EventEmitter {
 				this.handleExit(0, null);
 			}
 		}
+	}
+
+	// Public method to check if game is currently running
+	public async isRunning(): Promise<boolean> {
+		if (!this.isActive || !this.trackedProcessInfo) {
+			return false;
+		}
+
+		return await this.isGameProcessRunning();
+	}
+
+	// Get current session info
+	public getSessionInfo() {
+		return {
+			id: this.id,
+			gameName: this.gameName,
+			isActive: this.isActive,
+			sessionPlaytime: this.totalPlaytimeMs,
+			pid: this.trackedProcessInfo?.pid ?? null,
+			requiresPolling: this.trackedProcessInfo?.requiresPolling ?? false,
+		};
 	}
 }
