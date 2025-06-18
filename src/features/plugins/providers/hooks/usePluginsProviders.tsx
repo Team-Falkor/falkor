@@ -11,13 +11,13 @@ export const usePluginsProviders = () => {
 		localStorage.getItem("showEnabledOnly") === "true",
 	);
 
-	const changeEnabledOnly = useCallback(() => {
+	const changeEnabledOnly = () => {
 		const currentValue = localStorage.getItem("showEnabledOnly") === "true";
 		const newValue = !currentValue;
 
 		localStorage.setItem("showEnabledOnly", String(newValue));
 		setEnabledOnly(newValue);
-	}, []);
+	};
 
 	// tRPC context for cache operations
 	const utils = trpc.useUtils();

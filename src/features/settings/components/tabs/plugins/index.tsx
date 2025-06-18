@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { H1, TypographyMuted } from "@/components/ui/typography";
 import { CommunityProviders } from "@/features/plugins/providers/components/community-providers";
-import { usePluginsProviders } from "@/features/plugins/providers/hooks/usePluginsProviders";
 import { useLanguageContext } from "@/i18n/I18N";
 import { SettingsSection } from "../../section";
 import SettingTitle from "../../title";
@@ -18,7 +17,6 @@ const PluginSettings = () => {
 	const [showRows, setShowRows] = useState<boolean>(false);
 	const [sortBy, setSortBy] = useState<SortBy>("alphabetic-asc");
 	const [search, setSearch] = useState("");
-	const { changeEnabledOnly, enabledOnly } = usePluginsProviders();
 
 	useEffect(() => {
 		setShowRows(localStorage?.getItem("showRows") === "true");
@@ -48,8 +46,6 @@ const PluginSettings = () => {
 									setShowRows={setShowRows}
 									sortBy={sortBy}
 									setSortBy={setSortBy}
-									showEnabledOnly={enabledOnly}
-									changeEnabledOnly={changeEnabledOnly}
 								/>
 								<PluginAddButton open={open} setOpen={setOpen} />
 							</div>
@@ -62,7 +58,6 @@ const PluginSettings = () => {
 								showRows={showRows}
 								setShowRows={setShowRows}
 								sortBy={sortBy}
-								showEnabledOnly={enabledOnly}
 								search={search}
 							/>
 						</SettingsSection>

@@ -1,5 +1,5 @@
 import type { PluginSetupJSONDisabled } from "@team-falkor/shared-types";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import UnifiedPluginCard from "@/components/cards/unified-plugin-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { H5 } from "@/components/ui/typography";
@@ -11,22 +11,17 @@ interface Props {
 	showRows: boolean;
 	setShowRows: (showRows: boolean) => void;
 	sortBy: SortBy;
-	showEnabledOnly: boolean;
 	search: string;
 }
 
-const PluginDisplay = ({
-	showRows,
-	sortBy,
-	showEnabledOnly,
-	search,
-}: Props) => {
+const PluginDisplay = ({ showRows, sortBy, search }: Props) => {
 	const {
 		needsUpdate,
 		plugins,
 		isErrorPlugins,
 		errorPlugins,
 		isLoadingPlugins,
+		enabledOnly,
 	} = usePluginsProviders();
 
 	const onSearch = useCallback(
@@ -42,12 +37,8 @@ const PluginDisplay = ({
 		[plugins],
 	);
 
-	const filteredAndSortedPlugins = useMemo(() => {
+	const filteredAndSortedPlugins = () => {
 		let filtered = plugins;
-
-		if (showEnabledOnly && filtered) {
-			filtered = filtered.filter((plugin) => !plugin.disabled);
-		}
 
 		if (sortBy === "alphabetic-asc") {
 			filtered = filtered?.sort((a, b) => a?.name?.localeCompare(b?.name));
@@ -60,7 +51,13 @@ const PluginDisplay = ({
 		}
 
 		return filtered;
-	}, [onSearch, plugins, search, sortBy, showEnabledOnly]);
+	};
+
+	console.log({
+		filteredAndSortedPlugins: filteredAndSortedPlugins(),
+		plugins,
+		enabledOnly: enabledOnly,
+	});
 
 	if (isLoadingPlugins) {
 		return (
@@ -78,7 +75,7 @@ const PluginDisplay = ({
 		);
 	}
 
-	if (!plugins || filteredAndSortedPlugins?.length === 0) {
+	if (filteredAndSortedPlugins()?.length === 0) {
 		return (
 			<div className="flex w-full items-center justify-center p-4">
 				<H5 className="text-muted-foreground">
@@ -95,7 +92,7 @@ const PluginDisplay = ({
 			<div
 				className={cn("grid gap-4", showRows ? "grid-cols-2" : "grid-cols-1")}
 			>
-				{filteredAndSortedPlugins?.map((plugin: PluginSetupJSONDisabled) => (
+				{filteredAndSortedPlugins()?.map((plugin: PluginSetupJSONDisabled) => (
 					<UnifiedPluginCard
 						key={plugin.id}
 						id={plugin.id}
