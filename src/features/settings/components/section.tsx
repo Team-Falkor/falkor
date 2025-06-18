@@ -20,13 +20,13 @@ export const SettingsSection = ({
 	return (
 		<div
 			className={cn(
-				"space-y-4 overflow-hidden rounded-lg bg-muted/60 p-4 shadow-md",
+				"space-y-6 overflow-hidden rounded-lg bg-muted/30 p-6 shadow-sm",
 				className,
 			)}
 			{...props}
 		>
 			{(title || description) && (
-				<div className={cn("mb-4 flex flex-col overflow-hidden")}>
+				<div className="space-y-1">
 					{title && <H3>{t(`settings.settings.${title}`)}</H3>}
 					{description && (
 						<TypographyMuted>
