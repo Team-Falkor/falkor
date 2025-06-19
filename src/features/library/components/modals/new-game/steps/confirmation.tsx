@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Game } from "@/features/library/stores/new-game";
+import type { Game } from "@/@types";
 import { useNewGameStore } from "@/features/library/stores/new-game";
 import { trpc } from "@/lib";
 import { GameForm } from "../../../game-form";
