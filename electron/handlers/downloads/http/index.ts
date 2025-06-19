@@ -4,7 +4,12 @@ import * as http from "node:http";
 import * as https from "node:https";
 import * as path from "node:path";
 import { URL } from "node:url";
+import {
+	ArchiveHandler,
+	type ArchiveProgress,
+} from "@backend/handlers/archive";
 import { getErrorMessage } from "@backend/utils/utils";
+
 import { type DownloadItem, DownloadStatus } from "@/@types";
 import { downloadQueue } from "../queue";
 
@@ -30,10 +35,8 @@ interface DownloadState {
 	speedSamples: number[];
 	/** The number of times a download has been retried after an error. */
 	retryCount: number;
-	/**
-	 * Flag to prevent a race condition where a stream `finish` event fires
-	 * after an `error` event, incorrectly marking a failed download as complete.
-	 */
+	/** Flag to prevent a race condition where a stream `finish` event fires
+	 * after an `error` event, incorrectly marking a failed download as complete. */
 	hasError: boolean;
 }
 
@@ -42,7 +45,8 @@ interface DownloadState {
  *
  * This class manages the entire download lifecycle, including starting, pausing,
  * resuming, and cancelling downloads. It handles network errors with a configurable
- * retry mechanism and provides progress updates.
+ * retry mechanism and provides progress updates. After download, it can trigger
+ * extraction for ZIP and RAR archives using the `ArchiveHandler`.
  */
 export class HttpDownloadHandler extends EventEmitter {
 	private static readonly MAX_RETRIES = 3;
@@ -100,7 +104,6 @@ export class HttpDownloadHandler extends EventEmitter {
 		const downloadInfo = this.downloads.get(item.id);
 		if (!downloadInfo) return;
 
-		// Ensure the error flag is reset for new attempts (including retries).
 		downloadInfo.hasError = false;
 
 		const filePath = path.join(item.path, item.name);
@@ -191,9 +194,6 @@ export class HttpDownloadHandler extends EventEmitter {
 			});
 
 			fileStream.on("finish", () => {
-				// If an error has occurred, the handleError method is in control.
-				// We must not mark the download as complete, as it could be
-				// in the middle of a retry cycle.
 				if (downloadInfo.hasError) {
 					return;
 				}
@@ -308,7 +308,7 @@ export class HttpDownloadHandler extends EventEmitter {
 		if (contentDisposition) {
 			const match = /filename="?([^"]+)"?/i.exec(contentDisposition);
 			if (match?.[1]) {
-				return path.basename(match[1]); // Sanitize to prevent path traversal
+				return path.basename(match[1]);
 			}
 		}
 
@@ -381,11 +381,14 @@ export class HttpDownloadHandler extends EventEmitter {
 	}
 
 	/**
-	 * Finalizes a completed download.
+	 * Finalizes a completed download and initiates archive extraction if applicable.
 	 * @param id The ID of the completed download.
 	 */
-	private completeDownload(id: string): void {
-		if (!this.downloads.has(id)) return;
+	private async completeDownload(id: string): Promise<void> {
+		const item = downloadQueue.getDownload(id);
+		if (!item || !this.downloads.has(id)) return;
+
+		// Initial completion status after download is done
 		downloadQueue.updateProgress({
 			id,
 			progress: 100,
@@ -394,6 +397,91 @@ export class HttpDownloadHandler extends EventEmitter {
 			status: DownloadStatus.COMPLETED,
 		});
 		this.downloads.delete(id);
+
+		const archiveFilePath = path.join(item.path, item.name);
+		const fileExtension = path.extname(item.name).toLowerCase();
+		let targetStatus: DownloadStatus | null = null;
+		let archiveAction: ((handler: ArchiveHandler) => Promise<void>) | null =
+			null;
+
+		if (fileExtension === ".zip") {
+			targetStatus = DownloadStatus.UNZIPPING;
+			archiveAction = (handler) => handler.unzip();
+		} else if (fileExtension === ".rar") {
+			targetStatus = DownloadStatus.UNRARRING;
+			archiveAction = (handler) => handler.unrar();
+		}
+
+		if (targetStatus && archiveAction) {
+			const outputDir = path.join(
+				item.path,
+				path.basename(item.name, fileExtension),
+			);
+
+			// Update status to indicate unpacking
+			downloadQueue.updateProgress({
+				id,
+				progress: 0,
+				speed: 0,
+				timeRemaining: 0,
+				status: targetStatus,
+			});
+
+			console.log(
+				`Starting unpack for: ${archiveFilePath} (Format: ${fileExtension})`,
+			);
+
+			const archiveHandler = new ArchiveHandler({
+				inputFile: archiveFilePath,
+				outputDir: outputDir,
+				onProgress: (progress: ArchiveProgress) => {
+					downloadQueue.updateProgress({
+						id,
+						progress: progress.percent,
+						speed: 0,
+						timeRemaining: 0,
+						status: targetStatus,
+						currentFile: progress.currentFile,
+					});
+				},
+			});
+
+			try {
+				await archiveAction(archiveHandler);
+				console.log(
+					`Successfully unpacked: ${archiveFilePath} to ${outputDir}`,
+				);
+
+				// Final completion status after unpacking is done
+				downloadQueue.updateProgress({
+					id,
+					progress: 100,
+					speed: 0,
+					timeRemaining: 0,
+					status: DownloadStatus.COMPLETED,
+				});
+
+				try {
+					await fs.promises.unlink(archiveFilePath);
+					console.log(`Deleted original archive file: ${archiveFilePath}`);
+				} catch (deleteError) {
+					console.warn(
+						`Failed to delete original archive file ${archiveFilePath}: ${getErrorMessage(deleteError)}`,
+					);
+				}
+			} catch (unpackError) {
+				console.error(
+					`Failed to unpack ${archiveFilePath}: ${getErrorMessage(unpackError)}`,
+				);
+				downloadQueue.updateProgress({
+					id,
+					progress: item.progress,
+					speed: 0,
+					timeRemaining: 0,
+					status: DownloadStatus.FAILED,
+				});
+			}
+		}
 	}
 
 	/**
@@ -406,8 +494,6 @@ export class HttpDownloadHandler extends EventEmitter {
 		const downloadInfo = this.downloads.get(id);
 		if (!item || !downloadInfo) return;
 
-		// Set the error flag *before* closing the stream. This prevents the
-		// 'finish' event from incorrectly marking the download as complete.
 		downloadInfo.hasError = true;
 
 		downloadInfo.request?.destroy();
