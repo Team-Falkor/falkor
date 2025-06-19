@@ -14,9 +14,9 @@ const ActiveLibrary = lazy(
 	() => import("@/features/library/components/active-library"),
 );
 const NewGameDialog = lazy(() =>
-	import("@/features/library/components/modals/new-game-new").then(
-		(module) => ({ default: module.NewGameDialog }),
-	),
+	import("@/features/library/components/modals/new-game").then((module) => ({
+		default: module.NewGameDialog,
+	})),
 );
 
 export const Route = createLazyFileRoute("/library")({

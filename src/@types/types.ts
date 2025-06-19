@@ -170,3 +170,5 @@ export interface ToastNotification {
 	message: string;
 	description?: string;
 }
+
+export type Game = RouterOutputs["library"]["list"][number];

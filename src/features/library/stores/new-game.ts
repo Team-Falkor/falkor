@@ -1,19 +1,5 @@
 import { create } from "zustand";
-import type { IGDBReturnDataType } from "@/@types";
-
-export type Game = {
-	gameName: string;
-	gamePath: string;
-	gameId: string;
-	gameIcon: string;
-	gameArgs?: string;
-	gameCommand?: string;
-	igdbId?: string;
-	steamId?: string;
-	winePrefixFolder?: string;
-	installed?: boolean;
-	runAsAdmin?: boolean;
-};
+import type { Game, IGDBReturnDataType } from "@/@types";
 
 interface NewGameState {
 	selectedGame?: IGDBReturnDataType | null;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { IGDBReturnDataType } from "@/@types";
+import type { Game, IGDBReturnDataType } from "@/@types";
 import { Input } from "@/components/ui/input";
 import type { GenericStepProps } from "@/features/library/@types";
 import { useNewGameStore } from "@/features/library/stores/new-game";
@@ -11,8 +11,6 @@ interface Props extends GenericStepProps {
 	filename: string;
 }
 
-const LOG_PREFIX = "[DisplayResultsStop]";
-
 export const DisplayResultsStop = ({ filename }: Props) => {
 	const [searchQuery, setSearchQuery] = useState(filename);
 	const { results, loading, error } = useSearch(searchQuery, {
@@ -22,54 +20,33 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 
 	const { selectedGame, setSelectedGame, updateGame } = useNewGameStore();
 
-	console.log(`${LOG_PREFIX} Render. Initial filename:`, {
-		filename,
-		searchQuery,
-	});
-
 	const handleGameSelection = useCallback(
 		(selected: IGDBReturnDataType) => {
-			console.log(`${LOG_PREFIX} Game selected from results:`, selected);
 			setSelectedGame(selected);
 
 			const steamId = getSteamIdFromWebsites(selected.websites);
-			const gameUpdate = {
+			const gameUpdate: Partial<Game> = {
 				gameName: selected.name,
 				gameIcon: selected.cover
 					? `https://images.igdb.com/igdb/image/upload/t_thumb/${selected.cover.image_id}.png`
 					: undefined,
-				igdbId: selected.id?.toString(),
-				steamId: steamId,
+				igdbId: selected.id,
+				gameSteamId: steamId,
 			};
-			console.log(`${LOG_PREFIX} Updating game store with:`, gameUpdate);
 			updateGame(gameUpdate);
 		},
 		[updateGame, setSelectedGame],
 	);
 
 	useEffect(() => {
-		console.log(`${LOG_PREFIX} Search query changed to:`, searchQuery);
-	}, [searchQuery]);
-
-	useEffect(() => {
-		console.log(`${LOG_PREFIX} Search results updated.`, {
-			loading,
-			error: !!error,
-			count: results?.length,
-		});
-
 		if (!loading && results) {
 			if (results.length > 0) {
-				console.log(
-					`${LOG_PREFIX} Found ${results?.length} results. Auto-selecting first result.`,
-				);
 				handleGameSelection(results[0]);
 			} else {
-				console.log(`${LOG_PREFIX} No results found.`);
 				setSelectedGame(null);
 			}
 		}
-	}, [results, loading, error, handleGameSelection, setSelectedGame]);
+	}, [results, loading, handleGameSelection, setSelectedGame]);
 
 	return (
 		<div className="flex h-full w-full flex-col gap-4 overflow-hidden py-4">
