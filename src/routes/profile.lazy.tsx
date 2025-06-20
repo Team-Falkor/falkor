@@ -208,6 +208,7 @@ function GameRow({
 					opts={{
 						align: "start",
 						containScroll: "trimSnaps",
+						dragFree: true,
 					}}
 				>
 					<CarouselContent className="ml-0 gap-4">
