@@ -42,7 +42,7 @@ function RouteComponent() {
 	return (
 		<div className="flex flex-col lg:flex-row">
 			{/* Sidebar */}
-			<aside className="w-full p-4 lg:w-1/4 xl:w-1/5">
+			<aside className="w-full p-4 lg:w-[27%] xl:w-[22%]">
 				<FilterSidebar initialFilters={search} />
 			</aside>
 
