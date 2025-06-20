@@ -7,7 +7,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import util from "node:util";
-import logger from "@backend/handlers/logging";
+import logger from "@backend/handlers/logging"; // Ensure this import path is correct
 import sudo from "@expo/sudo-prompt";
 
 interface ExtendedSpawnOptions extends SpawnOptions {
@@ -19,6 +19,8 @@ interface SpawnResult {
 	processName: string;
 	requiresPolling: boolean;
 }
+
+const execPromise = util.promisify(exec); // Promisify exec once for reuse
 
 /**
  * Safely spawns a child process, with optional administrative privileges.
@@ -37,6 +39,11 @@ export function safeSpawn(
 ): SpawnResult {
 	const platform = os.platform();
 	const processName = path.basename(command, path.extname(command));
+
+	logger.log(
+		"debug",
+		`safeSpawn: Command: '${command}', Args: [${args.join(", ")}], Options: ${JSON.stringify(options)}`,
+	);
 
 	if (options.runAsAdmin) {
 		logger.log(
@@ -67,7 +74,10 @@ function handleSudoPromptLaunch(
 	const quotedCommand = `"${command}"`;
 	// Quote each argument and escape any existing double quotes within them.
 	const quotedArgs = args
-		.map((arg) => `"${arg.replace(/"/g, '\\"')}"`)
+		.map((arg) => {
+			const sanitizedArg = arg.replace(/"/g, '\\"'); // Escape existing quotes
+			return `"${sanitizedArg}"`; // Quote the whole argument
+		})
 		.join(" ");
 
 	// Construct the full command string for sudo-prompt.
@@ -85,7 +95,7 @@ function handleSudoPromptLaunch(
 		if (error) {
 			logger.log(
 				"warn",
-				`sudo-prompt command finished with error/non-zero exit: ${error.message}`,
+				`sudo-prompt command finished with error/non-zero exit: ${error.message}. Stderr: ${stderr || "N/A"}`,
 			);
 		}
 		// Log standard output from the elevated command.
@@ -125,20 +135,44 @@ function spawnNonAdmin(
 	options: ExtendedSpawnOptions,
 	processName: string,
 ): SpawnResult {
-	logger.log("info", `Spawning non-admin: ${command} ${args.join(" ")}`);
+	logger.log(
+		"info",
+		`Spawning non-admin: command='${command}', args='${args.join(" ")}', cwd='${options.cwd || process.cwd()}'`,
+	);
 
 	try {
 		// Include environment variables, specifically setting WINEDEBUG for potential Wine compatibility.
-		const env = { ...process.env, WINEDEBUG: "fixme-all" };
+		// Merge provided env with process.env
+		const env = { ...process.env, WINEDEBUG: "fixme-all", ...options.env };
 		const spawnOptions: SpawnOptions = {
 			detached: options.detached ?? true, // Detach the child process from the parent.
 			stdio: options.stdio ?? "ignore", // Redirect child process I/O to ignore or inherit.
 			cwd: options.cwd, // Set the current working directory for the child process.
 			env, // Pass environment variables.
-			windowsHide: true, // Hide the console window on Windows.
+			windowsHide: options.windowsHide ?? true, // Hide the console window on Windows.
+			shell: options.shell, // Explicitly pass shell option if present
 		};
 
 		const child = spawn(command, args, spawnOptions);
+
+		logger.log(
+			"debug",
+			`Process '${processName}' spawned with PID: ${child.pid}`,
+		);
+
+		child.on("error", (err) => {
+			logger.log(
+				"error",
+				`Spawned process '${processName}' (PID: ${child.pid}) encountered error: ${err.message}`,
+			);
+		});
+
+		child.on("exit", (code, signal) => {
+			logger.log(
+				"debug",
+				`Spawned process '${processName}' (PID: ${child.pid}) exited with code ${code} and signal ${signal}`,
+			);
+		});
 
 		return {
 			process: child,
@@ -146,63 +180,178 @@ function spawnNonAdmin(
 			requiresPolling: false, // Direct process tracking is possible.
 		};
 	} catch (e) {
-		logger.log("error", `Failed to spawn process: ${(e as Error).message}`);
-		throw e;
+		logger.log(
+			"error",
+			`Failed to spawn process '${command}': ${(e as Error).message}`,
+		);
+		throw e; // Re-throw to indicate immediate failure
 	}
 }
 
 /**
- * Finds process IDs (PIDs) by their name across different operating systems.
+ * Generates various common permutations of a process name for robust searching.
  *
- * @param processName The name of the process to find (e.g., "chrome", "notepad").
- * @returns A promise that resolves to an array of PIDs.
+ * @param originalName The original process name (e.g., "My Game", "My_Game", "mygame.exe").
+ * @returns An array of potential process names to search for.
+ */
+function generateProcessNamePermutations(originalName: string): string[] {
+	const permutations = new Set<string>();
+	const baseName = path.basename(originalName, path.extname(originalName));
+	const extension = path.extname(originalName).toLowerCase();
+
+	// 1. Original name (with or without .exe, as provided)
+	permutations.add(originalName);
+
+	// 2. Base name only (no extension)
+	permutations.add(baseName);
+
+	// 3. Lowercase versions
+	permutations.add(originalName.toLowerCase());
+	permutations.add(baseName.toLowerCase());
+
+	// 4. Handle spaces/underscores/dashes in base name
+	const cleanedBaseName = baseName.replace(/[\s\-_]/g, ""); // Remove spaces, underscores, dashes
+	permutations.add(cleanedBaseName);
+	permutations.add(cleanedBaseName.toLowerCase());
+
+	// If the original name had spaces, try replacing them with underscores or removing them
+	if (baseName.includes(" ")) {
+		const underscoreName = baseName.replace(/ /g, "_");
+		permutations.add(underscoreName);
+		permutations.add(underscoreName.toLowerCase());
+	}
+
+	// Add .exe variants for Windows
+	if (os.platform() === "win32") {
+		const winVariants = new Set<string>();
+		permutations.forEach((name) => {
+			winVariants.add(name); // Add as is
+			if (!name.toLowerCase().endsWith(".exe")) {
+				winVariants.add(`${name}.exe`);
+			}
+		});
+		winVariants.forEach((v) => permutations.add(v));
+	}
+
+	const result = Array.from(permutations).sort(); // Sort for consistent order (optional)
+	logger.log(
+		"debug",
+		`Generated permutations for '${originalName}': [${result.join(", ")}]`,
+	);
+	return result;
+}
+
+/**
+ * Finds process IDs (PIDs) by their name across different operating systems,
+ * trying multiple permutations of the process name for robustness.
+ *
+ * @param processName The name of the process to find (e.g., "chrome", "MyGame", "My Game.exe").
+ * @returns A promise that resolves to an array of unique PIDs.
+ *                               Returns an empty array if no processes are found or on error.
  */
 export async function findProcessByName(
 	processName: string,
 ): Promise<number[]> {
 	const platform = os.platform();
-	const pids: number[] = [];
+	const uniquePids = new Set<number>(); // Use a Set to store unique PIDs
+	const namesToTry = generateProcessNamePermutations(processName);
 
-	try {
-		if (platform === "win32") {
-			// On Windows, use wmic to find processes by name and get their PIDs.
-			// Append ".exe" for common executable names.
-			const { stdout } = await util.promisify(exec)(
-				`wmic process where "name='${processName}.exe'" get ProcessId /format:csv`,
-			);
+	logger.log(
+		"debug",
+		`findProcessByName: Searching for permutations of '${processName}' on platform '${platform}'`,
+	);
 
-			const lines = stdout.split("\n");
-			for (const line of lines) {
-				// Extract PIDs from the CSV formatted output.
-				const match = line.match(/,(\d+)$/);
-				if (match) {
-					pids.push(Number.parseInt(match[1], 10));
+	for (const name of namesToTry) {
+		logger.log(
+			"debug",
+			`findProcessByName: Attempting to find process by: '${name}'`,
+		);
+		try {
+			const currentPids: number[] = [];
+			if (platform === "win32") {
+				// On Windows, use wmic to find processes by name and get their PIDs.
+				// The `name='${name}'` needs to be exact including '.exe' if it's there.
+				const command = `wmic process where "name='${name}'" get ProcessId /format:csv`;
+				logger.log("debug", `Executing Windows command: ${command}`);
+
+				const { stdout } = await execPromise(command);
+
+				const lines = stdout
+					.split(/\r?\n/)
+					.filter((line) => line.trim().length > 0);
+
+				for (const line of lines) {
+					const match = line.match(/,(\d+)$/);
+					if (match) {
+						const pid = Number.parseInt(match[1], 10);
+						if (!Number.isNaN(pid)) {
+							currentPids.push(pid);
+						}
+					}
 				}
-			}
-		} else if (platform === "darwin" || platform === "linux") {
-			// On macOS and Linux, use pgrep for process lookup.
-			// The -x flag ensures an exact match for the process name.
-			const { stdout } = await util.promisify(exec)(
-				`pgrep -x "${processName}"`,
-			);
+			} else if (platform === "darwin" || platform === "linux") {
+				// On macOS and Linux, use pgrep for process lookup.
+				// -x ensures exact match. -i for case-insensitivity might be needed if base name varies by case.
+				// We rely on permutations to cover different spellings.
+				const command = `pgrep -x "${name}"`;
+				logger.log("debug", `Executing Unix-like command: ${command}`);
 
-			const lines = stdout.trim().split("\n");
-			for (const line of lines) {
-				const pid = Number.parseInt(line.trim(), 10);
-				if (!Number.isNaN(pid)) {
-					pids.push(pid);
+				const { stdout } = await execPromise(command);
+
+				const lines = stdout
+					.trim()
+					.split("\n")
+					.filter((line) => line.trim().length > 0);
+
+				for (const line of lines) {
+					const pid = Number.parseInt(line.trim(), 10);
+					if (!Number.isNaN(pid)) {
+						currentPids.push(pid);
+					}
 				}
+			} else {
+				logger.log(
+					"warn",
+					`findProcessByName: Unsupported platform: '${platform}'. Cannot find processes by name.`,
+				);
+				// If platform is unsupported, break and return what we have (likely empty)
+				break;
 			}
-		}
-	} catch (error) {
-		const err = error as { code?: number; message: string };
-		// Ignore error code 1, which means no processes were found.
-		if (err.code !== 1) {
-			logger.log("error", `Error finding processes: ${err.message}`);
+
+			if (currentPids.length > 0) {
+				logger.log(
+					"debug",
+					`Found PIDs for '${name}': [${currentPids.join(", ")}]`,
+				);
+				currentPids.forEach((pid) => uniquePids.add(pid));
+				// Optimization: If we found something, maybe we don't need to try all permutations?
+				// This depends on whether you want ALL matching PIDs or just "any" PID.
+				// For robustness, we continue trying all permutations.
+			}
+		} catch (error) {
+			const err = error as { code?: number; message: string; stderr?: string };
+			// `pgrep` on Unix-like systems exits with code 1 if no processes are found.
+			if ((platform === "darwin" || platform === "linux") && err.code === 1) {
+				logger.log(
+					"debug",
+					`findProcessByName: No processes found for '${name}' (pgrep exited with code 1).`,
+				);
+			} else {
+				// Log full error for other issues, including stderr for more context.
+				logger.log(
+					"warn", // Changed to warn as we're retrying with other names
+					`findProcessByName: Error attempting to find processes for '${name}': ${err.message}. Stderr: ${err.stderr || "N/A"}.`,
+				);
+			}
 		}
 	}
 
-	return pids;
+	const resultPids = Array.from(uniquePids);
+	logger.log(
+		"debug",
+		`findProcessByName: Final unique PIDs found for '${processName}': [${resultPids.join(", ")}]`,
+	);
+	return resultPids;
 }
 
 /**
@@ -212,8 +361,14 @@ export async function findProcessByName(
  * @returns A promise that resolves to `true` if the process is running, `false` otherwise.
  */
 export async function isProcessRunning(processName: string): Promise<boolean> {
+	logger.log("debug", `isProcessRunning: Checking for '${processName}'`);
 	const pids = await findProcessByName(processName);
-	return pids.length > 0;
+	const isRunning = pids.length > 0;
+	logger.log(
+		"debug",
+		`isProcessRunning: '${processName}' is running: ${isRunning} (Found PIDs: ${pids.length})`,
+	);
+	return isRunning;
 }
 
 /**
@@ -221,28 +376,41 @@ export async function isProcessRunning(processName: string): Promise<boolean> {
  *
  * @param processName The name of the process to wait for.
  * @param timeoutMs The maximum time (in milliseconds) to wait for the process to start.
+ * @param checkIntervalMs The interval (in milliseconds) between checks.
  * @returns A promise that resolves to the PID of the first found process, or `null` if the timeout is reached.
  */
 export async function waitForProcessToStart(
 	processName: string,
 	timeoutMs = 10000,
+	checkIntervalMs = 500,
 ): Promise<number | null> {
 	const startTime = Date.now();
+	logger.log(
+		"debug",
+		`waitForProcessToStart: Waiting for '${processName}' for max ${timeoutMs}ms (check every ${checkIntervalMs}ms).`,
+	);
 
 	while (Date.now() - startTime < timeoutMs) {
 		const pids = await findProcessByName(processName);
 		if (pids.length > 0) {
 			logger.log(
 				"info",
-				`Process ${processName} detected with PID: ${pids[0]}`,
+				`waitForProcessToStart: Process '${processName}' detected with PID: ${pids[0]}`,
 			);
 			return pids[0];
 		}
 
+		logger.log(
+			"debug",
+			`waitForProcessToStart: Process '${processName}' not yet found. Retrying in ${checkIntervalMs}ms...`,
+		);
 		// Wait for a short duration before checking again to avoid busy-waiting.
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
 	}
 
-	logger.log("warn", `Process ${processName} not found within timeout`);
+	logger.log(
+		"warn",
+		`waitForProcessToStart: Process '${processName}' not found within timeout of ${timeoutMs}ms.`,
+	);
 	return null;
 }

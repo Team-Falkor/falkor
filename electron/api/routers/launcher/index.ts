@@ -90,6 +90,7 @@ export const gameLauncherRouter = router({
 			// Initialize a new GameProcessLauncher for the specified game.
 			const launcher = new GameProcessLauncher({
 				id: game.id,
+				gameId: game.gameId,
 				gamePath: game.gamePath,
 				gameName: game.gameName,
 				gameIcon: game.gameIcon ?? undefined,
