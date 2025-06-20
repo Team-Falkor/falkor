@@ -17,7 +17,8 @@ export interface AchivementStat {
 	description?: string;
 	icon: string;
 	icongray: string;
-	unlockTime: number;
+	unlockTime?: number;
+	unlocked: boolean;
 }
 
 export interface Achievement {
