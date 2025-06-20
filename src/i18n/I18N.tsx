@@ -16,28 +16,27 @@ export const LanguageContext = createContext<LanguageContextProps | undefined>(
 
 export const LanguageContextProvider = ({ children }: PropsWithChildren) => {
 	const languages: { [key: string]: { nativeName: string } } = {
-		en: { nativeName: "English" },
-		es: { nativeName: "Spanish" },
-		fr: { nativeName: "French" },
-		de: { nativeName: "German" },
-		cn: { nativeName: "Chinese Simplified" },
-		ja: { nativeName: "japanese" },
-		ko: { nativeName: "Korean" },
-		vi: { nativeName: "Vietnamese" },
-		th: { nativeName: "Thai" },
-		id: { nativeName: "Indonesian" },
-		ms: { nativeName: "Malaysian" },
-		pt: { nativeName: "Portuguese" },
-		it: { nativeName: "Italian" },
-		hi: { nativeName: "Hindi" },
-		ur: { nativeName: "Urdu" },
+		"de-DE": { nativeName: "German" },
+		"en-US": { nativeName: "English" },
+		"es-ES": { nativeName: "Spanish" },
+		"fr-FR": { nativeName: "French" },
+		"hi-IN": { nativeName: "Hindi" },
+		"id-ID": { nativeName: "Indonesian" },
+		"it-IT": { nativeName: "Italian" },
+		"ja-JP": { nativeName: "Japanese" },
+		"ko-KR": { nativeName: "Korean" },
+		"ms-MY": { nativeName: "Malaysian" },
+		"pt-PT": { nativeName: "Portuguese" },
+		"th-TH": { nativeName: "Thai" },
+		"ur-PK": { nativeName: "Urdu" },
+		"vi-VN": { nativeName: "Vietnamese" },
+		"zh-CN": { nativeName: "Chinese Simplified" },
 	};
-
 	const { t, i18n } = useTranslation();
 
 	const onClickLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const language = e.target.value;
-		i18n.changeLanguage(language); // change the language
+		i18n.changeLanguage(language);
 	};
 
 	return (
