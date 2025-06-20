@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import {
 	Tooltip,
 	TooltipContent,
-	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -22,26 +21,24 @@ interface DevToolItemProps {
 	tool: DevTool;
 	isActive: boolean;
 	onToggle: () => void;
+	isAnyToolActive: boolean;
 }
 
-/**
- * Renders a single tool button and its associated panel.
- * The panel is viewport-aware and will not render off-screen.
- */
-const DevToolItem = ({ tool, isActive, onToggle }: DevToolItemProps) => {
+const DevToolItem = ({
+	tool,
+	isActive,
+	onToggle,
+	isAnyToolActive,
+}: DevToolItemProps) => {
+	const shouldDisableTooltip = isActive || isAnyToolActive;
+
 	return (
-		// Relative container for positioning the panel
 		<div className="relative flex justify-end">
-			{/* Panel for this specific tool */}
 			<div
 				className={cn(
-					// Base styles for the panel
-					"absolute right-full mr-2 rounded-lg border bg-background shadow-lg",
-					// *** THE KEY CHANGE IS HERE: `top-0` becomes `bottom-0` ***
+					"absolute right-full z-[9997] mr-2 rounded-lg border bg-background shadow-lg",
 					"bottom-0",
-					// Safety constraints to prevent breaking the viewport
 					"max-h-[80vh] max-w-[80vw] overflow-y-auto",
-					// Animation styles
 					"transition-all duration-300 ease-in-out",
 					isActive
 						? "translate-x-0 opacity-100"
@@ -53,34 +50,46 @@ const DevToolItem = ({ tool, isActive, onToggle }: DevToolItemProps) => {
 				{tool.component}
 			</div>
 
-			{/* Trigger Button */}
-			<Tooltip>
-				<TooltipTrigger asChild>
-					<Button
-						variant={isActive ? "secondary" : "outline"}
-						size="icon"
-						onClick={onToggle}
-						className="h-12 w-12 shrink-0 shadow-lg"
-						aria-label={`Toggle ${tool.name} tool`}
-						aria-pressed={isActive}
-						aria-controls={`devtools-panel-${tool.name}`}
-					>
-						{tool.icon}
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent side="left">
-					<p>{tool.name}</p>
-				</TooltipContent>
-			</Tooltip>
+			{!shouldDisableTooltip ? (
+				<Tooltip delayDuration={100}>
+					<TooltipTrigger asChild>
+						<Button
+							variant={isActive ? "secondary" : "outline"}
+							size="icon"
+							onClick={onToggle}
+							className="h-12 w-12 shrink-0 shadow-lg"
+							aria-label={`Toggle ${tool.name} tool`}
+							aria-pressed={isActive}
+							aria-controls={`devtools-panel-${tool.name}`}
+						>
+							{tool.icon}
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="left" className="capitalize">
+						{tool.name}
+					</TooltipContent>
+				</Tooltip>
+			) : (
+				<Button
+					variant={isActive ? "secondary" : "outline"}
+					size="icon"
+					onClick={onToggle}
+					className="h-12 w-12 shrink-0 shadow-lg"
+					aria-label={`Toggle ${tool.name} tool`}
+					aria-pressed={isActive}
+					aria-controls={`devtools-panel-${tool.name}`}
+				>
+					{tool.icon}
+				</Button>
+			)}
 		</div>
 	);
 };
 
-/**
- * Main component that orchestrates the developer tools.
- */
 const FalkorDevTools = ({ tools }: FalkorDevToolsProps) => {
 	const [activeTool, setActiveTool] = useState<string | null>(null);
+
+	const isAnyToolActive = activeTool !== null;
 
 	if (process.env.NODE_ENV !== "development" || tools.length === 0) {
 		return null;
@@ -91,18 +100,17 @@ const FalkorDevTools = ({ tools }: FalkorDevToolsProps) => {
 	};
 
 	return (
-		<TooltipProvider delayDuration={100}>
-			<div className="fixed right-4 bottom-4 z-[9999] flex flex-col items-end gap-2">
-				{tools.map((tool) => (
-					<DevToolItem
-						key={tool.name}
-						tool={tool}
-						isActive={activeTool === tool.name}
-						onToggle={() => handleToolToggle(tool.name)}
-					/>
-				))}
-			</div>
-		</TooltipProvider>
+		<div className="fixed right-4 bottom-4 z-[9996] flex flex-col items-end gap-2">
+			{tools.map((tool) => (
+				<DevToolItem
+					key={tool.name}
+					tool={tool}
+					isActive={activeTool === tool.name}
+					onToggle={() => handleToolToggle(tool.name)}
+					isAnyToolActive={isAnyToolActive}
+				/>
+			))}
+		</div>
 	);
 };
 
