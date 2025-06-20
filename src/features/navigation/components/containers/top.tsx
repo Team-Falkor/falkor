@@ -34,9 +34,9 @@ const NavBarTop = () => {
 			<div className="grid gap-2 pb-4">
 				<SearchCommand />
 
-				<NavItem href="/profile" title={t("profile")} icon={<User2Icon />} />
-
 				<NavItem href="/" title={t("home")} icon={<HomeIcon />} />
+
+				<NavItem href="/profile" title={t("profile")} icon={<User2Icon />} />
 
 				<NavItem
 					href="/calendar"
