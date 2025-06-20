@@ -5,9 +5,6 @@ import { FilterSidebar } from "@/features/filter/components/filter-sidebar";
 import { GameGrid } from "@/features/filter/components/game-grid";
 import { trpc } from "@/lib/trpc";
 
-// 1. The Zod schema now matches the flattened tRPC input exactly.
-//    - Renamed 'genres' to 'genreIds' and changed type to number array.
-//    - Added all other optional filter keys.
 const filterSearchSchema = z.object({
 	limit: z.number().int().positive().optional().default(50),
 	offset: z.number().int().min(0).optional().default(0),
@@ -35,8 +32,6 @@ export const Route = createFileRoute("/filter/")({
 function RouteComponent() {
 	const search = Route.useSearch();
 
-	// 2. The input for useQuery is now the flattened 'search' object directly.
-	//    This matches the new tRPC procedure's input schema.
 	const { data, isLoading } = trpc.igdb.filter.useQuery(search);
 
 	return (
