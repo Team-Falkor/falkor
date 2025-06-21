@@ -106,7 +106,7 @@
     "@vitejs/plugin-react": "^4.5.1",
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.1",
-    "electron": "^36.4.0",
+    "electron": "35.5.1",
     "electron-builder": "^26.0.12",
     "postcss": "^8.5.3",
     "postcss-import": "^16.1.0",
