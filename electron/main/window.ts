@@ -21,25 +21,24 @@ export interface WindowOptions {
 	enableDevTools?: boolean;
 	showOnStartup?: boolean;
 	createTray?: boolean;
-	// Used to handle deep links when app is launched via URL protocol
 	initialDeepLink?: string;
 }
 
-// Main window and tray instances
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isWindowReady = false;
 let pendingToasts: ToastNotification[] = [];
+let readinessCheckInterval: NodeJS.Timeout | null = null;
 const settings = SettingsManager.getInstance();
 
-/**
- * Creates the main application window
- */
 export async function createWindow(
 	options: WindowOptions = {},
 ): Promise<BrowserWindow> {
+	console.log("createWindow: Attempting to create main window.");
 	if (win) {
-		console.log("Window already exists, returning existing instance");
+		console.log(
+			"createWindow: Window already exists, returning existing instance.",
+		);
 		return win;
 	}
 
@@ -52,9 +51,11 @@ export async function createWindow(
 			"icon-256x256.png",
 		);
 		const iconExists = existsSync(iconPath);
+
 		if (!iconExists) {
-			console.warn(`Icon not found at path: ${iconPath}`);
+			console.warn(`createWindow: Icon not found at path: ${iconPath}`);
 		}
+
 		const devToolsOverride = import.meta.env.VITE_DEVTOOLS_OVERRIDE === "true";
 
 		win = new BrowserWindow({
@@ -78,162 +79,220 @@ export async function createWindow(
 		});
 
 		win.maximize();
+		console.log("createWindow: Window created with dimensions and maximized.");
 
 		if (VITE_DEV_SERVER_URL) {
+			console.log(`createWindow: Loading URL: ${VITE_DEV_SERVER_URL}`);
 			await win.loadURL(VITE_DEV_SERVER_URL);
 		} else {
+			console.log(`createWindow: Loading file: ${INDEX_HTML}`);
 			await win.loadFile(INDEX_HTML);
 		}
 
-		// Set up window event handlers and IPC communication
 		setupWindowEvents(win, options);
+		setupIPCHandler(win);
+		startReadinessCheck();
+		console.log("createWindow: Readiness check started.");
 
-		createIPCHandler({
-			router: appRouter,
-			windows: [win],
-			createContext() {
-				return Promise.resolve({
-					db,
-					headers: new Headers(),
-				});
-			},
-		});
-
-		// Create system tray icon if enabled (default: true)
 		if (options.createTray ?? true) {
 			createTray();
 		}
 
-		console.log("Main window created successfully");
+		console.log("createWindow: Main window created successfully");
 		return win;
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		console.error(`Failed to create window: ${errorMessage}`);
+		console.error(`createWindow: Failed to create window: ${errorMessage}`);
 		throw error;
 	}
 }
 
-/**
- * Sets up event handlers for the main window
- */
-// Sets up window event handlers and deep link handling
+function setupIPCHandler(windowInstance: BrowserWindow): void {
+	console.log("setupIPCHandler: Setting up IPC handler.");
+	createIPCHandler({
+		router: appRouter,
+		windows: [windowInstance],
+		createContext() {
+			return Promise.resolve({
+				db,
+				headers: new Headers(),
+			});
+		},
+	});
+}
+
 function setupWindowEvents(
 	windowInstance: BrowserWindow,
 	options: WindowOptions,
 ): void {
+	console.log("setupWindowEvents: Setting up window event handlers.");
 	windowInstance.webContents.setWindowOpenHandler(({ url }) => {
+		console.log(`setupWindowEvents: Window open handler for URL: ${url}`);
 		if (url.startsWith("https:")) shell.openExternal(url);
 		return { action: "deny" };
 	});
 
 	windowInstance.webContents.on("did-finish-load", () => {
+		console.log("setupWindowEvents: WebContents did-finish-load event.");
 		windowInstance.webContents.send(
 			"main-process-message",
 			new Date().toLocaleString(),
 		);
 
-		// Process any deep links after window content is loaded
 		if (options.initialDeepLink) {
-			console.log(`Handling initial deep link: ${options.initialDeepLink}`);
+			console.log(
+				`setupWindowEvents: Handling initial deep link: ${options.initialDeepLink}`,
+			);
 			handleDeepLink(options.initialDeepLink);
 		}
 	});
 
-	// Listen for frontend ready signal
-	windowInstance.webContents.on("did-finish-load", () => {
-		setTimeout(() => {
-			isWindowReady = true;
-			processPendingToasts();
-		}, 1000);
-	});
-
-	// Reset ready state when navigating
 	windowInstance.webContents.on("did-start-loading", () => {
+		console.log(
+			"setupWindowEvents: WebContents did-start-loading event. Resetting window readiness.",
+		);
 		isWindowReady = false;
+		clearReadinessCheck();
 	});
 
-	// Clean up references when window is closed
 	windowInstance.on("closed", () => {
-		win = null;
-		isWindowReady = false;
-		pendingToasts = [];
+		console.log("setupWindowEvents: Window closed. Cleaning up resources.");
+		cleanup();
 	});
 }
 
-/**
- * Processes any pending toast notifications
- */
+function startReadinessCheck(): void {
+	console.log("startReadinessCheck: Starting frontend readiness check.");
+	clearReadinessCheck();
+
+	readinessCheckInterval = setInterval(async () => {
+		console.log("startReadinessCheck: Performing readiness check.");
+		if (!win || win.isDestroyed()) {
+			console.log(
+				"startReadinessCheck: Window not found or destroyed, clearing readiness check.",
+			);
+			clearReadinessCheck();
+			return;
+		}
+
+		try {
+			const isReady = await win.webContents.executeJavaScript(`
+        (function() {
+          try {
+            return !!(window.React || document.querySelector('[data-react-root]') || document.getElementById('root'));
+          } catch (e) {
+            return false;
+          }
+        })()
+      `);
+
+			if (isReady && !isWindowReady) {
+				console.log(
+					"startReadinessCheck: Frontend ready detected, waiting 5 seconds before sending toasts...",
+				);
+				isWindowReady = true;
+				clearReadinessCheck();
+
+				setTimeout(() => {
+					processPendingToasts();
+				}, 5000);
+			} else if (!isReady) {
+				console.log("startReadinessCheck: Frontend not yet ready.");
+			}
+		} catch (error) {
+			console.warn(
+				"startReadinessCheck: Error checking frontend readiness:",
+				error,
+			);
+		}
+	}, 5000);
+}
+
+function clearReadinessCheck(): void {
+	if (readinessCheckInterval) {
+		console.log("clearReadinessCheck: Clearing readiness check interval.");
+		clearInterval(readinessCheckInterval);
+		readinessCheckInterval = null;
+	}
+}
+
 function processPendingToasts(): void {
-	if (!isWindowReady || !win || pendingToasts.length === 0) {
+	console.log("processPendingToasts: Attempting to process pending toasts.");
+	if (
+		!isWindowReady ||
+		!win ||
+		win.isDestroyed() ||
+		pendingToasts.length === 0
+	) {
+		console.log("processPendingToasts: Conditions not met to process toasts.");
 		return;
 	}
 
-	console.log(`Processing ${pendingToasts.length} pending toast notifications`);
+	console.log(
+		`processPendingToasts: Processing ${pendingToasts.length} pending toast notifications.`,
+	);
 
-	// Send all pending toasts
 	pendingToasts.forEach((toast) => {
-		try {
-			if (win && !win.isDestroyed()) {
+		if (win && !win.isDestroyed()) {
+			try {
 				win.webContents.send("toast:show", toast);
+				console.log(
+					`processPendingToasts: Sent toast: ${toast.message || toast.description}`,
+				);
+			} catch (error) {
+				console.error(
+					"processPendingToasts: Failed to send pending toast:",
+					error,
+				);
 			}
-		} catch (error) {
-			console.error("Failed to send pending toast:", error);
 		}
 	});
 
-	// Clear the queue
 	pendingToasts = [];
+	console.log("processPendingToasts: Pending toasts queue cleared.");
 }
 
-/**
- * Creates the system tray icon and menu
- */
 export function createTray(): Tray | null {
-	// Prevent re-creating tray
+	console.log("createTray: Attempting to create system tray icon.");
 	if (tray) {
-		console.log("Tray already exists, skipping creation");
+		console.log("createTray: Tray already exists, skipping creation.");
 		return tray;
 	}
 
 	try {
-		// Resolve tray icon path
 		const trayIconPath = path.join(
 			process.env.VITE_PUBLIC ?? "",
 			"icon-16x16.png",
 		);
 
-		// Verify icon exists
 		if (!existsSync(trayIconPath)) {
-			console.error(`Tray icon not found at path: ${trayIconPath}`);
+			console.error(`createTray: Tray icon not found at path: ${trayIconPath}`);
 			return null;
 		}
 
 		const trayImage = nativeImage.createFromPath(trayIconPath);
-
 		tray = new Tray(trayImage);
 		tray.setToolTip("Falkor");
 
-		// Set context menu
 		updateTrayMenu();
-
-		// Set up event handlers
 		tray.on("double-click", showWindow);
 		tray.on("click", showWindow);
 
-		console.log("Tray icon created successfully");
+		console.log("createTray: Tray icon created successfully.");
 		return tray;
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		console.error(`Failed to create tray: ${errorMessage}`);
+		console.error(`createTray: Failed to create tray: ${errorMessage}`);
 		return null;
 	}
 }
 
-/**
- * Updates the tray context menu
- */
 export function updateTrayMenu(): void {
-	if (!tray) return;
+	console.log("updateTrayMenu: Attempting to update tray context menu.");
+	if (!tray) {
+		console.log("updateTrayMenu: Tray does not exist, cannot update menu.");
+		return;
+	}
 
 	const contextMenu = Menu.buildFromTemplate([
 		{
@@ -250,130 +309,129 @@ export function updateTrayMenu(): void {
 	]);
 
 	tray.setContextMenu(contextMenu);
+	console.log("updateTrayMenu: Tray context menu updated.");
 }
 
-/**
- * Shows the main window, creating it if necessary
- */
 export function showWindow(): void {
+	console.log("showWindow: Attempting to show main window.");
 	if (!win) {
+		console.log("showWindow: Window does not exist, creating new window.");
 		createWindow();
 		return;
 	}
 
 	if (win.isMinimized()) {
+		console.log("showWindow: Window is minimized, restoring.");
 		win.restore();
 	}
 
 	win.show();
 	win.focus();
+	console.log("showWindow: Window shown and focused.");
 }
 
-/**
- * Safely quits the application
- */
 export function safeQuit(): void {
+	console.log("safeQuit: Quitting application safely.");
 	app.quit();
 }
 
-/**
- * Gets the main application window
- */
 export function getMainWindow(): BrowserWindow | null {
+	console.log("getMainWindow: Getting main window instance.");
 	return win;
 }
 
-/**
- * Gets the system tray instance
- */
 export function getTray(): Tray | null {
+	console.log("getTray: Getting system tray instance.");
 	return tray;
 }
 
-/**
- * Cleanup resources before quitting
- */
 export function cleanup(): void {
+	console.log("cleanup: Performing application cleanup.");
+	clearReadinessCheck();
+	isWindowReady = false;
+	pendingToasts = [];
+	win = null;
+	console.log("cleanup: Window reference cleared.");
+
 	if (tray) {
 		tray.destroy();
 		tray = null;
+		console.log("cleanup: Tray destroyed and reference cleared.");
 	}
+	console.log("cleanup: Cleanup complete.");
 }
 
 export const emitToFrontend = <TData>(
 	channel: string,
 	data?: TData,
 ): boolean => {
+	console.log(`emitToFrontend: Attempting to emit to channel: ${channel}`);
 	if (!channel || typeof channel !== "string") {
-		console.log("error", "Invalid channel name for IPC communication");
+		console.error("emitToFrontend: Invalid channel name for IPC communication");
 		return false;
 	}
 
 	if (!win || win.isDestroyed()) {
-		console.log(
-			"warn",
-			`Cannot emit to frontend (${channel}): window does not exist or is destroyed`,
+		console.warn(
+			`emitToFrontend: Cannot emit to frontend (${channel}): window does not exist or is destroyed`,
 		);
 		return false;
 	}
 
 	try {
 		win.webContents.send(channel, data);
+		console.log(`emitToFrontend: Successfully emitted to channel: ${channel}`);
 		return true;
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		console.log(
-			"error",
-			`Failed to emit to frontend (${channel}): ${errorMessage}`,
+		console.error(
+			`emitToFrontend: Failed to emit to frontend (${channel}): ${errorMessage}`,
 		);
 		return false;
 	}
 };
 
-/**
- * Sends a toast notification to the renderer process.
- * Waits for the frontend to be ready before sending, or queues the notification.
- *
- * @param toast - The toast notification details.
- */
 export function sendToastNotification(toast: ToastNotification): void {
-	// Check if window exists and is not destroyed
+	console.log(
+		`sendToastNotification: Received toast: ${toast.message || toast.description}`,
+	);
 	if (!win || win.isDestroyed()) {
-		console.warn(
-			"Cannot send toast notification: window does not exist or is destroyed",
+		console.log(
+			"sendToastNotification: Window not available or destroyed. Attempting to create window and queue toast.",
 		);
+		pendingToasts.push(toast);
+		createWindow({
+			showOnStartup: true,
+			createTray: true,
+			enableDevTools: false,
+		});
 		return;
 	}
 
-	// If window is ready, send immediately
 	if (isWindowReady) {
 		try {
 			win.webContents.send("toast:show", toast);
 			console.log(
-				"Toast notification sent:",
-				toast.message || toast.description,
+				"sendToastNotification: Toast notification sent immediately.",
 			);
 		} catch (error) {
-			console.error("Failed to send toast notification:", error);
+			console.error(
+				"sendToastNotification: Failed to send toast notification immediately:",
+				error,
+			);
 		}
 		return;
 	}
 
-	// Queue the notification for later
 	pendingToasts.push(toast);
 	console.log(
-		`Toast notification queued (${pendingToasts.length} pending):`,
-		toast.message || toast.description,
+		`sendToastNotification: Toast notification queued (${pendingToasts.length} pending).`,
 	);
 
-	// Set up a fallback timeout in case the ready event doesn't fire
-	setTimeout(() => {
-		if (!isWindowReady && pendingToasts.length > 0) {
-			console.warn(
-				"Frontend ready timeout reached, attempting to send pending toasts anyway",
-			);
-			isWindowReady = true;
-			processPendingToasts();
-		}
-	}, 5000); // 5 second fallback
+	if (!readinessCheckInterval) {
+		console.log(
+			"sendToastNotification: Starting readiness check due to queued toast.",
+		);
+		startReadinessCheck();
+	}
 }

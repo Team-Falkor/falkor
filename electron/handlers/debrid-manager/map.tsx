@@ -1,4 +1,3 @@
-import { setTimeout } from "node:timers/promises";
 import { db } from "@backend/database";
 import { accounts } from "@backend/database/schemas";
 import { sendToastNotification } from "@backend/main/window";
@@ -189,8 +188,6 @@ const initializeProviders = async (): Promise<void> => {
 			const missingItems = missingCredentials.join(", ");
 
 			console.warn("RealDebrid: Missing required credentials in database");
-
-			await setTimeout(5000);
 
 			sendToastNotification({
 				type: "error",
