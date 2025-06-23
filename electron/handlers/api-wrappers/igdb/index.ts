@@ -39,6 +39,8 @@ export interface GameFilters {
 	minHypes?: number;
 	onlyMainGames?: boolean;
 	excludeVersions?: boolean;
+	developerIds?: number[];
+	publisherIds?: number[];
 }
 
 export interface IGDBOption {
@@ -102,6 +104,16 @@ export class IGDBWrapper extends IGDBApiBase {
 			sort: "name asc",
 			limit,
 			offset,
+		});
+	}
+
+	public async getCompanies(ids: number[]): Promise<IGDBOption[]> {
+		if (!ids || ids.length === 0) return [];
+		return this.makeReq<IGDBOption[]>("companies", {
+			fields: ["id", "name"],
+			where: `id = (${ids.join(",")})`,
+			limit: ids.length,
+			includeDefaultFields: false,
 		});
 	}
 
@@ -265,7 +277,7 @@ export class IGDBWrapper extends IGDBApiBase {
 	): Promise<IGDBReturnDataType[]> {
 		const conditions: string[] = [this.getPlatformCondition(filters.platforms)];
 
-		// Helper for array conditions. Uses `(id1,id2)` for AND logic.
+		// Helper for array conditions. Uses `(id1,id2)` for OR logic.
 		const addArrayCondition = (field: string, ids?: number[]) => {
 			if (ids && ids.length > 0) {
 				conditions.push(`${field} = (${ids.join(",")})`);
@@ -276,6 +288,24 @@ export class IGDBWrapper extends IGDBApiBase {
 		addArrayCondition("themes", filters.themes);
 		addArrayCondition("game_modes", filters.gameModes);
 		addArrayCondition("player_perspectives", filters.playerPerspectiveIds);
+
+		// Add conditions for developers
+		if (filters.developerIds && filters.developerIds.length > 0) {
+			conditions.push(
+				`involved_companies.developer = true & involved_companies.company = (${filters.developerIds.join(
+					",",
+				)})`,
+			);
+		}
+
+		// Add conditions for publishers
+		if (filters.publisherIds && filters.publisherIds.length > 0) {
+			conditions.push(
+				`involved_companies.publisher = true & involved_companies.company = (${filters.publisherIds.join(
+					",",
+				)})`,
+			);
+		}
 
 		if (typeof filters.minRating === "number") {
 			this.validateRating(filters.minRating);

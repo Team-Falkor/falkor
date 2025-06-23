@@ -22,6 +22,8 @@ const filterSearchSchema = z.object({
 	minHypes: z.number().int().min(0).optional(),
 	onlyMainGames: z.boolean().optional(),
 	excludeVersions: z.boolean().optional(),
+	developerIds: z.array(z.number().int().positive()).optional(),
+	publisherIds: z.array(z.number().int().positive()).optional(),
 });
 
 export const Route = createFileRoute("/filter/")({

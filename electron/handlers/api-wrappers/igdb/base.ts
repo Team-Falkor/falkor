@@ -3,7 +3,12 @@ import type { IGDBAccessTokenResponse } from "@/@types";
 import { defaultFields } from "./constants";
 
 // Define types for IGDB API requests
-export type IGDBEndpoint = "games" | "genres" | "themes" | "game_modes";
+export type IGDBEndpoint =
+	| "games"
+	| "genres"
+	| "themes"
+	| "game_modes"
+	| "companies";
 
 export interface IGDBRequestOptions {
 	fields?: string[];

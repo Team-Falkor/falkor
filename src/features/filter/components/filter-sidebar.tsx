@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react"; // Import useEffect
 import type { RouterInputs } from "@/@types";
 import { DatePicker } from "@/components/date-picker";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,12 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib";
+
+// Assuming IGDBOption is available from your backend types
+interface IGDBOption {
+	id: number;
+	name: string;
+}
 
 export type FilterOptions = RouterInputs["igdb"]["filter"];
 
@@ -47,6 +53,14 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 	const navigate = useNavigate();
 	const [filters, setFilters] = useState<FilterOptions>(initialFilters);
 
+	// State for displaying company names
+	const [developerDisplayNames, setDeveloperDisplayNames] = useState<
+		IGDBOption[]
+	>([]);
+	const [publisherDisplayNames, setPublisherDisplayNames] = useState<
+		IGDBOption[]
+	>([]);
+
 	// Platforms list
 	const platforms = [
 		{ id: 6, name: "PC" },
@@ -59,6 +73,38 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 		trpc.igdb.genres.useQuery({ limit: 50, offset: 0 });
 	const { data: themesList = [], isLoading: themesLoading } =
 		trpc.igdb.themes.useQuery({ limit: 50, offset: 0 });
+
+	// Query to get developer names if IDs are present in filters
+	const { data: fetchedDeveloperNames, isLoading: devNamesLoading } =
+		trpc.igdb.companies.useQuery(
+			{ ids: filters.developerIds || [] },
+			{
+				enabled: (filters.developerIds?.length ?? 0) > 0, // Only run if there are IDs
+			},
+		);
+
+	// Query to get publisher names if IDs are present in filters
+	const { data: fetchedPublisherNames, isLoading: pubNamesLoading } =
+		trpc.igdb.companies.useQuery(
+			{ ids: filters.publisherIds || [] },
+			{
+				enabled: (filters.publisherIds?.length ?? 0) > 0, // Only run if there are IDs
+			},
+		);
+
+	// Effect to update display names when developer data is fetched
+	useEffect(() => {
+		if (fetchedDeveloperNames) {
+			setDeveloperDisplayNames(fetchedDeveloperNames);
+		}
+	}, [fetchedDeveloperNames]);
+
+	// Effect to update display names when publisher data is fetched
+	useEffect(() => {
+		if (fetchedPublisherNames) {
+			setPublisherDisplayNames(fetchedPublisherNames);
+		}
+	}, [fetchedPublisherNames]);
 
 	// Handlers
 	const handleRatingChange = (value: number[]) => {
@@ -115,6 +161,24 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 		setFilters((prev) => ({ ...prev, excludeVersions: checked }));
 	};
 
+	// Handler to remove a specific developer filter
+	const handleRemoveDeveloper = (id: number) => {
+		setFilters((prev) => ({
+			...prev,
+			developerIds: prev.developerIds?.filter((devId) => devId !== id),
+		}));
+		setDeveloperDisplayNames((prev) => prev.filter((dev) => dev.id !== id));
+	};
+
+	// Handler to remove a specific publisher filter
+	const handleRemovePublisher = (id: number) => {
+		setFilters((prev) => ({
+			...prev,
+			publisherIds: prev.publisherIds?.filter((pubId) => pubId !== id),
+		}));
+		setPublisherDisplayNames((prev) => prev.filter((pub) => pub.id !== id));
+	};
+
 	const handleApplyFilters = () => {
 		navigate({
 			to: "/filter",
@@ -128,6 +192,9 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 
 	const handleResetFilters = () => {
 		setFilters({} as FilterOptions);
+		// Clear developer and publisher display names as well
+		setDeveloperDisplayNames([]);
+		setPublisherDisplayNames([]);
 		navigate({ to: "/filter", search: {} });
 	};
 
@@ -306,6 +373,78 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 						)}
 					</CollapsibleContent>
 				</Collapsible>
+
+				{/* Developers */}
+				{(filters.developerIds?.length ?? 0) > 0 && (
+					<Collapsible defaultOpen>
+						<CollapsibleTrigger className="flex w-full items-center justify-between">
+							<Label className="font-medium">
+								Developers
+								<span className="ml-1 text-muted-foreground text-xs">
+									({filters.developerIds?.length})
+								</span>
+							</Label>
+							<ChevronDown className="h-4 w-4" />
+						</CollapsibleTrigger>
+						<CollapsibleContent className="max-w-full pt-3">
+							{devNamesLoading ? (
+								<div>Loading developers...</div>
+							) : (
+								<div className="flex max-w-full flex-wrap gap-2">
+									{developerDisplayNames.map((dev) => (
+										<Button
+											key={dev.id}
+											variant="active" // Always active as they are selected
+											size="sm"
+											className="flex min-w-fit items-center rounded-full"
+											onClick={() => handleRemoveDeveloper(dev.id)} // Make it removable
+										>
+											{dev.name}
+											<span className="ml-1">x</span>{" "}
+											{/* Simple remove indicator */}
+										</Button>
+									))}
+								</div>
+							)}
+						</CollapsibleContent>
+					</Collapsible>
+				)}
+
+				{/* Publishers */}
+				{(filters.publisherIds?.length ?? 0) > 0 && (
+					<Collapsible defaultOpen>
+						<CollapsibleTrigger className="flex w-full items-center justify-between">
+							<Label className="font-medium">
+								Publishers
+								<span className="ml-1 text-muted-foreground text-xs">
+									({filters.publisherIds?.length})
+								</span>
+							</Label>
+							<ChevronDown className="h-4 w-4" />
+						</CollapsibleTrigger>
+						<CollapsibleContent className="max-w-full pt-3">
+							{pubNamesLoading ? (
+								<div>Loading publishers...</div>
+							) : (
+								<div className="flex max-w-full flex-wrap gap-2">
+									{publisherDisplayNames.map((pub) => (
+										<Button
+											key={pub.id}
+											variant="active" // Always active as they are selected
+											size="sm"
+											className="flex min-w-fit items-center rounded-full"
+											onClick={() => handleRemovePublisher(pub.id)} // Make it removable
+										>
+											{pub.name}
+											<span className="ml-1">x</span>{" "}
+											{/* Simple remove indicator */}
+										</Button>
+									))}
+								</div>
+							)}
+						</CollapsibleContent>
+					</Collapsible>
+				)}
 
 				{/* Exclude Versions */}
 				<div className="flex items-center justify-between">
