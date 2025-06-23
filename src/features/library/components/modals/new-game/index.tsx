@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { MultiStepDialog } from "@/components/MultiStepDialog";
 import { useGames } from "@/features/library/hooks/use-games";
 import { useNewGameStore } from "@/features/library/stores/new-game";
-import { createSlug, trpc } from "@/lib";
+import { trpc } from "@/lib";
 import { getFilenameFromPath } from "@/lib/helpers/get-filename";
 import { NewGameButton } from "../../new-game";
 import { ConfirmationStep } from "./steps/confirmation";
@@ -122,7 +122,6 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 
 					try {
 						createGame({
-							gameId: createSlug(gameName),
 							gameName: gameName,
 							gamePath: gamePath,
 							gameArgs: game.gameArgs ?? undefined,

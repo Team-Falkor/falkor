@@ -1,0 +1,1 @@
+DROP INDEX `library_games_game_name_unique`;

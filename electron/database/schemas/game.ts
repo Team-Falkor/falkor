@@ -28,7 +28,6 @@ export const libraryGames = sqliteTable(
 			.notNull(),
 	},
 	(table) => [
-		uniqueIndex("library_games_game_name_unique").on(table.gameName),
 		uniqueIndex("library_games_game_path_unique").on(table.gamePath),
 		uniqueIndex("library_games_game_id_unique").on(table.gameId),
 	],

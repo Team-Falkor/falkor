@@ -1,7 +1,7 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames, listsToGames } from "@backend/database/schemas";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, type InferInsertModel } from "drizzle-orm";
 import { z } from "zod";
 
 export const libraryGamesRouter = router({
@@ -40,7 +40,7 @@ export const libraryGamesRouter = router({
 			z.object({
 				gameName: z.string(),
 				gamePath: z.string(),
-				gameId: z.string(),
+				gameId: z.string().optional(),
 				gameSteamId: z.string().optional(),
 				gameIcon: z.string().optional(),
 				gameArgs: z.string().optional(),
@@ -58,9 +58,12 @@ export const libraryGamesRouter = router({
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			const toInsert = {
+			const gameId = !input.gameId ? crypto.randomUUID() : input.gameId;
+			console.log(gameId);
+			const toInsert: InferInsertModel<typeof libraryGames> = {
 				...input,
 				gameLastPlayed: input.gameLastPlayed ?? null,
+				gameId,
 			};
 			const created = ctx.db
 				.insert(libraryGames)
