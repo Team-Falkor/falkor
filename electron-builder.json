@@ -46,7 +46,7 @@
     "uninstallerIcon": "./build/icon.ico"
   },
   "linux": {
-    "target": ["AppImage", "deb", "snap", "pacman", "rpm", "tar.gz"],
+    "target": ["AppImage", "deb", "pacman", "rpm", "tar.gz"],
     "artifactName": "${productName}.${ext}",
     "category": "Game",
     "maintainer": "team-falkor",
