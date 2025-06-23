@@ -59,7 +59,6 @@ export const libraryGamesRouter = router({
 		)
 		.mutation(async ({ input, ctx }) => {
 			const gameId = !input.gameId ? crypto.randomUUID() : input.gameId;
-			console.log(gameId);
 			const toInsert: InferInsertModel<typeof libraryGames> = {
 				...input,
 				gameLastPlayed: input.gameLastPlayed ?? null,
