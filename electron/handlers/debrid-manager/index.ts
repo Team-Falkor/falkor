@@ -10,20 +10,20 @@ import type { DebridService } from "./map";
 const settings = SettingsManager.getInstance();
 
 type Return = {
-		url: string;
-		type: "ddl" | "magnet" | "torrent";
-		provider: "real-debrid" | "torbox";
-		isCaching: boolean;
-		progress?: number;
-		fileSize?: number;
-	};
+	url: string;
+	type: "ddl" | "magnet" | "torrent";
+	provider: "real-debrid" | "torbox";
+	isCaching: boolean;
+	progress?: number;
+	fileSize?: number;
+};
 
 function isTorBoxClient(c: DebridService): c is TorBoxClient {
-return c instanceof TorBoxClient;
+	return c instanceof TorBoxClient;
 }
 
 function isRealDebridClient(c: DebridService): c is RealDebridClient {
-return c instanceof RealDebridClient;
+	return c instanceof RealDebridClient;
 }
 export class DebridManager {
 	private static instance: DebridManager;
@@ -124,7 +124,12 @@ export class DebridManager {
 			if (type === "ddl") {
 				const result = await client.webDownloads.createWebDownload(url);
 
-				if (result) {
+				if (!result) {
+					console.error("RealDebrid: Failed to process torrent/magnet");
+					return null;
+				}
+
+				if (result.download_present) {
 					returnData = {
 						url: await client.webDownloads.getWebDownloadDownload(result.id),
 						isCaching: !result.download_present,
@@ -132,8 +137,18 @@ export class DebridManager {
 						provider,
 						progress: result.progress,
 						fileSize: result.size,
-					}
+					};
+				} else {
+					returnData = {
+						url: url,
+						isCaching: !result.download_present,
+						type: "ddl",
+						provider,
+						progress: result.progress,
+						fileSize: result.size,
+					};
 				}
+
 			} else {
 				// Handle magnet/torrent types
 				const result = await client.downloadTorrentFromMagnet(url);
