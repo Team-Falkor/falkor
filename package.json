@@ -2,7 +2,7 @@
   "name": "falkor",
   "description": "Dive into Falkor, where you'll discover a vast selection of games coupled with community-driven enhancements. Experience seamless and secure gaming within a single, universal hub.",
   "private": true,
-  "version": "0.5.0-beta",
+  "version": "0.5.1-beta",
   "type": "module",
   "main": "dist-electron/main/index.js",
   "author": {
