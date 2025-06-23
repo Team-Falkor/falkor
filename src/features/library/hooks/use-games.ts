@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { trpc } from "@/lib";
 
 export function useGames() {
@@ -46,10 +47,22 @@ export function useGames() {
 	});
 
 	const { mutate: createGame } = trpc.library.create.useMutation({
-		onSuccess: async () => {
+		onSuccess: async (data) => {
+			if (!data) {
+				toast.error("error creating game");
+				return;
+			}
+
 			await utils.library.list.invalidate(undefined, {
 				refetchType: "all",
 				type: "all",
+			});
+
+			toast.success("Game added successfully!");
+		},
+		onError: async (error) => {
+			toast.error("Error adding game. Please try again.", {
+				description: error.message,
 			});
 		},
 	});

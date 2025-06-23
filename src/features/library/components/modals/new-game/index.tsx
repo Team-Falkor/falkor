@@ -120,24 +120,19 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 						return;
 					}
 
-					try {
-						createGame({
-							gameName: gameName,
-							gamePath: gamePath,
-							gameArgs: game.gameArgs ?? undefined,
-							gameIcon: game.gameIcon ?? undefined,
-							gameCommand: game.gameCommand ?? undefined,
-							igdbId: game.igdbId ? game.igdbId : undefined,
-							gameSteamId: game.gameSteamId ?? undefined,
-							installed: !!gamePath,
-							winePrefixFolder: game.winePrefixFolder ?? undefined,
-							runAsAdmin: game.runAsAdmin,
-						});
-						toast.success("Game added successfully!");
-					} catch (error) {
-						console.error("Error adding game:", error);
-						toast.error("Error adding game. Please try again.");
-					}
+					createGame({
+						gameName: gameName,
+						gamePath: gamePath,
+						gameArgs: game.gameArgs ?? undefined,
+						gameIcon: game.gameIcon ?? undefined,
+						gameCommand: game.gameCommand ?? undefined,
+						igdbId: game.igdbId ? game.igdbId : undefined,
+						gameSteamId: game.gameSteamId ?? undefined,
+						installed: !!gamePath,
+						winePrefixFolder: game.winePrefixFolder ?? undefined,
+						runAsAdmin: game.runAsAdmin,
+					});
+
 					handleClose();
 				}}
 				steps={[
