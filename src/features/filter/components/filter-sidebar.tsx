@@ -28,6 +28,7 @@ interface FilterSidebarProps {
 }
 
 function makeRangeHandler<
+	// biome-ignore lint/suspicious/noExplicitAny: TODO: fix the typing here
 	OP extends Record<string, any>,
 	K1 extends keyof OP,
 	K2 extends keyof OP,
