@@ -1,6 +1,6 @@
 import { rmSync } from "node:fs";
 import path from "node:path";
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import tanstackRouter from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import electron from "vite-plugin-electron/simple";
@@ -21,10 +21,11 @@ export default defineConfig(({ command }) => {
 			alias: {
 				"@": path.join(__dirname, "src"),
 				"@resources": path.join(__dirname, "resources"),
+				"@backend": path.join(__dirname, "electron"),
 			},
 		},
 		plugins: [
-			TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
+			tanstackRouter({ target: "react", autoCodeSplitting: true }),
 			react({
 				babel: {
 					plugins: [["babel-plugin-react-compiler"]],

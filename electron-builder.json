@@ -2,8 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "moe.falkor",
   "asar": true,
-  "productName": "Falkor",
-  "icon": "./build/icons/256x256.png",
+  "productName": "falkor",
   "protocols": [
     {
       "name": "falkor",
@@ -47,12 +46,11 @@
     "uninstallerIcon": "./build/icon.ico"
   },
   "linux": {
-    "target": ["AppImage", "deb", "pacman", "rpm", "tar.gz"],
+    "target": ["AppImage", "deb", "snap", "pacman", "rpm", "tar.gz"],
     "artifactName": "${productName}.${ext}",
     "category": "Game",
     "maintainer": "team-falkor",
-    "mimeTypes": ["x-scheme-handler/falkor"],
-    "publish": ["github"]
+    "mimeTypes": ["x-scheme-handler/falkor"]
   },
   "publish": {
     "provider": "github",
