@@ -1,7 +1,12 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { db } from "@backend/database";
+import { libraryGames } from "@backend/database/schemas";
+import GameProcessLauncher from "@backend/handlers/launcher/game-process-launcher";
+import { gamesLaunched } from "@backend/handlers/launcher/games-launched";
+import logging from "@backend/handlers/logging";
 import { createIPCHandler } from "@janwirth/electron-trpc-link/main";
+import { desc, type InferSelectModel } from "drizzle-orm";
 import {
 	app,
 	BrowserWindow,
@@ -95,7 +100,7 @@ export async function createWindow(
 		console.log("createWindow: Readiness check started.");
 
 		if (options.createTray ?? true) {
-			createTray();
+			await createTray();
 		}
 
 		console.log("createWindow: Main window created successfully");
@@ -252,7 +257,7 @@ function processPendingToasts(): void {
 	console.log("processPendingToasts: Pending toasts queue cleared.");
 }
 
-export function createTray(): Tray | null {
+export async function createTray(): Promise<Tray | null> {
 	console.log("createTray: Attempting to create system tray icon.");
 	if (tray) {
 		console.log("createTray: Tray already exists, skipping creation.");
@@ -274,7 +279,7 @@ export function createTray(): Tray | null {
 		tray = new Tray(trayImage);
 		tray.setToolTip("Falkor");
 
-		updateTrayMenu();
+		await updateTrayMenu();
 		tray.on("double-click", showWindow);
 		tray.on("click", showWindow);
 
@@ -287,26 +292,107 @@ export function createTray(): Tray | null {
 	}
 }
 
-export function updateTrayMenu(): void {
+/**
+ * Helper function to launch a game.
+ * @param game The game object from the database, typed by Drizzle's InferSelectModel.
+ */
+async function launchGame(
+	game: InferSelectModel<typeof libraryGames>,
+): Promise<void> {
+	if (!game || !game.gamePath) {
+		logging.log("info", "Game or game path not found, cannot launch.");
+		return;
+	}
+
+	const existingLauncher = gamesLaunched.get(game.id);
+	if (existingLauncher) {
+		logging.log("info", `Game "${game.gameName}" is already launched.`);
+		return;
+	}
+
+	const launcher = new GameProcessLauncher({
+		id: game.id,
+		gameId: game.gameId,
+		gamePath: game.gamePath,
+		gameName: game.gameName,
+		gameIcon: game.gameIcon ?? undefined,
+		steamId: game.gameSteamId ?? undefined,
+		gameArgs: game.gameArgs?.split(" ") ?? undefined,
+		commandOverride: game.gameCommand ?? undefined,
+		winePrefixPath: game.winePrefixFolder ?? undefined,
+		runAsAdmin: game.runAsAdmin ?? false,
+	});
+
+	try {
+		await launcher.launch(game.gameArgs?.split(" "));
+		gamesLaunched.set(game.id, launcher);
+		logging.log(
+			"info",
+			`Successfully launched game ${game.gameName} (${game.id}).`,
+		);
+	} catch (error) {
+		logging.log(
+			"error",
+			`Failed to launch game ${game.id}: ${(error as Error).message}`,
+		);
+		gamesLaunched.delete(game.id);
+	}
+}
+
+/**
+ * Updates the Electron tray context menu with the most recently played games.
+ */
+export async function updateTrayMenu(): Promise<void> {
 	console.log("updateTrayMenu: Attempting to update tray context menu.");
+
 	if (!tray) {
 		console.log("updateTrayMenu: Tray does not exist, cannot update menu.");
 		return;
 	}
 
-	const contextMenu = Menu.buildFromTemplate([
+	const lastPlayedGames = await db
+		.select()
+		.from(libraryGames)
+		.orderBy(desc(libraryGames.gameLastPlayed))
+		.limit(5);
+
+	const gameMenuItems: Array<Electron.MenuItemConstructorOptions> =
+		lastPlayedGames.map((game): Electron.MenuItemConstructorOptions => {
+			return {
+				type: "normal",
+				label: game.gameName,
+				click: async () => {
+					await launchGame(game);
+				},
+			};
+		});
+
+	const contextMenuTemplate: Array<Electron.MenuItemConstructorOptions> = [
 		{
 			type: "normal",
 			label: "Open Falkor",
 			click: showWindow,
 		},
-		{ type: "separator" },
-		{
-			type: "normal",
-			label: "Quit Falkor",
-			click: safeQuit,
-		},
-	]);
+	];
+
+	if (gameMenuItems.length > 0) {
+		contextMenuTemplate.push({ type: "separator" });
+		contextMenuTemplate.push({
+			type: "submenu",
+			label: "Continue Playing",
+			submenu: gameMenuItems,
+		});
+	}
+
+	contextMenuTemplate.push({ type: "separator" });
+
+	contextMenuTemplate.push({
+		type: "normal",
+		label: "Quit Falkor",
+		click: safeQuit,
+	});
+
+	const contextMenu = Menu.buildFromTemplate(contextMenuTemplate);
 
 	tray.setContextMenu(contextMenu);
 	console.log("updateTrayMenu: Tray context menu updated.");
