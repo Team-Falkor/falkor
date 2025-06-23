@@ -146,6 +146,7 @@ const UnifiedPluginCard = ({
 									"group/author flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 focus-states:text-primary",
 									{ "cursor-pointer": author.url },
 								)}
+								target="_blank"
 							>
 								<UserIcon className="size-4 flex-shrink-0" />
 								<span className="truncate text-sm group-hover/author:underline">
