@@ -62,7 +62,7 @@
     "audio-decode": "^2.2.2",
     "auto-launch": "^5.0.6",
     "babel-plugin-react-compiler": "^19.1.0-rc.1",
-    "better-sqlite3": "^11.9.1",
+    "better-sqlite3": "^12.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
