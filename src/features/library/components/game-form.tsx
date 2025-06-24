@@ -1,26 +1,37 @@
 import { FolderOpen } from "lucide-react";
-import { type ChangeEvent, useCallback } from "react";
+import type { ChangeEvent } from "react";
+import type { Game } from "@/@types";
 import { InputWithIcon } from "@/components/inputWithIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import type { Game } from "@/features/library/stores/new-game";
-import { useNewGameStore } from "@/features/library/stores/new-game";
-import { trpc } from "@/lib";
+import { Switch } from "@/components/ui/switch";
 
-const LOG_PREFIX = "[ConfirmationStep]";
+interface GameFormProps {
+	game: Partial<Game>;
+	onGameChange: (updatedFields: Partial<Game>) => void;
+	onFileBrowse: (
+		config: {
+			properties: ("openFile" | "openDirectory")[];
+			filters: { name: string; extensions: string[] }[];
+		},
+		updateKey: keyof Game,
+	) => Promise<void>;
+}
 
-export const ConfirmationStep = () => {
-	const { game, updateGame } = useNewGameStore();
-	const openDialog = trpc.app.openDialog.useMutation();
-
-	console.log(`${LOG_PREFIX} Render. Current game state:`, game);
-
+export const GameForm = ({
+	game,
+	onGameChange,
+	onFileBrowse,
+}: GameFormProps) => {
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
-		console.log(`${LOG_PREFIX} Input changed:`, { name, value });
-		updateGame({ [name]: value } as Partial<Game>);
+		onGameChange({ [name]: value } as Partial<Game>);
+	};
+
+	const handleRunAsAdminToggle = (checked: boolean) => {
+		onGameChange({ runAsAdmin: checked });
 	};
 
 	const getInitials = (name?: string) => {
@@ -33,39 +44,8 @@ export const ConfirmationStep = () => {
 			.toUpperCase();
 	};
 
-	const handleFileBrowse = useCallback(
-		async (
-			config: {
-				properties: ("openFile" | "openDirectory")[];
-				filters: { name: string; extensions: string[] }[];
-			},
-			updateKey: keyof Game,
-		) => {
-			console.log(`${LOG_PREFIX} Opening file dialog for:`, updateKey);
-			try {
-				const selected = await openDialog.mutateAsync(config);
-				if (selected.success && selected.result?.filePaths.length) {
-					const path = selected.result.filePaths[0];
-					console.log(`${LOG_PREFIX} File selected for ${updateKey}:`, path);
-					updateGame({ [updateKey]: path } as Partial<Game>);
-				} else {
-					console.log(
-						`${LOG_PREFIX} File selection canceled or failed for:`,
-						updateKey,
-					);
-				}
-			} catch (error) {
-				console.error(
-					`${LOG_PREFIX} Error opening file dialog for ${updateKey}:`,
-					error,
-				);
-			}
-		},
-		[openDialog, updateGame],
-	);
-
 	const handleGamePathSelect = () =>
-		handleFileBrowse(
+		onFileBrowse(
 			{
 				properties: ["openFile"],
 				filters: [
@@ -88,7 +68,7 @@ export const ConfirmationStep = () => {
 		);
 
 	const handleGameIconSelect = () =>
-		handleFileBrowse(
+		onFileBrowse(
 			{
 				properties: ["openFile"],
 				filters: [
@@ -100,7 +80,6 @@ export const ConfirmationStep = () => {
 
 	return (
 		<div className="flex-1 space-y-6 overflow-y-auto py-6 pr-4">
-			{/* Card 1: Game Details */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Game Details</CardTitle>
@@ -108,7 +87,10 @@ export const ConfirmationStep = () => {
 				<CardContent className="space-y-4">
 					<div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
 						<Avatar className="h-24 w-24 flex-shrink-0 rounded-lg sm:h-32 sm:w-32">
-							<AvatarImage src={game.gameIcon} alt={game.gameName} />
+							<AvatarImage
+								src={game.gameIcon ?? undefined}
+								alt={game.gameName}
+							/>
 							<AvatarFallback className="rounded-lg text-3xl">
 								{getInitials(game.gameName)}
 							</AvatarFallback>
@@ -149,7 +131,6 @@ export const ConfirmationStep = () => {
 				</CardContent>
 			</Card>
 
-			{/* Card 2: Launch Configuration */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Launch Configuration</CardTitle>
@@ -185,10 +166,18 @@ export const ConfirmationStep = () => {
 							placeholder="e.g., -nolauncher --skip-intro"
 						/>
 					</div>
+
+					<div className="flex items-center space-x-2 pt-2">
+						<Switch
+							id="runAsAdmin"
+							checked={game.runAsAdmin ?? false}
+							onCheckedChange={handleRunAsAdminToggle}
+						/>
+						<Label htmlFor="runAsAdmin">Run as Administrator</Label>
+					</div>
 				</CardContent>
 			</Card>
 
-			{/* Card 3: Database IDs */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Database IDs</CardTitle>
@@ -210,7 +199,7 @@ export const ConfirmationStep = () => {
 							<InputWithIcon
 								id="steamId"
 								name="steamId"
-								value={game.steamId || ""}
+								value={game.gameSteamId || ""}
 								onChange={handleChange}
 								placeholder="e.g., 1091500"
 							/>
@@ -219,7 +208,6 @@ export const ConfirmationStep = () => {
 				</CardContent>
 			</Card>
 
-			{/* Card 4: Advanced Configuration */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Advanced (Optional)</CardTitle>

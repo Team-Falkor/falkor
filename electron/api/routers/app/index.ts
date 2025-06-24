@@ -41,19 +41,21 @@ const openDialogOptionsSchema = z.object({
 		.optional(),
 	properties: z
 		.array(
-			z.enum([
-				"openFile",
-				"openDirectory",
-				"multiSelections",
-				"showHiddenFiles",
-				"createDirectory",
-				"promptToCreate",
-				"noResolveAliases",
-				"treatPackageAsDirectory",
-				"dontAddToRecent",
+			z.union([
+				z.literal("openFile"),
+				z.literal("openDirectory"),
+				z.literal("multiSelections"),
+				z.literal("showHiddenFiles"),
+				z.literal("createDirectory"),
+				z.literal("promptToCreate"),
+				z.literal("noResolveAliases"),
+				z.literal("treatPackageAsDirectory"),
+				z.literal("dontAddToRecent"),
 			]),
 		)
 		.optional(),
+	message: z.string().optional(),
+	securityScopedBookmarks: z.boolean().optional(),
 });
 
 export const appFunctionsRouter = router({
@@ -197,18 +199,33 @@ export const appFunctionsRouter = router({
 		.input(openDialogOptionsSchema)
 		.mutation(async ({ input }) => {
 			try {
-				const result = await dialog.showOpenDialog(input);
+				const { canceled, filePaths } = await dialog.showOpenDialog(input);
+
+				if (canceled) {
+					return {
+						success: true,
+						canceled: true,
+						filePaths: [],
+						message: "File selection canceled.",
+					};
+				}
+
 				return {
 					success: true,
-					result,
+					canceled: false,
+					filePaths,
 					message: null,
 				};
 			} catch (error) {
-				console.error("[openDialog] Error:", error);
+				console.error("[openDialog] Error showing dialog:", error);
 				return {
 					success: false,
-					message: error instanceof Error ? error.message : String(error),
-					result: null,
+					canceled: false,
+					filePaths: [],
+					message:
+						error instanceof Error
+							? error.message
+							: "An unknown error occurred during dialog.",
 				};
 			}
 		}),

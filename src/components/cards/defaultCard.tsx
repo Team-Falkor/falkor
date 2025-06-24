@@ -73,21 +73,24 @@ const DefaultCard = ({
 	return (
 		<div className="group w-[230px]">
 			{/* Image Container - Fixed size */}
-			<div className="relative mb-3">
+			<div className="relative mb-3 overflow-hidden rounded-lg">
 				{isLinkDisabled ? (
 					// If disabled, render a simple div with no interaction
-					<div className="block overflow-hidden rounded-lg">
+					<div className="block">
 						{CardImageContent}
 					</div>
 				) : (
 					// If enabled, render the fully interactive Link
 					<Link
-						to={"/info/$id"}
+						to="/info/$id"
 						params={{
 							// We know 'id' is a number here, so toString() is safe
 							id: id.toString(),
 						}}
-						className="block overflow-hidden rounded-lg transition-transform duration-300 hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						className="block transition-transform duration-300 hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						style={{
+							transformOrigin: 'center center'
+						}}
 					>
 						{CardImageContent}
 					</Link>

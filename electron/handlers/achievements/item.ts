@@ -101,47 +101,100 @@ class AchievementItem {
 	}
 
 	private async handleAchievementChange(): Promise<void> {
-		const unlocked = await this.compare();
-		if (!unlocked) return;
+		await this.parse();
 
-		const dbItems = await db
-			.select({ achievementName: achievements.achievementName })
-			.from(achievements)
-			.where(
-				and(
-					eq(achievements.gameId, this.game_id),
-					eq(achievements.unlocked, true),
-				),
+		const gameSchemaAchievements =
+			this.achivement_data?.game?.availableGameStats?.achievements;
+
+		if (!gameSchemaAchievements) {
+			console.warn(
+				`No achievement schema data available for game: ${this.game_name}`,
 			);
-
-		const dbAchievementNames = new Set(
-			dbItems.map((item) => item.achievementName),
-		);
-
-		const newAchievements = unlocked.filter(
-			(achievement) => !dbAchievementNames.has(achievement.name),
-		);
-
-		if (newAchievements.length > 0) {
-			await this.saveAndNotify(newAchievements);
-		}
-	}
-
-	private async saveAndNotify(
-		achievementsToSave: AchivementStat[],
-	): Promise<void> {
-		for (const achievement of achievementsToSave) {
-			console.log(`Adding new achievement: ${achievement.name}`);
-			await db.insert(achievements).values({
-				achievementDisplayName: achievement.displayName,
-				gameId: this.game_id,
-				achievementName: achievement.name,
-				description: achievement.description,
-				unlocked: true,
-			});
+			return;
 		}
 
-		this.bufferNotifications(achievementsToSave);
+		const existingDbAchievements = await db
+			.select({
+				achievementName: achievements.achievementName,
+				unlocked: achievements.unlocked,
+			})
+			.from(achievements)
+			.where(eq(achievements.gameId, this.game_id));
+
+		const dbAchievementMap = new Map(
+			existingDbAchievements.map((item) => [
+				item.achievementName,
+				item.unlocked,
+			]),
+		);
+
+		const achievementsToNotify: AchivementStat[] = [];
+
+		for (const schemaAch of gameSchemaAchievements) {
+			const isCurrentlyUnlockedInFile = Array.from(
+				this.file_unlocked_achievements,
+			).some((fileAch) => fileAch.name === schemaAch.name);
+			const wasUnlockedInDb = dbAchievementMap.get(schemaAch.name);
+
+			const currentAchStat: AchivementStat = {
+				name: schemaAch.name,
+				displayName: schemaAch.displayName,
+				hidden: schemaAch.hidden,
+				description: schemaAch.description,
+				icon: schemaAch.icon ?? this.game_icon,
+				icongray: schemaAch.icongray ?? this.game_icon,
+				unlockTime: isCurrentlyUnlockedInFile
+					? Array.from(this.file_unlocked_achievements).find(
+							(a) => a.name === schemaAch.name,
+						)?.unlockTime || Date.now()
+					: undefined,
+				unlocked: isCurrentlyUnlockedInFile,
+			};
+
+			if (wasUnlockedInDb === undefined) {
+				await db
+					.insert(achievements)
+					.values({
+						achievementDisplayName: currentAchStat.displayName,
+						gameId: this.game_id,
+						achievementName: currentAchStat.name,
+						description: currentAchStat.description,
+						unlocked: currentAchStat.unlocked,
+					})
+					.onConflictDoNothing({
+						target: [achievements.gameId, achievements.achievementName],
+					});
+
+				if (currentAchStat.unlocked) {
+					achievementsToNotify.push(currentAchStat);
+				}
+			} else if (isCurrentlyUnlockedInFile && !wasUnlockedInDb) {
+				await db
+					.update(achievements)
+					.set({ unlocked: true })
+					.where(
+						and(
+							eq(achievements.gameId, this.game_id),
+							eq(achievements.achievementName, currentAchStat.name),
+						),
+					);
+				achievementsToNotify.push(currentAchStat);
+			} else if (!isCurrentlyUnlockedInFile && wasUnlockedInDb) {
+				await db
+					.update(achievements)
+					.set({ unlocked: false })
+					.where(
+						and(
+							eq(achievements.gameId, this.game_id),
+							eq(achievements.achievementName, currentAchStat.name),
+						),
+					);
+			}
+		}
+
+		if (achievementsToNotify.length > 0) {
+			this.bufferNotifications(achievementsToNotify);
+		}
 	}
 
 	private bufferNotifications(achievements: AchivementStat[]): void {
@@ -189,7 +242,15 @@ class AchievementItem {
 		this.notificationTimer = null;
 	}
 
-	async parse(): Promise<void> {
+	async parse(): Promise<UnlockedAchievement[] | undefined> {
+		this.file_unlocked_achievements.clear();
+
+		if (this.achievement_files.length === 0) {
+			console.warn(`No achievement files found for game: ${this.game_name}`);
+			return;
+		}
+
+		const allParsedAchievements: UnlockedAchievement[] = [];
 		for (const file of this.achievement_files) {
 			try {
 				const parsedAchievements = this.parser.parseAchievements(
@@ -199,11 +260,13 @@ class AchievementItem {
 				parsedAchievements.forEach((achievement) =>
 					this.file_unlocked_achievements.add(achievement),
 				);
+				allParsedAchievements.push(...parsedAchievements);
 			} catch (error) {
 				console.error(`Error parsing achievement file: ${file.path}`, error);
 				logger.log("error", `Error parsing achievement file: ${error}`);
 			}
 		}
+		return allParsedAchievements;
 	}
 
 	async compare(): Promise<AchivementStat[] | undefined> {
@@ -214,31 +277,32 @@ class AchievementItem {
 			return;
 		}
 
-		const unlockedAchievements = new Map<string, AchivementStat>();
 		const achievementsList =
 			this.achivement_data.game.availableGameStats.achievements;
 
-		for (const fileAchievement of this.file_unlocked_achievements) {
-			if (unlockedAchievements.has(fileAchievement.name)) continue;
+		const result: AchivementStat[] = [];
 
-			const matchedAchievement = achievementsList.find(
-				(achievement) => achievement.name === fileAchievement.name,
+		for (const apiAchievement of achievementsList) {
+			const fileAchievement = Array.from(this.file_unlocked_achievements).find(
+				(achievement) => achievement.name === apiAchievement.name,
 			);
 
-			if (matchedAchievement) {
-				unlockedAchievements.set(fileAchievement.name, {
-					name: fileAchievement.name,
-					displayName: matchedAchievement.displayName,
-					hidden: matchedAchievement.hidden,
-					description: matchedAchievement.description,
-					icon: matchedAchievement.icon ?? this.game_icon,
-					icongray: matchedAchievement.icongray ?? this.game_icon,
-					unlockTime: fileAchievement.unlockTime,
-				});
-			}
+			const isUnlocked = !!fileAchievement;
+			const unlockTime = fileAchievement?.unlockTime;
+
+			result.push({
+				name: apiAchievement.name,
+				displayName: apiAchievement.displayName,
+				hidden: apiAchievement.hidden,
+				description: apiAchievement.description,
+				icon: apiAchievement.icon ?? this.game_icon,
+				icongray: apiAchievement.icongray ?? this.game_icon,
+				unlockTime: unlockTime,
+				unlocked: isUnlocked,
+			});
 		}
 
-		return Array.from(unlockedAchievements.values());
+		return result;
 	}
 
 	get watcher_instance() {

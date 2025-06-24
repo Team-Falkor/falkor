@@ -17,7 +17,8 @@ export interface AchivementStat {
 	description?: string;
 	icon: string;
 	icongray: string;
-	unlockTime: number;
+	unlockTime?: number;
+	unlocked: boolean;
 }
 
 export interface Achievement {
@@ -34,14 +35,14 @@ export interface AvailableGameStats {
 	achievements: Achievement[];
 }
 
-export interface Game {
+export interface IGame {
 	gameName: string;
 	gameVersion: string;
 	availableGameStats?: AvailableGameStats;
 }
 
 export interface IGetSchemaForGame {
-	game: Game;
+	game: IGame;
 }
 
 export interface IPlayerAchievement {

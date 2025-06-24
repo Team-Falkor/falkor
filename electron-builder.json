@@ -2,8 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "moe.falkor",
   "asar": true,
-  "productName": "Falkor",
-  "icon": "./build/icons/256x256.png",
+  "productName": "falkor",
   "protocols": [
     {
       "name": "falkor",
@@ -51,8 +50,7 @@
     "artifactName": "${productName}.${ext}",
     "category": "Game",
     "maintainer": "team-falkor",
-    "mimeTypes": ["x-scheme-handler/falkor"],
-    "publish": ["github"]
+    "mimeTypes": ["x-scheme-handler/falkor"]
   },
   "publish": {
     "provider": "github",

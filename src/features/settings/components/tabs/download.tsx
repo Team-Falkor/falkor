@@ -71,14 +71,14 @@ const TorrentSettings = () => {
 			properties: ["openDirectory"],
 		});
 
-		// Consistent return shape: check for success and result
-		if (!selected.success || !selected.result) {
+		// Consistent return shape: check for success and canceled
+		if (!selected.success) {
 			if (selected.message) toast.error(selected.message);
 			return;
 		}
 
-		if (!selected.result.canceled && selected.result.filePaths.length > 0) {
-			setDownloadPath(selected.result.filePaths[0]);
+		if (!selected.canceled && selected.filePaths.length > 0) {
+			setDownloadPath(selected.filePaths[0]);
 		}
 	};
 

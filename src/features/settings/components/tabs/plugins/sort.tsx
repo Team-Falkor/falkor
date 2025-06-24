@@ -6,6 +6,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { usePluginsProviders } from "@/features/plugins/providers/hooks/usePluginsProviders";
 import { useLanguageContext } from "@/i18n/I18N";
 
 export type SortBy = "alphabetic-asc" | "alphabetic-desc";
@@ -15,8 +16,6 @@ interface PluginsSortProps {
 	setShowRows: (showRows: boolean) => void;
 	sortBy: SortBy;
 	setSortBy: Dispatch<SetStateAction<SortBy>>;
-	changeEnabledOnly: () => void;
-	showEnabledOnly: boolean;
 }
 
 const PluginsSort = ({
@@ -24,43 +23,56 @@ const PluginsSort = ({
 	showRows,
 	setSortBy,
 	sortBy,
-	changeEnabledOnly,
-	showEnabledOnly,
 }: PluginsSortProps) => {
 	const { t } = useLanguageContext();
+	const { enabledOnly, changeEnabledOnly } = usePluginsProviders();
+
+	const handleSortToggle = () => {
+		const newSortBy =
+			sortBy === "alphabetic-asc" ? "alphabetic-desc" : "alphabetic-asc";
+		localStorage.setItem("sortBy", newSortBy);
+		setSortBy(newSortBy);
+	};
+
+	const handleViewToggle = () => {
+		const newShowRows = !showRows;
+		localStorage.setItem("showRows", String(newShowRows));
+		setShowRows(newShowRows);
+	};
 
 	return (
 		<div className="flex gap-1 md:gap-2">
+			{/* Enabled Only Toggle */}
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<Button
-						variant={showEnabledOnly ? "default" : "ghost"}
-						size={"icon"}
+						variant={enabledOnly ? "default" : "ghost"}
+						size="icon"
 						onClick={changeEnabledOnly}
 						className="h-8 w-8"
+						aria-label={enabledOnly ? t("all_plugins") : t("enabled_only")}
 					>
 						<Check className="h-4 w-4" />
 					</Button>
 				</TooltipTrigger>
 				<TooltipContent className="capitalize">
-					{showEnabledOnly ? t("enabled_only") : t("all_plugins")}
+					{enabledOnly ? t("enabled_only") : t("all_plugins")}
 				</TooltipContent>
 			</Tooltip>
 
+			{/* Sort Toggle */}
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<Button
-						variant={"ghost"}
-						size={"icon"}
-						onClick={() => {
-							const newSortBy =
-								sortBy === "alphabetic-asc"
-									? "alphabetic-desc"
-									: "alphabetic-asc";
-							localStorage.setItem("sortBy", newSortBy);
-							setSortBy(newSortBy);
-						}}
+						variant="ghost"
+						size="icon"
+						onClick={handleSortToggle}
 						className="h-8 w-8"
+						aria-label={
+							sortBy === "alphabetic-asc"
+								? t("sort_alphabeticly_desc")
+								: t("sort_alphabeticly_asc")
+						}
 					>
 						{sortBy === "alphabetic-asc" ? (
 							<ArrowUpAZ className="h-4 w-4" />
@@ -76,16 +88,15 @@ const PluginsSort = ({
 				</TooltipContent>
 			</Tooltip>
 
+			{/* View Toggle */}
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<Button
-						variant={"ghost"}
-						size={"icon"}
-						onClick={() => {
-							localStorage.setItem("showRows", String(!showRows));
-							setShowRows(!showRows);
-						}}
+						variant="ghost"
+						size="icon"
+						onClick={handleViewToggle}
 						className="h-8 w-8"
+						aria-label={showRows ? t("show_grid") : t("show_list")}
 					>
 						{showRows ? (
 							<Columns2 className="h-4 w-4" />

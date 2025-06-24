@@ -1,4 +1,3 @@
-import { setTimeout } from "node:timers/promises";
 import { db } from "@backend/database";
 import { accounts } from "@backend/database/schemas";
 import { sendToastNotification } from "@backend/main/window";
@@ -152,9 +151,7 @@ export const initTorBox = async (
 		throw new Error("TorBox: Missing required Api Key");
 	}
 
-	let client = debridProviders.get("torbox") as
-	| TorBoxClient
-	| undefined;
+	let client = debridProviders.get("torbox") as TorBoxClient | undefined;
 
 	if (forceReinitialize || !client) {
 		const action = forceReinitialize
@@ -220,8 +217,6 @@ const initializeProviders = async (): Promise<void> => {
 
 				console.warn("RealDebrid: Missing required credentials in database");
 
-				await setTimeout(5000);
-
 				sendToastNotification({
 					type: "error",
 					message: "RealDebrid Configuration Error",
@@ -232,26 +227,19 @@ const initializeProviders = async (): Promise<void> => {
 
 		if (torBoxFromDB) {
 			if (torBoxFromDB.accessToken) {
-				await initTorBox(
-					torBoxFromDB.accessToken,
-					true,
-				);
+				await initTorBox(torBoxFromDB.accessToken, true);
 				console.info("TorBox: Successfully initialized from database");
 			} else {
 				console.warn("RealDebrid: Missing required credentials in database");
 
-				await setTimeout(5000);
-
 				sendToastNotification({
 					type: "error",
 					message: "TorBox Configuration Error",
-					description: `Missing API key. Please reconfigure your TorBox account in settings.`,
+					description:
+						"Missing API key. Please reconfigure your TorBox account in settings.",
 				});
 			}
-
 		}
-
-		
 	} catch (error) {
 		console.error("RealDebrid: Failed to initialize from database:", error);
 	} finally {

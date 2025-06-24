@@ -1,7 +1,7 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames, listsToGames } from "@backend/database/schemas";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, type InferInsertModel } from "drizzle-orm";
 import { z } from "zod";
 
 export const libraryGamesRouter = router({
@@ -40,7 +40,7 @@ export const libraryGamesRouter = router({
 			z.object({
 				gameName: z.string(),
 				gamePath: z.string(),
-				gameId: z.string(),
+				gameId: z.string().optional(),
 				gameSteamId: z.string().optional(),
 				gameIcon: z.string().optional(),
 				gameArgs: z.string().optional(),
@@ -54,12 +54,15 @@ export const libraryGamesRouter = router({
 					.transform((val) => (val ? new Date(val) : undefined)),
 				igdbId: z.number().int().optional(),
 				installed: z.boolean().default(true),
+				runAsAdmin: z.boolean().optional().default(false),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			const toInsert = {
+			const gameId = !input.gameId ? crypto.randomUUID() : input.gameId;
+			const toInsert: InferInsertModel<typeof libraryGames> = {
 				...input,
 				gameLastPlayed: input.gameLastPlayed ?? null,
+				gameId,
 			};
 			const created = ctx.db
 				.insert(libraryGames)
@@ -90,6 +93,7 @@ export const libraryGamesRouter = router({
 						.transform((val) => (val ? new Date(val) : undefined)),
 					igdbId: z.number().int().optional(),
 					installed: z.boolean().optional(),
+					runAsAdmin: z.boolean().optional(),
 				}),
 			}),
 		)
@@ -107,27 +111,39 @@ export const libraryGamesRouter = router({
 		}),
 
 	delete: publicProcedure
-		.input(z.object({ id: z.number() }))
+		.input(z.object({ gameId: z.string() }))
 		.mutation(async ({ input, ctx }) => {
 			try {
-				const deletedGameRecord = await ctx.db.transaction((tx) => {
-					tx.delete(listsToGames)
-						.where(eq(listsToGames.gameId, input.id))
-						.run();
+				const game = ctx.db
+					.select({ id: libraryGames.id })
+					.from(libraryGames)
+					.where(eq(libraryGames.gameId, input.gameId))
+					.get();
 
-					const deletedGames = tx
-						.delete(libraryGames)
-						.where(eq(libraryGames.gameId, input.id.toString()))
-						.returning()
-						.get();
+				if (!game) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: `Game with gameId '${input.gameId}' not found.`,
+					});
+				}
 
-					return deletedGames;
-				});
+				ctx.db
+					.delete(listsToGames)
+					.where(eq(listsToGames.gameId, game.id))
+					.run();
 
-				return deletedGameRecord;
+				const [deletedGame] = await ctx.db
+					.delete(libraryGames)
+					.where(eq(libraryGames.id, game.id))
+					.returning();
+
+				return deletedGame ?? null;
 			} catch (error) {
-				console.error("Failed to delete game:", error);
+				if (error instanceof TRPCError) {
+					throw error;
+				}
 
+				console.error("Failed to delete game:", error);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "An unexpected error occurred while deleting the game.",

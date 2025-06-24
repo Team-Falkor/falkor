@@ -5,8 +5,8 @@ export function useGameLauncher() {
 
 	const { data: runningGames = [] } = trpc.launcher.getRunning.useQuery();
 
-	const isGameRunning = (gameId: string) => {
-		return runningGames.includes(gameId);
+	const isGameRunning = (id: number) => {
+		return runningGames.some((game) => game.id === id);
 	};
 
 	const { mutate: launchGame } = trpc.launcher.launch.useMutation({

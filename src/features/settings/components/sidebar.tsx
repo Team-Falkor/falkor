@@ -2,9 +2,8 @@ import { DownloadCloud } from "lucide-react";
 import type { ReactElement } from "react";
 import { FaDiscord, FaGithub } from "react-icons/fa6";
 import { SiKofi } from "react-icons/si";
-import type { LinkItemType } from "@/@types"; // Import UpdateStatus
+import type { LinkItemType } from "@/@types";
 import { Button } from "@/components/ui/button";
-// Import Tooltip components for a better UX
 import {
 	Tooltip,
 	TooltipContent,
@@ -48,7 +47,6 @@ const SettingsSidebar = ({
 	const { data: settings } = trpc.settings.read.useQuery();
 	const { data, isPending, isError } = trpc.app.appInfo.useQuery();
 
-	// Derive boolean flags from the status for cleaner JSX
 	const isUpdateAvailable = status === "UPDATE_AVAILABLE";
 	const isUpdateDownloaded = status === "DOWNLOADED";
 	const showUpdateButton = isUpdateAvailable || isUpdateDownloaded;
@@ -73,10 +71,10 @@ const SettingsSidebar = ({
 			<div className="p-4">
 				<H3>{t("sections.settings")}</H3>
 			</div>
-			<nav className="flex-1 space-y-1">{settingsTabs}</nav>
-			<div className="mt-auto flex flex-col gap-2 p-1 px-4">
+			<nav className="flex-1">{settingsTabs}</nav>
+			<div className="mt-auto flex flex-col gap-4 p-4">
 				{!isPending && !isError && (
-					<div className="flex flex-col gap-0.5">
+					<div className="flex flex-col gap-1">
 						<div className="flex items-center gap-3">
 							<H4>{t("falkor")}</H4>
 							{showUpdateButton && (
@@ -84,10 +82,10 @@ const SettingsSidebar = ({
 									<Tooltip>
 										<TooltipTrigger asChild>
 											<Button
-												variant={"ghost"}
-												size={"icon"}
+												variant="ghost"
+												size="icon"
 												onClick={handleUpdateClick}
-												className="size-7 animate-pulse text-primary"
+												className="size-7 animate-pulse text-primary hover:bg-primary/10"
 											>
 												<DownloadCloud className="size-5" />
 											</Button>

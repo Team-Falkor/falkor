@@ -1,5 +1,6 @@
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useCallback } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { P, TypographyMuted } from "@/components/ui/typography";
 import { trpc } from "@/lib";
@@ -15,7 +16,6 @@ const RealDebridDialogContent = ({
 	setOpen,
 	onAuthenticated,
 }: RealDebridDialogContentProps) => {
-	// Step 1: get device code
 	const {
 		data: deviceCodeInfo,
 		isLoading: isGettingCode,
@@ -24,14 +24,26 @@ const RealDebridDialogContent = ({
 		enabled: open,
 	});
 
-	// Step 2: subscribe to token polling once we have a device code
+	const handleCopyAndOpen = useCallback(() => {
+		if (!deviceCodeInfo?.user_code) return;
+		navigator.clipboard.writeText(deviceCodeInfo.user_code).then(
+			() => {
+				toast.success("Code copied to clipboard!");
+			},
+			(err) => {
+				console.error("Failed to copy code:", err);
+				toast.error("Could not copy code.");
+			},
+		);
+	}, [deviceCodeInfo?.user_code]);
+
 	const { data: pollResult, error: pollError } =
 		trpc.realdebrid.auth.startPolling.useSubscription(
 			{
 				deviceCode: deviceCodeInfo?.device_code ?? "",
 			},
 			{
-				enabled: !!deviceCodeInfo && !isGettingCode && !codeError && open,
+				enabled: !!deviceCodeInfo,
 				onData: (result) => {
 					if ("token" in result) {
 						// Authenticated successfully
@@ -51,7 +63,7 @@ const RealDebridDialogContent = ({
 		);
 
 	return (
-		<DialogContent>
+		<DialogContent className="max-h-1/2 max-w-1/2">
 			<DialogTitle>Real Debrid Authentication</DialogTitle>
 			<div className="flex flex-col gap-3">
 				{isGettingCode ? (
@@ -78,6 +90,21 @@ const RealDebridDialogContent = ({
 					</>
 				)}
 			</div>
+
+			<Button
+				asChild
+				onClick={handleCopyAndOpen}
+				disabled={!deviceCodeInfo || isGettingCode}
+				variant={"functional"}
+			>
+				<a
+					href={deviceCodeInfo?.verification_url}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Copy Code & Open URL
+				</a>
+			</Button>
 		</DialogContent>
 	);
 };

@@ -62,6 +62,7 @@ async function fetchListWithGames(
 				gameLastPlayed: game.gameLastPlayed,
 				igdbId: game.igdbId ?? null,
 				installed: game.installed ?? !!game.gamePath?.length,
+				runAsAdmin: game.runAsAdmin,
 			});
 		}
 	}
@@ -161,6 +162,7 @@ export const listsRouter = router({
 					gameLastPlayed: game.gameLastPlayed,
 					igdbId: game.igdbId ?? null,
 					installed: game.installed ?? !!game.gamePath?.length,
+					runAsAdmin: game.runAsAdmin,
 				});
 			}
 		}

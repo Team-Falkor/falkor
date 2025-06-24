@@ -19,9 +19,11 @@ const SettingsLinkGroup = ({ links }: { links: Array<LinkItemType> }) => {
 							// onClick={() => openLink(url)}
 							variant="ghost"
 							size="icon"
-							className="*:size-5"
+							asChild
 						>
-							{icon}
+							<a href={url} target="_blank">
+								{icon}
+							</a>
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent align="start">{t(title)}</TooltipContent>

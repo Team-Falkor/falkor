@@ -32,10 +32,6 @@ if (!fs.existsSync(cachePath)) {
 	fs.mkdirSync(cachePath);
 }
 
-if (!fs.existsSync(logsPath)) {
-	fs.mkdirSync(logsPath, { recursive: true });
-}
-
 export const constants = {
 	databasePath: join(appDataPath, "database.sqlite"),
 	pluginsPath: join(appDataPath, "plugins"),

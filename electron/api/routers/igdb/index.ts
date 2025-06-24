@@ -92,6 +92,16 @@ export const igdbRouter = router({
 		)
 		.query(({ input }) => igdb.getGenres(input.limit, input.offset)),
 
+	companies: publicProcedure
+		.input(
+			z.object({
+				ids: z.array(z.number().int().positive()),
+			}),
+		)
+		.query(({ input }) => {
+			return igdb.getCompanies(input.ids);
+		}),
+
 	themes: publicProcedure
 		.input(
 			z.object({
@@ -120,6 +130,8 @@ export const igdbRouter = router({
 				minHypes: z.number().int().min(0).optional(),
 				onlyMainGames: z.boolean().optional(),
 				excludeVersions: z.boolean().optional(),
+				developerIds: z.array(z.number().int().positive()).optional(),
+				publisherIds: z.array(z.number().int().positive()).optional(),
 			}),
 		)
 		.query(({ input }) => {

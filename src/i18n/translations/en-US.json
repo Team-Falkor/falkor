@@ -149,5 +149,22 @@
 	"no_games_installed": "You have not installed any games yet",
 	"installed": "Installed",
 	"installed_description": "is this game installed?",
-	"calendar": "Calendar"
+	"calendar": "Calendar",
+	"game_updated_successfully": "Game updated successfully",
+	"error_updating_game": "Error updating game",
+	"save_game": "Save Game",
+	"save_changes": "Save Changes",
+	"save": "Save",
+	"error_loading_sources": "Error Loading Sources",
+	"profile": "Profile",
+	"update_ready_to_install": "Update Ready To Install",
+	"update_ready_description": "Update Ready Description",
+	"downloading_update": "Downloading Update",
+	"restart_and_install": "Restart And Install",
+	"restart_to_install": "Restart To Install",
+	"error_opening_file_dialog": "Error Opening File Dialog",
+	"game_id_missing": "Game Id Missing",
+	"game_name_or_path_missing": "Game Name Or Path Missing",
+	"saving": "Saving",
+	"achievements": "Achievements"
 }

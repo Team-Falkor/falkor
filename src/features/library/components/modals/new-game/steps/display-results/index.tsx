@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { IGDBReturnDataType } from "@/@types";
+import type { Game, IGDBReturnDataType } from "@/@types";
 import { Input } from "@/components/ui/input";
 import type { GenericStepProps } from "@/features/library/@types";
 import { useNewGameStore } from "@/features/library/stores/new-game";
@@ -11,62 +11,42 @@ interface Props extends GenericStepProps {
 	filename: string;
 }
 
-const LOG_PREFIX = "[DisplayResultsStop]";
-
 export const DisplayResultsStop = ({ filename }: Props) => {
 	const [searchQuery, setSearchQuery] = useState(filename);
-	const { results, loading, error } = useSearch(searchQuery);
-
-	const { selectedGame, setSelectedGame, updateGame, reset } =
-		useNewGameStore();
-
-	console.log(`${LOG_PREFIX} Render. Initial filename:`, {
-		filename,
-		searchQuery,
+	const { results, loading, error } = useSearch(searchQuery, {
+		enableRecentSearches: false,
+		limit: 10,
 	});
+
+	const { selectedGame, setSelectedGame, updateGame } = useNewGameStore();
 
 	const handleGameSelection = useCallback(
 		(selected: IGDBReturnDataType) => {
-			console.log(`${LOG_PREFIX} Game selected from results:`, selected);
 			setSelectedGame(selected);
 
 			const steamId = getSteamIdFromWebsites(selected.websites);
-			const gameUpdate = {
+			const gameUpdate: Partial<Game> = {
 				gameName: selected.name,
-				gameIcon: `https://images.igdb.com/igdb/image/upload/t_thumb/${selected.cover.image_id}.png`,
-				igdbId: selected.id?.toString(),
-				steamId: steamId,
+				gameIcon: selected.cover
+					? `https://images.igdb.com/igdb/image/upload/t_thumb/${selected.cover.image_id}.png`
+					: undefined,
+				igdbId: selected.id,
+				gameSteamId: steamId,
 			};
-			console.log(`${LOG_PREFIX} Updating game store with:`, gameUpdate);
 			updateGame(gameUpdate);
 		},
 		[updateGame, setSelectedGame],
 	);
 
 	useEffect(() => {
-		console.log(`${LOG_PREFIX} Search query changed to:`, searchQuery);
-	}, [searchQuery]);
-
-	useEffect(() => {
-		console.log(`${LOG_PREFIX} Search results updated.`, {
-			loading,
-			error: !!error,
-			count: results?.length,
-		});
-
 		if (!loading && results) {
 			if (results.length > 0) {
-				console.log(
-					`${LOG_PREFIX} Found ${results?.length} results. Auto-selecting first result.`,
-				);
 				handleGameSelection(results[0]);
 			} else {
-				console.log(`${LOG_PREFIX} No results found. Resetting store.`);
 				setSelectedGame(null);
-				reset();
 			}
 		}
-	}, [results, loading, error, handleGameSelection, setSelectedGame, reset]);
+	}, [results, loading, handleGameSelection, setSelectedGame]);
 
 	return (
 		<div className="flex h-full w-full flex-col gap-4 overflow-hidden py-4">
@@ -86,7 +66,8 @@ export const DisplayResultsStop = ({ filename }: Props) => {
 				)}
 				{!loading && results?.length === 0 && (
 					<div className="p-4 text-center text-muted-foreground">
-						No results found for "{searchQuery}".
+						No results found for "{searchQuery}". You can adjust details in the
+						next step.
 					</div>
 				)}
 				{(results ?? []).map((result) => (

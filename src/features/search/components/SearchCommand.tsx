@@ -21,10 +21,10 @@ export default function SearchCommand() {
 	const [query, setQuery] = useState("");
 	const navigate = useNavigate();
 
-	const { results, loading, recentSearches, clearRecent } = useSearch(
-		query,
-		10,
-	);
+	const { results, loading, recentSearches, clearRecent } = useSearch(query, {
+		limit: 10,
+		enableRecentSearches: true,
+	});
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => {

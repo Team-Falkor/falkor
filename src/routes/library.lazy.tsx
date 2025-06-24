@@ -1,18 +1,35 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import type { Tab } from "@/@types";
-import ActiveLibrary from "@/features/library/components/active-library";
-import { NewGameDialog } from "@/features/library/components/modals/new-game-new";
+import GameLoader from "@/components/spinner";
+import { NewGameButton } from "@/features/library/components/new-game";
 import { NewListButton } from "@/features/library/components/new-list-button";
-import { TabCarousel } from "@/features/library/components/TabCarousel"; // Import the new component
+import { TabCarousel } from "@/features/library/components/TabCarousel";
 import { NewListDialog } from "@/features/lists/components/new-list-dialog";
 import { useLists } from "@/features/lists/hooks/use-lists";
 import useGamepadButton from "@/hooks/use-gamepad-button";
 import { useLanguageContext } from "@/i18n/I18N";
 
+const ActiveLibrary = lazy(
+	() => import("@/features/library/components/active-library"),
+);
+const NewGameDialog = lazy(() =>
+	import("@/features/library/components/modals/new-game").then((module) => ({
+		default: module.NewGameDialog,
+	})),
+);
+
 export const Route = createLazyFileRoute("/library")({
 	component: LibraryPage,
 });
+
+function LoadingSpinner() {
+	return (
+		<div className="flex h-[90svh] w-full items-center justify-center">
+			<GameLoader />
+		</div>
+	);
+}
 
 function LibraryPage() {
 	const { t } = useLanguageContext();
@@ -59,17 +76,13 @@ function LibraryPage() {
 			}
 			return;
 		}
-
 		let newTargetTab: Tab | undefined;
-
 		if (activeTab?.name) {
 			newTargetTab = generatedTabs.find((t) => t.name === activeTab.name);
 		}
-
 		if (!newTargetTab) {
 			newTargetTab = generatedTabs[0];
 		}
-
 		if (newTargetTab && activeTab !== newTargetTab) {
 			setActiveTab(newTargetTab);
 		}
@@ -86,7 +99,6 @@ function LibraryPage() {
 		if (isModalOpen || generatedTabs.length === 0 || activeTabIndex === -1) {
 			return;
 		}
-
 		if (activeTabIndex === generatedTabs.length - 1) {
 			setIsNewListModalOpen(true);
 		} else {
@@ -98,7 +110,6 @@ function LibraryPage() {
 		if (isModalOpen || generatedTabs.length === 0 || activeTabIndex === -1) {
 			return;
 		}
-
 		if (activeTabIndex === 0) {
 			setIsNewGameModalOpen(true);
 		} else {
@@ -108,7 +119,6 @@ function LibraryPage() {
 
 	useGamepadButton("LB", switchToPreviousTab);
 	useGamepadButton("RB", switchToNextTab);
-
 	useGamepadButton("LS", () => {
 		if (isModalOpen) return;
 		setIsNewGameModalOpen(true);
@@ -121,28 +131,35 @@ function LibraryPage() {
 	return (
 		<div className="w-full p-0 py-0">
 			<div className="flex justify-between bg-background p-4">
-				{/* <NewGameModal
-					open={isNewGameModalOpen}
-					setOpen={setIsNewGameModalOpen}
-				/> */}
-				<NewGameDialog
-					open={isNewGameModalOpen}
-					setOpen={setIsNewGameModalOpen}
-				/>
+				<Suspense fallback={<NewGameButton disabled={true} />}>
+					<NewGameDialog
+						open={isNewGameModalOpen}
+						setOpen={setIsNewGameModalOpen}
+					/>
+				</Suspense>
+
 				<TabCarousel
 					tabs={generatedTabs}
 					activeTabName={activeTab?.name}
 					onTabSelect={setActiveTab}
 					disabled={isModalOpen}
 				/>
-				<NewListDialog
-					open={isNewListModalOpen}
-					setOpen={setIsNewListModalOpen}
-				>
-					<NewListButton onClick={() => setIsNewListModalOpen(true)} />
-				</NewListDialog>
+
+				<Suspense fallback={<NewListButton disabled={true} />}>
+					<NewListDialog
+						open={isNewListModalOpen}
+						setOpen={setIsNewListModalOpen}
+					>
+						<NewListButton onClick={() => setIsNewListModalOpen(true)} />
+					</NewListDialog>
+				</Suspense>
 			</div>
-			<div className="mt-4">{activeTab?.component}</div>
+
+			<div className="mt-4">
+				<Suspense fallback={<LoadingSpinner />}>
+					{activeTab?.component}
+				</Suspense>
+			</div>
 		</div>
 	);
 }

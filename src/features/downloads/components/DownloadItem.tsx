@@ -137,9 +137,13 @@ export function DownloadItem(data: DownloadItemData) {
 					</div>
 				</div>
 				<CardDescription>
-					{download.type === "http"
-						? "HTTP"
-						: download.type?.toUpperCase() || "Download"}{" "}
+					{[DownloadStatus.UNZIPPING, DownloadStatus.UNRARRING].includes(
+						download.status,
+					)
+						? "Un-Archiving"
+						: download.type === "http"
+							? "HTTP"
+							: (download.type?.toUpperCase() ?? "Download")}{" "}
 					• {formatBytes(download.size || 0)}
 				</CardDescription>
 			</CardHeader>

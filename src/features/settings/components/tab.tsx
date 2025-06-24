@@ -13,14 +13,14 @@ const SettingTab = ({ icon, title, isActive, onClick }: SettingTabProps) => {
 	return (
 		<button
 			type="button"
-			className={cn([
-				"group flex w-full items-center gap-3 p-3.5 font-medium text-sm transition-all duration-200 focus-states:bg-muted/50 focus-states:opacity-80",
-				{
-					"border-purple-600 border-r-4 bg-purple-600/25": isActive,
-					"text-secondary-foreground/50": !isActive,
-				},
-			])}
-			aria-current="page"
+			className={cn(
+				"group flex w-full items-center gap-3 p-4 font-medium text-sm transition-colors duration-200",
+				"hover:bg-accent hover:text-accent-foreground",
+				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+				isActive
+					? "border-primary border-r-4 bg-primary/10 text-primary"
+					: "text-muted-foreground",
+			)}
 			onClick={onClick}
 		>
 			{icon}
