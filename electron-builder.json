@@ -21,7 +21,7 @@
     }
   ],
   "appImage": {},
-  "files": ["dist", "dist-electron"],
+  "files": ["dist", "dist-electron", "package.json", "node_modules/**"],
   "mac": {
     "target": ["dmg"],
     "artifactName": "${productName}.${ext}"
