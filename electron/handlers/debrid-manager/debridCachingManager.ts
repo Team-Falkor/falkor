@@ -57,13 +57,14 @@ export class DebridCachingManager extends EventEmitter {
 				const payload: z.infer<typeof addDownloadSchema> = {
 					...this.inputFromAddDownload,
 					url: download?.url,
+					type: "http",
 				};
 
 				await downloadQueue.addDownload(payload);
 
 				this.emit("added_to_queue", {
 					id: this.id,
-					type: this.type,
+					type: "http",
 					url: this.url,
 					isCaching: false,
 				});
