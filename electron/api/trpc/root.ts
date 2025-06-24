@@ -12,6 +12,7 @@ import { pluginProvidersRouter } from "../routers/plugins/providers";
 import { communityProvidersRouter } from "../routers/plugins/providers/community";
 import { protonDbRouter } from "../routers/protondb";
 import { realDebridAuthRouter } from "../routers/real-debrid/auth";
+import { torBoxAuthRouter } from "../routers/torbox/auth";
 import { settingsRouter } from "../routers/settings";
 import { steamRouter } from "../routers/steam";
 import { router } from ".";
@@ -34,6 +35,9 @@ export const appRouter = router({
 	settings: settingsRouter,
 	realdebrid: {
 		auth: realDebridAuthRouter,
+	},
+	torbox: {
+		auth: torBoxAuthRouter, 
 	},
 	app: appFunctionsRouter,
 	steam: steamRouter,
