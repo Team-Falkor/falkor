@@ -107,7 +107,7 @@
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.1",
     "electron": "35.5.1",
-    "electron-builder": "26.0.17",
+    "electron-builder": "26.0.12",
     "postcss": "^8.5.3",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^13.0.1",
@@ -121,7 +121,6 @@
     "vite-plugin-electron-renderer": "^0.14.6",
     "vitest": "^3.2.1"
   },
-  "packageManager": "yarn@1.22.22",
   "trustedDependencies": [
     "better-sqlite3",
     "electron"
