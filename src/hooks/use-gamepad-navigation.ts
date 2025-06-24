@@ -218,24 +218,6 @@ export function useGamepadNavigation() {
 					return Boolean(isCurrentlyPressed && !wasPressed);
 				}
 
-				// Trigger detection for additional navigation options
-				// function isTriggerPressed(trigger: "L2" | "R2"): boolean {
-				// 	const btnIndex = mapping[trigger];
-				// 	const wasPressed = state.lastTriggerState[trigger];
-				// 	const currentValue = buttons[btnIndex]?.value || 0;
-				// 	const isCurrentlyPressed = currentValue > TRIGGER_THRESHOLD;
-
-				// 	if (isCurrentlyPressed && !wasPressed) {
-				// 		state.lastTriggerState[trigger] = true;
-				// 		return true;
-				// 	}
-				// 	if (!isCurrentlyPressed && wasPressed) {
-				// 		state.lastTriggerState[trigger] = false;
-				// 	}
-
-				// 	return false;
-				// }
-
 				const focusables = getFocusableElements();
 				const active = document.activeElement as HTMLElement | null;
 
