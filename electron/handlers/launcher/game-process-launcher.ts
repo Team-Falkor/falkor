@@ -21,6 +21,8 @@ interface TrackedProcessInfo {
 	pid: number | null;
 	name: string;
 	requiresPolling: boolean;
+	pollingFailureCount: number;
+	maxPollingFailures: number;
 }
 
 interface LauncherOptions {
@@ -52,6 +54,7 @@ export default class GameProcessLauncher extends EventEmitter {
 	private intervalId: NodeJS.Timeout | null = null;
 	private isActive = false;
 	private processCheckIntervalId: NodeJS.Timeout | null = null;
+	private adminLaunchDetectionTimeout: NodeJS.Timeout | null = null;
 
 	constructor(opts: LauncherOptions) {
 		super();
@@ -98,6 +101,8 @@ export default class GameProcessLauncher extends EventEmitter {
 				pid: spawnResult.process?.pid ?? null,
 				name: spawnResult.processName,
 				requiresPolling: spawnResult.requiresPolling,
+				pollingFailureCount: 0,
+				maxPollingFailures: 10, // Stop polling after 10 consecutive failures
 			};
 
 			if (this.process) {
@@ -113,33 +118,50 @@ export default class GameProcessLauncher extends EventEmitter {
 				);
 
 				logger.log(
-					"info",
-					`Launched ${this.gameName} (ID: ${this.id}) with direct control (PID: ${this.trackedProcessInfo.pid}).`,
-				);
+				"info",
+				`Launched ${this.gameName} (ID: ${this.id}) with direct control (PID: ${this.trackedProcessInfo?.pid || 'unknown'}).`,
+			);
 			} else {
 				logger.log(
 					"info",
 					`Launched ${this.gameName} (ID: ${this.id}) via admin elevation. Attempting to detect process...`,
 				);
 
-				const detectedPid = await waitForProcessToStart(
-					spawnResult.processName,
-				);
+				// Start tracking and achievements immediately for admin launches
+				// We'll detect the process in the background
+				this.startTracking();
+				if (this.achievementItem) this.achievementItem.find();
 
-				if (detectedPid) {
-					this.trackedProcessInfo.pid = detectedPid;
-					logger.log("info", `Game process detected with PID: ${detectedPid}`);
-				} else {
-					logger.log(
-						"warn",
-						`Could not detect game process for '${this.gameName}' immediately after admin launch. Starting name-based polling.`,
+				// Try to detect the process with a timeout
+				this.adminLaunchDetectionTimeout = setTimeout(async () => {
+					const detectedPid = await waitForProcessToStart(
+						spawnResult.processName,
+						500, // 500ms intervals
+						20, // 10 seconds max
 					);
-				}
+
+					if (detectedPid && this.trackedProcessInfo) {
+						this.trackedProcessInfo.pid = detectedPid;
+						logger.log(
+							"info",
+							`Game process detected with PID: ${detectedPid}`,
+						);
+					} else {
+						logger.log(
+							"warn",
+							`Could not detect game process for '${this.gameName}' after admin launch. Will continue with name-based polling.`,
+						);
+					}
+					this.adminLaunchDetectionTimeout = null;
+				}, 500); // Small delay to let the process start
 			}
 
-			this.startTracking();
+			// For non-admin launches, start tracking normally
+			if (!this.runAsAdmin) {
+				this.startTracking();
+				if (this.achievementItem) this.achievementItem.find();
+			}
 			this.startProcessPolling();
-			if (this.achievementItem) this.achievementItem.find();
 
 			gamesLaunched.set(this.id, this);
 		} catch (err) {
@@ -200,6 +222,20 @@ export default class GameProcessLauncher extends EventEmitter {
 				return;
 			}
 
+			// Check if we've exceeded max polling failures
+			if (
+				this?.trackedProcessInfo &&
+				this?.trackedProcessInfo?.pollingFailureCount >=
+					this?.trackedProcessInfo?.maxPollingFailures
+			) {
+				logger.log(
+					"warn",
+					`Stopping polling for ${this.gameName} after ${this.trackedProcessInfo.pollingFailureCount} consecutive failures.`,
+				);
+				this.handleExit(0, null);
+				return;
+			}
+
 			logger.log(
 				"debug",
 				`Polling for ${this.gameName} process: checking if still running...`,
@@ -230,6 +266,10 @@ export default class GameProcessLauncher extends EventEmitter {
 				"debug",
 				`isGameProcessRunning: Using direct ChildProcess handle for ${this.gameName} (PID: ${this.process.pid}).`,
 			);
+			// Reset failure count for direct process handles
+			if (this.trackedProcessInfo) {
+				this.trackedProcessInfo.pollingFailureCount = 0;
+			}
 			return true;
 		}
 
@@ -249,6 +289,8 @@ export default class GameProcessLauncher extends EventEmitter {
 						"debug",
 						`isGameProcessRunning: Process '${processName}' found with PID ${processPid}.`,
 					);
+					// Reset failure count on successful detection
+					this.trackedProcessInfo.pollingFailureCount = 0;
 					return true;
 				}
 				logger.log(
@@ -263,8 +305,11 @@ export default class GameProcessLauncher extends EventEmitter {
 						"debug",
 						`isGameProcessRunning: Process '${processName}' found by name. Updated tracked PID to: ${pids[0]}.`,
 					);
+					// Reset failure count on successful detection
+					this.trackedProcessInfo.pollingFailureCount = 0;
 					return true;
 				}
+
 				logger.log(
 					"debug",
 					`isGameProcessRunning: Process '${processName}' not found by name.`,
@@ -274,6 +319,15 @@ export default class GameProcessLauncher extends EventEmitter {
 			logger.log(
 				"warn",
 				`isGameProcessRunning: Error checking status for '${processName}': ${(error as Error).message}`,
+			);
+		}
+
+		// Increment failure count when process is not found
+		if (this.trackedProcessInfo) {
+			this.trackedProcessInfo.pollingFailureCount++;
+			logger.log(
+				"debug",
+				`isGameProcessRunning: Process not found. Failure count: ${this.trackedProcessInfo.pollingFailureCount}/${this.trackedProcessInfo.maxPollingFailures}`,
 			);
 		}
 
@@ -393,20 +447,21 @@ export default class GameProcessLauncher extends EventEmitter {
 			);
 			this.process.kill("SIGTERM");
 		} else if (this.trackedProcessInfo?.pid) {
+			const pid = this.trackedProcessInfo.pid;
 			try {
 				logger.log(
 					"debug",
-					`stop: Attempting to kill tracked PID ${this.trackedProcessInfo.pid} for ${this.gameName} via process.kill.`,
+					`stop: Attempting to kill tracked PID ${pid} for ${this.gameName} via process.kill.`,
 				);
-				process.kill(this.trackedProcessInfo.pid, "SIGTERM");
+				process.kill(pid, "SIGTERM");
 				logger.log(
 					"info",
-					`stop: Sent SIGTERM to PID ${this.trackedProcessInfo.pid}`,
+					`stop: Sent SIGTERM to PID ${pid}`,
 				);
 			} catch (err) {
 				logger.log(
 					"warn",
-					`stop: Could not kill process ${this.trackedProcessInfo.pid} for ${this.gameName}: ${(err as Error).message}. Forcing stop tracking.`,
+					`stop: Could not kill process ${pid} for ${this.gameName}: ${(err as Error).message}. Forcing stop tracking.`,
 				);
 				this.handleExit(0, null);
 			}

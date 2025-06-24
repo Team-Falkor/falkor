@@ -652,28 +652,39 @@ export async function isProcessRunningWithElevation(
 export async function waitForProcessToStart(
 	processName: string,
 	checkIntervalMs = 500,
+	maxAttempts = 60, // 30 seconds with 500ms intervals
 ): Promise<number | null> {
 	logger.log(
 		"debug",
-		`waitForProcessToStart: Waiting indefinitely for '${processName}' (check every ${checkIntervalMs}ms).`,
+		`waitForProcessToStart: Waiting for '${processName}' (max ${maxAttempts} attempts, ${checkIntervalMs}ms intervals).`,
 	);
 
-	while (true) {
+	let attempts = 0;
+	while (attempts < maxAttempts) {
 		const pids = await findProcessByName(processName);
 		if (pids.length > 0) {
 			logger.log(
 				"info",
-				`waitForProcessToStart: Process '${processName}' detected with PID: ${pids[0]}`,
+				`waitForProcessToStart: Process '${processName}' detected with PID: ${pids[0]} after ${attempts + 1} attempts`,
 			);
 			return pids[0];
 		}
 
-		logger.log(
-			"debug",
-			`waitForProcessToStart: Process '${processName}' not yet found. Retrying in ${checkIntervalMs}ms...`,
-		);
-		await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+		attempts++;
+		if (attempts < maxAttempts) {
+			logger.log(
+				"debug",
+				`waitForProcessToStart: Process '${processName}' not found (attempt ${attempts}/${maxAttempts}). Retrying in ${checkIntervalMs}ms...`,
+			);
+			await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+		}
 	}
+
+	logger.log(
+		"warn",
+		`waitForProcessToStart: Process '${processName}' not found after ${maxAttempts} attempts. Giving up.`,
+	);
+	return null;
 }
 
 export async function waitForProcessToStartWithOptions(
@@ -681,17 +692,19 @@ export async function waitForProcessToStartWithOptions(
 	options: {
 		checkIntervalMs?: number;
 		requireElevated?: boolean;
+		maxAttempts?: number;
 	} = {},
 ): Promise<ProcessInfo | null> {
-	const { checkIntervalMs = 500, requireElevated = false } = options;
+	const { checkIntervalMs = 500, requireElevated = false, maxAttempts = 60 } = options;
 
 	logger.log(
 		"debug",
-		`waitForProcessToStartWithOptions: Waiting indefinitely for '${processName}' ` +
-			`(elevated: ${requireElevated})`,
+		`waitForProcessToStartWithOptions: Waiting for '${processName}' ` +
+			`(elevated: ${requireElevated}, max ${maxAttempts} attempts)`,
 	);
 
-	while (true) {
+	let attempts = 0;
+	while (attempts < maxAttempts) {
 		const processes = await findProcessInfoByName(processName);
 
 		const targetProcesses = requireElevated
@@ -703,11 +716,20 @@ export async function waitForProcessToStartWithOptions(
 			logger.log(
 				"info",
 				`waitForProcessToStartWithOptions: Process '${processName}' detected - ` +
-					`PID: ${foundProcess.pid}, Elevated: ${foundProcess.elevated}`,
+					`PID: ${foundProcess.pid}, Elevated: ${foundProcess.elevated} after ${attempts + 1} attempts`,
 			);
 			return foundProcess;
 		}
 
-		await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+		attempts++;
+		if (attempts < maxAttempts) {
+			await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+		}
 	}
+
+	logger.log(
+		"warn",
+		`waitForProcessToStartWithOptions: Process '${processName}' not found after ${maxAttempts} attempts. Giving up.`,
+	);
+	return null;
 }
