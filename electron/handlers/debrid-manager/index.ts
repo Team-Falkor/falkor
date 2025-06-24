@@ -1,11 +1,10 @@
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import type { SettingsConfig } from "@/@types";
-import { SettingsManager } from "../settings/settings";
-import { debridProviders, ensureProvidersInitialized } from "./map";
-import { TorBoxClient } from "../api-wrappers/torbox";
 import { RealDebridClient } from "../api-wrappers/real-debrid";
+import { TorBoxClient } from "../api-wrappers/torbox";
+import { SettingsManager } from "../settings/settings";
 import type { DebridService } from "./map";
-
+import { debridProviders, ensureProvidersInitialized } from "./map";
 
 const settings = SettingsManager.getInstance();
 
@@ -45,7 +44,9 @@ export class DebridManager {
 		const client = debridProviders.get(provider);
 
 		if (!client || !isRealDebridClient(client)) {
-			console.error("RealDebrid: client not found or client is not a RealDebridClient");
+			console.error(
+				"RealDebrid: client not found or client is not a RealDebridClient",
+			);
 			return null;
 		}
 
@@ -114,12 +115,14 @@ export class DebridManager {
 		const client = debridProviders.get(provider);
 
 		if (!client || !isTorBoxClient(client)) {
-			console.error("TorBox: client not found or client is not a TorBoxClient");
-			return null;
+			throw new Error(
+				"Torbox: client not found or client is not a TorBoxClient",
+			);
 		}
 
 		try {
 			let returnData: Return | null = null;
+			let returnURL: string = url;
 
 			if (type === "ddl") {
 				const result = await client.webDownloads.createWebDownload(url);
@@ -148,7 +151,6 @@ export class DebridManager {
 						fileSize: result.size,
 					};
 				}
-
 			} else {
 				// Handle magnet/torrent types
 				const result = await client.downloadTorrentFromMagnet(url);
@@ -157,18 +159,19 @@ export class DebridManager {
 					return null;
 				}
 
-
 				if (result.download_present) {
 					const repsonse = await client.torrents.getZipDL(result.id.toString());
 					if (!repsonse) {
-						console.error(`TorBox: Failed to get download URL for torrent ${result.name}`);
+						console.error(
+							`TorBox: Failed to get download URL for torrent ${result.name}`,
+						);
 						return null;
 					}
-					url = repsonse;
+					returnURL = repsonse;
 				}
 
 				returnData = {
-					url: url,
+					url: returnURL,
 					isCaching: !result.download_present,
 					type: "ddl",
 					provider: provider,

@@ -1,9 +1,8 @@
+import { type Dispatch, type SetStateAction, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { type Dispatch, type SetStateAction, useState } from "react";
-import { toast } from "sonner";
-import { obtainTorBoxUser } from "./auth";
 import { H3 } from "@/components/ui/typography";
 import { trpc } from "@/lib";
 
@@ -14,9 +13,31 @@ interface TorBoxDialogContentProps {
 }
 
 const TorBoxDialogContent = ({ open, setOpen }: TorBoxDialogContentProps) => {
+	const utils = trpc.useUtils();
+
 	const [apiKey, setApiKey] = useState<string>("");
 
-	const { mutateAsync: addAccount } = trpc.accounts.create.useMutation();
+	const { mutateAsync: addAccount } = trpc.accounts.create.useMutation({
+		async onSuccess(data) {
+			if (!data) {
+				toast.error("Failed to add TorBox account");
+				return;
+			}
+
+			await utils.accounts.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
+
+			toast.success("TorBox account added successfully");
+			setOpen(false);
+		},
+		onError(data) {
+			toast.error("An error occurred while adding the TorBox account", {
+				description: data.message,
+			});
+		},
+	});
 
 	const handleSave = async () => {
 		if (!apiKey.trim()) {
@@ -25,31 +46,15 @@ const TorBoxDialogContent = ({ open, setOpen }: TorBoxDialogContentProps) => {
 		}
 
 		try {
-			const data = await obtainTorBoxUser(apiKey);
-
-			if (data) {
-				const ok = await addAccount({
-					username: data.email,
-					email: data.email,
-					avatar: undefined,
-					clientId: undefined,
-					clientSecret: apiKey.trim(),
-					accessToken: apiKey.trim(),
-					refreshToken: apiKey.trim(),
-					expiresIn: -1,
-					type: "torbox",
-				});
-
-				if (!ok) {
-					toast.error("Failed to add TorBox account");
-					return;
-				}
-
-				toast.success("TorBox account added successfully");
-				setOpen(false);
-			} else {
-				toast.error("Invalid API key or failed to fetch account info");
-			}
+			await addAccount({
+				avatar: undefined,
+				clientId: undefined,
+				clientSecret: apiKey.trim(),
+				accessToken: apiKey.trim(),
+				refreshToken: apiKey.trim(),
+				expiresIn: -1,
+				type: "torbox",
+			});
 		} catch (error) {
 			console.error("Failed to save TorBox account:", error);
 			toast.error("An error occurred while adding the TorBox account");

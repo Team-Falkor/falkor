@@ -157,9 +157,11 @@ export const initTorBox = async (
 		const action = forceReinitialize
 			? "Re-creating client due to forceReinitialize"
 			: "Creating new client instance";
-		console.info(`RealDebrid: ${action}.`);
+		// FIX: Corrected log message from "RealDebrid" to "TorBox"
+		console.info(`TorBox: ${action}.`);
 
 		client = TorBoxClient.getInstance(currentApiKey);
+		// This line already ensures TorBox is mapped
 		debridProviders.set("torbox", client);
 	} else {
 		console.info("TorBox: Returning existing client instance.");
@@ -226,11 +228,13 @@ const initializeProviders = async (): Promise<void> => {
 		}
 
 		if (torBoxFromDB) {
+			// Assuming `accessToken` field from the database stores the TorBox API key
 			if (torBoxFromDB.accessToken) {
 				await initTorBox(torBoxFromDB.accessToken, true);
 				console.info("TorBox: Successfully initialized from database");
 			} else {
-				console.warn("RealDebrid: Missing required credentials in database");
+				// FIX: Corrected log message from "RealDebrid" to "TorBox"
+				console.warn("TorBox: Missing required credentials in database");
 
 				sendToastNotification({
 					type: "error",
@@ -241,7 +245,7 @@ const initializeProviders = async (): Promise<void> => {
 			}
 		}
 	} catch (error) {
-		console.error("RealDebrid: Failed to initialize from database:", error);
+		console.error("Initialization: Failed to initialize from database:", error);
 	} finally {
 		isInitialized = true;
 	}
