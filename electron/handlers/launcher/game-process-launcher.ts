@@ -19,8 +19,8 @@ import { resolveExecutablePath } from "./utils/process-utils";
 
 interface TrackedProcessInfo {
 	pid: number | null;
-	name: string; // The base name of the process (e.g., "MyGame")
-	requiresPolling: boolean; // True if launched via admin/detached and direct process handle is not available
+	name: string;
+	requiresPolling: boolean;
 }
 
 interface LauncherOptions {
@@ -44,11 +44,8 @@ export default class GameProcessLauncher extends EventEmitter {
 	private readonly runAsAdmin: boolean;
 	private readonly gameName: string;
 
-	private process: ChildProcess | null = null; // The direct ChildProcess object if spawned non-admin
-	private trackedProcessInfo: TrackedProcessInfo | null = null; // Info for tracking, esp. for polling
-	private readonly MAX_RETRIES = 5;
-	private readonly RETRY_DELAY_MS = 2500;
-	private readonly INITIAL_PROCESS_CHECK_DELAY_MS = 5000; // 5 seconds
+	private process: ChildProcess | null = null;
+	private trackedProcessInfo: TrackedProcessInfo | null = null;
 
 	private startTime = 0;
 	private totalPlaytimeMs = 0;
@@ -93,11 +90,10 @@ export default class GameProcessLauncher extends EventEmitter {
 			const spawnResult = safeSpawn(executable, spawnArgs, {
 				cwd: path.dirname(this.gamePath),
 				runAsAdmin: this.runAsAdmin,
-				// Inherit stdio for admin processes to see prompts, otherwise pipe for non-admin
 				stdio: this.runAsAdmin ? "inherit" : "pipe",
 			});
 
-			this.process = spawnResult.process; // This will be null if runAsAdmin
+			this.process = spawnResult.process;
 			this.trackedProcessInfo = {
 				pid: spawnResult.process?.pid ?? null,
 				name: spawnResult.processName,
@@ -105,8 +101,7 @@ export default class GameProcessLauncher extends EventEmitter {
 			};
 
 			if (this.process) {
-				// We have direct control over the process (non-admin launch)
-				this.process.unref(); // Allows the parent process to exit independently
+				this.process.unref();
 				this.process.once("exit", (code, signal) =>
 					this.handleExit(code, signal),
 				);
@@ -121,44 +116,29 @@ export default class GameProcessLauncher extends EventEmitter {
 					"info",
 					`Launched ${this.gameName} (ID: ${this.id}) with direct control (PID: ${this.trackedProcessInfo.pid}).`,
 				);
-				// No polling needed here, exit event will notify us
 			} else {
-				// Launched via admin elevation (no direct ChildProcess handle)
 				logger.log(
 					"info",
-					`Launched ${this.gameName} (ID: ${this.id}) via admin elevation. Applying initial delay before process check...`,
+					`Launched ${this.gameName} (ID: ${this.id}) via admin elevation. Attempting to detect process...`,
 				);
 
-				// Introduce initial delay
-				await new Promise((resolve) =>
-					setTimeout(resolve, this.INITIAL_PROCESS_CHECK_DELAY_MS),
-				);
-				logger.log(
-					"debug",
-					`Initial ${ms(this.INITIAL_PROCESS_CHECK_DELAY_MS)} delay complete. Now attempting to detect process for '${this.gameName}'...`,
-				);
-
-				// Use waitForProcessToStart to find the PID
 				const detectedPid = await waitForProcessToStart(
 					spawnResult.processName,
-					15000, // Timeout for waitForProcessToStart
 				);
 
 				if (detectedPid) {
 					this.trackedProcessInfo.pid = detectedPid;
 					logger.log("info", `Game process detected with PID: ${detectedPid}`);
-					this.startProcessPolling(); // Start polling once PID is detected
 				} else {
 					logger.log(
 						"warn",
-						`Could not detect game process for '${this.gameName}' after initial wait and waitForProcessToStart. Will start name-based polling immediately.`,
+						`Could not detect game process for '${this.gameName}' immediately after admin launch. Starting name-based polling.`,
 					);
-					// If initial detection failed, we still want to poll, but this might be less reliable.
-					this.startProcessPolling();
 				}
 			}
 
 			this.startTracking();
+			this.startProcessPolling();
 			if (this.achievementItem) this.achievementItem.find();
 
 			gamesLaunched.set(this.id, this);
@@ -197,7 +177,6 @@ export default class GameProcessLauncher extends EventEmitter {
 	}
 
 	private startProcessPolling(): void {
-		// Clear any existing interval to prevent duplicates
 		if (this.processCheckIntervalId) {
 			clearInterval(this.processCheckIntervalId);
 			this.processCheckIntervalId = null;
@@ -210,7 +189,6 @@ export default class GameProcessLauncher extends EventEmitter {
 
 		this.processCheckIntervalId = setInterval(async () => {
 			if (!this.isActive) {
-				// If game is no longer active, stop polling
 				if (this.processCheckIntervalId) {
 					clearInterval(this.processCheckIntervalId);
 					this.processCheckIntervalId = null;
@@ -227,24 +205,17 @@ export default class GameProcessLauncher extends EventEmitter {
 				`Polling for ${this.gameName} process: checking if still running...`,
 			);
 
-			const isRunning = await this.isGameProcessRunning(); // This method now handles the logic
+			const isRunning = await this.isGameProcessRunning();
 			if (!isRunning) {
 				logger.log(
 					"info",
 					`Detected ${this.gameName} process has exited via polling.`,
 				);
-				this.handleExit(0, null); // Call handleExit if process is no longer found
+				this.handleExit(0, null);
 			}
-		}, ms("3s")); // Check every 3 seconds for better responsiveness
+		}, ms("3s"));
 	}
 
-	/**
-	 * Determines if the game process is running.
-	 * If a direct ChildProcess handle is available, it checks that.
-	 * Otherwise, it uses `findProcessByName` with retry logic.
-	 *
-	 * @returns {Promise<boolean>} True if the process is found, false otherwise.
-	 */
 	private async isGameProcessRunning(): Promise<boolean> {
 		if (!this.trackedProcessInfo) {
 			logger.log(
@@ -254,46 +225,14 @@ export default class GameProcessLauncher extends EventEmitter {
 			return false;
 		}
 
-		// 1. If we have a direct ChildProcess handle AND it hasn't exited, use that.
-		// This applies to non-admin launches where `this.process` is not null.
 		if (this.process) {
-			// Check if the process property is still valid and has a PID
-			// On Windows, child.pid is invalid after process exits, but on Unix-like, it remains
-			// A reliable way is to check the 'exit' status or if it's explicitly null/undefined.
-			// However, since we register 'exit' event to call handleExit, if isActive is true
-			// and process is not null, it's presumed to be running until 'exit' fires.
-			// More robust check: process.kill(pid, 0) can check if a process exists without killing it
-			// However, `process.killed` property or checking if the process object is still there
-			// implies it hasn't completely resolved its exit state, which is generally reliable with Node's ChildProcess.
-			// The main check for `this.process` being non-null and `this.isActive` ensures it.
 			logger.log(
 				"debug",
 				`isGameProcessRunning: Using direct ChildProcess handle for ${this.gameName} (PID: ${this.process.pid}).`,
 			);
-			try {
-				// A gentle poke to see if it's still alive (only effective on Unix-like for existence check without killing)
-				// On Windows, this will throw if PID is invalid, but is not a direct way to check process *state*.
-				// Node.js's child.exit and child.killed are generally the best indicators for directly spawned processes.
-				// If the 'exit' event has already fired, `handleExit` would have set `isActive` to false.
-				// So, if `this.isActive` is true AND `this.process` is present, we assume it's running.
-				// This is the most efficient and reliable check for directly spawned processes.
-				if (this.process.pid && process.platform !== "win32") {
-					// Check if PID exists and not on windows for process.kill(pid, 0)
-					process.kill(this.process.pid, 0); // Check if process exists without sending signal
-				}
-				// If no error, process is presumed running or hasn't fully exited yet from Node's perspective.
-				return true;
-			} catch (e) {
-				// If process.kill(pid, 0) throws (e.g., process not found), it's definitely dead
-				logger.log(
-					"debug",
-					`isGameProcessRunning: Direct process ${this.gameName} (PID: ${this.process.pid}) check failed: ${(e as Error).message}. Presuming dead.`,
-				);
-				return false; // Process is likely dead, let handleExit cleanup
-			}
+			return true;
 		}
 
-		// 2. If no direct ChildProcess handle (requiresPolling is true), use findProcessByName with retries.
 		const processName = this.trackedProcessInfo.name;
 		const processPid = this.trackedProcessInfo.pid;
 
@@ -302,68 +241,42 @@ export default class GameProcessLauncher extends EventEmitter {
 			`isGameProcessRunning: Using polling logic for '${processName}'${processPid ? ` (PID: ${processPid})` : ""}.`,
 		);
 
-		for (let i = 0; i < this.MAX_RETRIES; i++) {
-			logger.log(
-				"debug",
-				`isGameProcessRunning: Polling attempt ${i + 1}/${this.MAX_RETRIES}.`,
-			);
-
-			try {
-				if (processPid) {
-					// If we have a detected PID, try to find it specifically.
-					const pids = await findProcessByName(processName);
-					if (pids.includes(processPid)) {
-						logger.log(
-							"debug",
-							`isGameProcessRunning: Process '${processName}' found with PID ${processPid}.`,
-						);
-						return true;
-					}
+		try {
+			if (processPid) {
+				const pids = await findProcessByName(processName);
+				if (pids.includes(processPid)) {
 					logger.log(
 						"debug",
-						`isGameProcessRunning: PID ${processPid} not found among running '${processName}' processes. Current PIDs: [${pids.join(", ")}]`,
+						`isGameProcessRunning: Process '${processName}' found with PID ${processPid}.`,
 					);
-				} else {
-					// If PID is null (e.g., first check after admin launch failed to get PID), just check by name.
-					const pids = await findProcessByName(processName);
-					if (pids.length > 0) {
-						// If found by name, update the tracked PID for future checks (optimization).
-						this.trackedProcessInfo.pid = pids[0];
-						logger.log(
-							"debug",
-							`isGameProcessRunning: Process '${processName}' found by name. Updated tracked PID to: ${pids[0]}.`,
-						);
-						return true;
-					}
-					logger.log(
-						"debug",
-						`isGameProcessRunning: Process '${processName}' not found by name.`,
-					);
+					return true;
 				}
-			} catch (error) {
-				logger.log(
-					"warn",
-					`isGameProcessRunning: Polling attempt ${i + 1}/${this.MAX_RETRIES}: Error checking status for '${processName}': ${(error as Error).message}`,
-				);
-			}
-
-			// If process not found, and it's not the last attempt, wait before retrying
-			if (i < this.MAX_RETRIES - 1) {
 				logger.log(
 					"debug",
-					`isGameProcessRunning: Polling process not found. Retrying in ${this.RETRY_DELAY_MS}ms...`,
+					`isGameProcessRunning: PID ${processPid} not found among running '${processName}' processes. Current PIDs: [${pids.join(", ")}]`,
 				);
-				await new Promise((resolve) =>
-					setTimeout(resolve, this.RETRY_DELAY_MS),
+			} else {
+				const pids = await findProcessByName(processName);
+				if (pids.length > 0) {
+					this.trackedProcessInfo.pid = pids[0];
+					logger.log(
+						"debug",
+						`isGameProcessRunning: Process '${processName}' found by name. Updated tracked PID to: ${pids[0]}.`,
+					);
+					return true;
+				}
+				logger.log(
+					"debug",
+					`isGameProcessRunning: Process '${processName}' not found by name.`,
 				);
 			}
+		} catch (error) {
+			logger.log(
+				"warn",
+				`isGameProcessRunning: Error checking status for '${processName}': ${(error as Error).message}`,
+			);
 		}
 
-		// If loop completes, process was not found after all polling retries
-		logger.log(
-			"error",
-			`isGameProcessRunning: Failed to confirm game process '${processName}'${processPid ? ` (PID: ${processPid})` : ""} running after ${this.MAX_RETRIES} polling attempts.`,
-		);
 		return false;
 	}
 
@@ -437,16 +350,15 @@ export default class GameProcessLauncher extends EventEmitter {
 	}
 
 	private cleanupResources(): void {
-		// Only try to kill if it's the directly spawned process and it hasn't already exited
 		if (this.process && !this.process.killed) {
 			logger.log(
 				"info",
 				`cleanupResources: Attempting to terminate directly spawned process ${this.process.pid} for ${this.gameName}.`,
 			);
-			this.process.kill("SIGTERM"); // Send SIGTERM to the directly controlled child process
+			this.process.kill("SIGTERM");
 		}
 		this.process = null;
-		this.trackedProcessInfo = null; // Clear tracked info
+		this.trackedProcessInfo = null;
 		if (this.achievementItem?.watcher_instance) {
 			this.achievementItem.watcher_instance.destroy();
 			logger.log(
@@ -474,7 +386,6 @@ export default class GameProcessLauncher extends EventEmitter {
 			return;
 		}
 
-		// First, check if we have a direct ChildProcess handle
 		if (this.process) {
 			logger.log(
 				"debug",
@@ -482,7 +393,6 @@ export default class GameProcessLauncher extends EventEmitter {
 			);
 			this.process.kill("SIGTERM");
 		} else if (this.trackedProcessInfo?.pid) {
-			// If no direct handle but we have a tracked PID (e.g., from an admin launch)
 			try {
 				logger.log(
 					"debug",
@@ -498,7 +408,6 @@ export default class GameProcessLauncher extends EventEmitter {
 					"warn",
 					`stop: Could not kill process ${this.trackedProcessInfo.pid} for ${this.gameName}: ${(err as Error).message}. Forcing stop tracking.`,
 				);
-				// If killing by PID fails (e.g., process already dead or permission issue), force stop tracking
 				this.handleExit(0, null);
 			}
 		} else {
@@ -506,12 +415,10 @@ export default class GameProcessLauncher extends EventEmitter {
 				"warn",
 				`stop: Cannot directly kill elevated game ${this.id} as PID is unknown and no direct handle. Stopping tracking.`,
 			);
-			// If no PID is tracked and no direct handle, just stop tracking
 			this.handleExit(0, null);
 		}
 	}
 
-	// Public method to check if game is currently running
 	public async isRunning(): Promise<boolean> {
 		if (!this.isActive) {
 			logger.log(
@@ -521,7 +428,6 @@ export default class GameProcessLauncher extends EventEmitter {
 			return false;
 		}
 		if (!this.trackedProcessInfo) {
-			// Should not happen if isActive is true
 			logger.log(
 				"debug",
 				`isRunning: Game ${this.id} has no tracked info. Returning false.`,
@@ -529,7 +435,6 @@ export default class GameProcessLauncher extends EventEmitter {
 			return false;
 		}
 
-		// Use the more efficient check from `isGameProcessRunning`
 		const result = await this.isGameProcessRunning();
 		logger.log(
 			"debug",
@@ -538,7 +443,6 @@ export default class GameProcessLauncher extends EventEmitter {
 		return result;
 	}
 
-	// Get current session info
 	public getSessionInfo() {
 		return {
 			id: this.id,

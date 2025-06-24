@@ -7,7 +7,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import util from "node:util";
-import logger from "@backend/handlers/logging"; // Ensure this import path is correct
+import logger from "@backend/handlers/logging";
 import sudo from "@expo/sudo-prompt";
 
 interface ExtendedSpawnOptions extends SpawnOptions {
@@ -20,18 +20,14 @@ interface SpawnResult {
 	requiresPolling: boolean;
 }
 
-const execPromise = util.promisify(exec); // Promisify exec once for reuse
+interface ProcessInfo {
+	pid: number;
+	name: string;
+	elevated?: boolean;
+}
 
-/**
- * Safely spawns a child process, with optional administrative privileges.
- * Supports cross-platform elevation using @expo/sudo-prompt.
- *
- * @param command The command to execute.
- * @param args Arguments to pass to the command.
- * @param options Spawn options, including an optional `runAsAdmin` flag.
- * @returns An object indicating the spawned process (if directly available) and
- *          whether process polling is required for tracking.
- */
+const execPromise = util.promisify(exec);
+
 export function safeSpawn(
 	command: string,
 	args: string[] = [],
@@ -56,53 +52,37 @@ export function safeSpawn(
 	return spawnNonAdmin(command, args, options, processName);
 }
 
-/**
- * Handles launching a command with administrative privileges using @expo/sudo-prompt.
- * This method relies on process polling for tracking as it doesn't return a direct ChildProcess object.
- *
- * @param command The full path to the executable.
- * @param args Arguments to pass to the command.
- * @param processName The base name of the process for tracking.
- * @returns A SpawnResult indicating that polling is required for process tracking.
- */
 function handleSudoPromptLaunch(
 	command: string,
 	args: string[],
 	processName: string,
 ): SpawnResult {
-	// Enclose the executable path in double quotes to handle spaces correctly.
 	const quotedCommand = `"${command}"`;
-	// Quote each argument and escape any existing double quotes within them.
 	const quotedArgs = args
 		.map((arg) => {
-			const sanitizedArg = arg.replace(/"/g, '\\"'); // Escape existing quotes
-			return `"${sanitizedArg}"`; // Quote the whole argument
+			const sanitizedArg = arg.replace(/"/g, '\\"');
+			return `"${sanitizedArg}"`;
 		})
 		.join(" ");
 
-	// Construct the full command string for sudo-prompt.
 	const commandToRun = `${quotedCommand} ${quotedArgs}`.trim();
 
-	// Configuration for the sudo-prompt dialog.
 	const sudoOptions = {
-		name: "Falkor Game Launcher", // Name displayed in the UAC/sudo prompt.
+		name: "Falkor Game Launcher",
 	};
 
 	logger.log("debug", `sudo-prompt command: ${commandToRun}`);
 
 	sudo.exec(commandToRun, sudoOptions, (error, stdout, stderr) => {
-		// Log non-zero exits or errors from the elevated command execution.
 		if (error) {
 			logger.log(
 				"warn",
 				`sudo-prompt command finished with error/non-zero exit: ${error.message}. Stderr: ${stderr || "N/A"}`,
 			);
 		}
-		// Log standard output from the elevated command.
 		if (stdout) {
 			logger.log("debug", `sudo-prompt stdout: ${stdout}`);
 		}
-		// Log standard error from the elevated command.
 		if (stderr) {
 			logger.log("warn", `sudo-prompt stderr: ${stderr}`);
 		}
@@ -120,15 +100,6 @@ function handleSudoPromptLaunch(
 	};
 }
 
-/**
- * Spawns a child process without administrative privileges.
- *
- * @param command The command to execute.
- * @param args Arguments to pass to the command.
- * @param options Spawn options for the child process.
- * @param processName The base name of the process for tracking.
- * @returns A SpawnResult containing the ChildProcess object for direct tracking.
- */
 function spawnNonAdmin(
 	command: string,
 	args: string[],
@@ -141,16 +112,14 @@ function spawnNonAdmin(
 	);
 
 	try {
-		// Include environment variables, specifically setting WINEDEBUG for potential Wine compatibility.
-		// Merge provided env with process.env
 		const env = { ...process.env, WINEDEBUG: "fixme-all", ...options.env };
 		const spawnOptions: SpawnOptions = {
-			detached: options.detached ?? true, // Detach the child process from the parent.
-			stdio: options.stdio ?? "ignore", // Redirect child process I/O to ignore or inherit.
-			cwd: options.cwd, // Set the current working directory for the child process.
-			env, // Pass environment variables.
-			windowsHide: options.windowsHide ?? true, // Hide the console window on Windows.
-			shell: options.shell, // Explicitly pass shell option if present
+			detached: options.detached ?? true,
+			stdio: options.stdio ?? "ignore",
+			cwd: options.cwd,
+			env,
+			windowsHide: options.windowsHide ?? true,
+			shell: options.shell,
 		};
 
 		const child = spawn(command, args, spawnOptions);
@@ -177,55 +146,42 @@ function spawnNonAdmin(
 		return {
 			process: child,
 			processName,
-			requiresPolling: false, // Direct process tracking is possible.
+			requiresPolling: false,
 		};
 	} catch (e) {
 		logger.log(
 			"error",
 			`Failed to spawn process '${command}': ${(e as Error).message}`,
 		);
-		throw e; // Re-throw to indicate immediate failure
+		throw e;
 	}
 }
 
-/**
- * Generates various common permutations of a process name for robust searching.
- *
- * @param originalName The original process name (e.g., "My Game", "My_Game", "mygame.exe").
- * @returns An array of potential process names to search for.
- */
 function generateProcessNamePermutations(originalName: string): string[] {
 	const permutations = new Set<string>();
 	const baseName = path.basename(originalName, path.extname(originalName));
-	const extension = path.extname(originalName).toLowerCase();
 
-	// 1. Original name (with or without .exe, as provided)
 	permutations.add(originalName);
 
-	// 2. Base name only (no extension)
 	permutations.add(baseName);
 
-	// 3. Lowercase versions
 	permutations.add(originalName.toLowerCase());
 	permutations.add(baseName.toLowerCase());
 
-	// 4. Handle spaces/underscores/dashes in base name
-	const cleanedBaseName = baseName.replace(/[\s\-_]/g, ""); // Remove spaces, underscores, dashes
+	const cleanedBaseName = baseName.replace(/[\s\-_]/g, "");
 	permutations.add(cleanedBaseName);
 	permutations.add(cleanedBaseName.toLowerCase());
 
-	// If the original name had spaces, try replacing them with underscores or removing them
 	if (baseName.includes(" ")) {
 		const underscoreName = baseName.replace(/ /g, "_");
 		permutations.add(underscoreName);
 		permutations.add(underscoreName.toLowerCase());
 	}
 
-	// Add .exe variants for Windows
 	if (os.platform() === "win32") {
 		const winVariants = new Set<string>();
 		permutations.forEach((name) => {
-			winVariants.add(name); // Add as is
+			winVariants.add(name);
 			if (!name.toLowerCase().endsWith(".exe")) {
 				winVariants.add(`${name}.exe`);
 			}
@@ -233,7 +189,7 @@ function generateProcessNamePermutations(originalName: string): string[] {
 		winVariants.forEach((v) => permutations.add(v));
 	}
 
-	const result = Array.from(permutations).sort(); // Sort for consistent order (optional)
+	const result = Array.from(permutations).sort();
 	logger.log(
 		"debug",
 		`Generated permutations for '${originalName}': [${result.join(", ")}]`,
@@ -241,125 +197,415 @@ function generateProcessNamePermutations(originalName: string): string[] {
 	return result;
 }
 
-/**
- * Finds process IDs (PIDs) by their name across different operating systems,
- * trying multiple permutations of the process name for robustness.
- *
- * @param processName The name of the process to find (e.g., "chrome", "MyGame", "My Game.exe").
- * @returns A promise that resolves to an array of unique PIDs.
- *                               Returns an empty array if no processes are found or on error.
- */
-export async function findProcessByName(
+async function findProcessesByNameRobust(
 	processName: string,
-): Promise<number[]> {
+): Promise<ProcessInfo[]> {
 	const platform = os.platform();
-	const uniquePids = new Set<number>(); // Use a Set to store unique PIDs
+	const allProcesses: ProcessInfo[] = [];
 	const namesToTry = generateProcessNamePermutations(processName);
 
 	logger.log(
 		"debug",
-		`findProcessByName: Searching for permutations of '${processName}' on platform '${platform}'`,
+		`findProcessesByNameRobust: Searching for '${processName}' on ${platform}`,
 	);
 
-	for (const name of namesToTry) {
-		logger.log(
-			"debug",
-			`findProcessByName: Attempting to find process by: '${name}'`,
-		);
-		try {
-			const currentPids: number[] = [];
-			if (platform === "win32") {
-				// On Windows, use wmic to find processes by name and get their PIDs.
-				// The `name='${name}'` needs to be exact including '.exe' if it's there.
-				const command = `wmic process where "name='${name}'" get ProcessId /format:csv`;
-				logger.log("debug", `Executing Windows command: ${command}`);
-
-				const { stdout } = await execPromise(command);
-
-				const lines = stdout
-					.split(/\r?\n/)
-					.filter((line) => line.trim().length > 0);
-
-				for (const line of lines) {
-					const match = line.match(/,(\d+)$/);
-					if (match) {
-						const pid = Number.parseInt(match[1], 10);
-						if (!Number.isNaN(pid)) {
-							currentPids.push(pid);
-						}
-					}
-				}
-			} else if (platform === "darwin" || platform === "linux") {
-				// On macOS and Linux, use pgrep for process lookup.
-				// -x ensures exact match. -i for case-insensitivity might be needed if base name varies by case.
-				// We rely on permutations to cover different spellings.
-				const command = `pgrep -x "${name}"`;
-				logger.log("debug", `Executing Unix-like command: ${command}`);
-
-				const { stdout } = await execPromise(command);
-
-				const lines = stdout
-					.trim()
-					.split("\n")
-					.filter((line) => line.trim().length > 0);
-
-				for (const line of lines) {
-					const pid = Number.parseInt(line.trim(), 10);
-					if (!Number.isNaN(pid)) {
-						currentPids.push(pid);
-					}
-				}
-			} else {
-				logger.log(
-					"warn",
-					`findProcessByName: Unsupported platform: '${platform}'. Cannot find processes by name.`,
-				);
-				// If platform is unsupported, break and return what we have (likely empty)
-				break;
-			}
-
-			if (currentPids.length > 0) {
+	if (platform === "win32") {
+		for (const name of namesToTry) {
+			try {
+				const standardResults = await Promise.race([
+					findProcessesWindowsStandard(name),
+					new Promise<ProcessInfo[]>((_, reject) =>
+						setTimeout(() => reject(new Error("Timeout")), 3000),
+					),
+				]);
+				allProcesses.push(...standardResults);
+			} catch (error) {
 				logger.log(
 					"debug",
-					`Found PIDs for '${name}': [${currentPids.join(", ")}]`,
+					`Standard method failed for '${name}': ${(error as Error).message}`,
 				);
-				currentPids.forEach((pid) => uniquePids.add(pid));
-				// Optimization: If we found something, maybe we don't need to try all permutations?
-				// This depends on whether you want ALL matching PIDs or just "any" PID.
-				// For robustness, we continue trying all permutations.
 			}
-		} catch (error) {
-			const err = error as { code?: number; message: string; stderr?: string };
-			// `pgrep` on Unix-like systems exits with code 1 if no processes are found.
-			if ((platform === "darwin" || platform === "linux") && err.code === 1) {
+		}
+
+		for (const name of namesToTry) {
+			try {
+				const tasklistResults = await Promise.race([
+					findProcessesWindowsTasklist(name),
+					new Promise<ProcessInfo[]>((_, reject) =>
+						setTimeout(() => reject(new Error("Timeout")), 3000),
+					),
+				]);
+				const newResults = tasklistResults.filter(
+					(ps) => !allProcesses.some((existing) => existing.pid === ps.pid),
+				);
+				allProcesses.push(...newResults);
+			} catch (error) {
 				logger.log(
 					"debug",
-					`findProcessByName: No processes found for '${name}' (pgrep exited with code 1).`,
+					`Tasklist method failed for '${name}': ${(error as Error).message}`,
 				);
-			} else {
-				// Log full error for other issues, including stderr for more context.
+			}
+		}
+
+		if (allProcesses.length === 0) {
+			for (const name of namesToTry) {
+				try {
+					const powershellResults = await Promise.race([
+						findProcessesWindowsPowerShell(name),
+						new Promise<ProcessInfo[]>((_, reject) =>
+							setTimeout(() => reject(new Error("Timeout")), 5000),
+						),
+					]);
+					const newResults = powershellResults.filter(
+						(ps) => !allProcesses.some((existing) => existing.pid === ps.pid),
+					);
+					allProcesses.push(...newResults);
+					if (newResults.length > 0) break;
+				} catch (error) {
+					logger.log(
+						"debug",
+						`PowerShell method failed for '${name}': ${(error as Error).message}`,
+					);
+				}
+			}
+		}
+
+		if (allProcesses.length === 0) {
+			for (const name of namesToTry) {
+				try {
+					const wmicAltResults = await Promise.race([
+						findProcessesWindowsWMICAlternative(name),
+						new Promise<ProcessInfo[]>((_, reject) =>
+							setTimeout(() => reject(new Error("Timeout")), 4000),
+						),
+					]);
+					const newResults = wmicAltResults.filter(
+						(ps) => !allProcesses.some((existing) => existing.pid === ps.pid),
+					);
+					allProcesses.push(...newResults);
+					if (newResults.length > 0) break;
+				} catch (error) {
+					logger.log(
+						"debug",
+						`Alternative WMIC method failed for '${name}': ${(error as Error).message}`,
+					);
+				}
+			}
+		}
+	} else if (platform === "darwin" || platform === "linux") {
+		for (const name of namesToTry) {
+			try {
+				const unixResults = await Promise.race([
+					findProcessesUnix(name),
+					new Promise<ProcessInfo[]>((_, reject) =>
+						setTimeout(() => reject(new Error("Timeout")), 3000),
+					),
+				]);
+				const newResults = unixResults.filter(
+					(ps) => !allProcesses.some((existing) => existing.pid === ps.pid),
+				);
+				allProcesses.push(...newResults);
+			} catch (error) {
 				logger.log(
-					"warn", // Changed to warn as we're retrying with other names
-					`findProcessByName: Error attempting to find processes for '${name}': ${err.message}. Stderr: ${err.stderr || "N/A"}.`,
+					"debug",
+					`Unix method failed for '${name}': ${(error as Error).message}`,
 				);
 			}
 		}
 	}
 
-	const resultPids = Array.from(uniquePids);
+	const uniqueProcesses = allProcesses
+		.filter(
+			(process, index, self) =>
+				index === self.findIndex((p) => p.pid === process.pid),
+		)
+		.sort((a, b) => a.pid - b.pid);
+
 	logger.log(
 		"debug",
-		`findProcessByName: Final unique PIDs found for '${processName}': [${resultPids.join(", ")}]`,
+		`findProcessesByNameRobust: Found ${uniqueProcesses.length} unique processes for '${processName}'`,
 	);
-	return resultPids;
+	return uniqueProcesses;
 }
 
-/**
- * Checks if any process with the given name is currently running.
- *
- * @param processName The name of the process to check.
- * @returns A promise that resolves to `true` if the process is running, `false` otherwise.
- */
+async function findProcessesWindowsStandard(
+	processName: string,
+): Promise<ProcessInfo[]> {
+	const command = `wmic process where "name='${processName}'" get ProcessId,Name /format:csv`;
+	logger.log("debug", `Executing Windows standard command: ${command}`);
+
+	const { stdout } = await execPromise(command);
+	const processes: ProcessInfo[] = [];
+
+	const lines = stdout.split(/\r?\n/).filter((line) => line.trim().length > 0);
+	for (const line of lines) {
+		const parts = line.split(",");
+		if (parts.length >= 3) {
+			const name = parts[1]?.trim();
+			const pidStr = parts[2]?.trim();
+
+			if (name && pidStr && !Number.isNaN(Number(pidStr))) {
+				processes.push({
+					pid: Number(pidStr),
+					name: name,
+					elevated: false,
+				});
+			}
+		}
+	}
+
+	return processes;
+}
+
+async function findProcessesWindowsPowerShell(
+	processName: string,
+): Promise<ProcessInfo[]> {
+	const cleanName = processName.replace(/\.exe$/i, "");
+
+	const psScript = `
+		$processes = Get-Process -Name '${cleanName}' -ErrorAction SilentlyContinue
+		foreach ($proc in $processes) {
+			$elevated = $false
+			try {
+				$handle = $proc.Handle
+				$elevated = ($proc.PriorityClass -eq 'High') -or ($proc.WorkingSet64 -gt 104857600)
+			} catch {
+				$elevated = $false
+			}
+			Write-Output ($proc.Id.ToString() + ',' + $proc.ProcessName + ',' + $elevated.ToString())
+		}
+	`
+		.replace(/\t/g, "")
+		.replace(/\n\s*/g, "; ");
+
+	const encodedCommand = Buffer.from(psScript, "utf16le").toString("base64");
+	const command = `powershell -EncodedCommand ${encodedCommand}`;
+
+	logger.log(
+		"debug",
+		"Executing PowerShell command for process detection (encoded)",
+	);
+
+	try {
+		const { stdout } = await execPromise(command, { timeout: 5000 });
+		const processes: ProcessInfo[] = [];
+
+		const lines = stdout
+			.trim()
+			.split("\n")
+			.filter((line) => line.trim().length > 0);
+		for (const line of lines) {
+			const parts = line.trim().split(",");
+			if (parts.length >= 3) {
+				const pidStr = parts[0]?.trim();
+				const name = parts[1]?.trim();
+				const elevated = parts[2]?.trim().toLowerCase() === "true";
+
+				if (pidStr && name && !Number.isNaN(Number(pidStr))) {
+					processes.push({
+						pid: Number(pidStr),
+						name: name,
+						elevated: elevated,
+					});
+				}
+			}
+		}
+
+		return processes;
+	} catch {
+		logger.log("debug", "Encoded PowerShell failed, trying simple approach");
+		return await findProcessesWindowsPowerShellSimple(cleanName);
+	}
+}
+
+async function findProcessesWindowsPowerShellSimple(
+	processName: string,
+): Promise<ProcessInfo[]> {
+	const command = `powershell -Command "Get-Process -Name '${processName}' -ErrorAction SilentlyContinue | Select-Object Id,ProcessName | ConvertTo-Csv -NoTypeInformation"`;
+
+	logger.log("debug", "Executing simple PowerShell command");
+
+	const { stdout } = await execPromise(command, { timeout: 3000 });
+	const processes: ProcessInfo[] = [];
+
+	const lines = stdout
+		.trim()
+		.split("\n")
+		.filter((line) => line.trim().length > 0);
+	const dataLines = lines.filter(
+		(line) => !line.includes('"Id"') && !line.includes('"ProcessName"'),
+	);
+
+	for (const line of dataLines) {
+		const csvMatch = line.match(/"(\d+)","([^"]+)"/);
+		if (csvMatch) {
+			const [, pidStr, name] = csvMatch;
+			const pid = Number(pidStr);
+
+			if (!Number.isNaN(pid)) {
+				processes.push({
+					pid: pid,
+					name: name,
+					elevated: false,
+				});
+			}
+		}
+	}
+
+	return processes;
+}
+
+async function findProcessesWindowsWMICAlternative(
+	processName: string,
+): Promise<ProcessInfo[]> {
+	const command = `wmic process get Name,ProcessId /format:list | findstr /i "${processName}"`;
+	logger.log("debug", `Executing alternative WMIC command: ${command}`);
+
+	const { stdout } = await execPromise(command);
+	const processes: ProcessInfo[] = [];
+
+	const lines = stdout.split(/\r?\n/).filter((line) => line.trim().length > 0);
+	let currentName = "";
+	let currentPid = "";
+
+	for (const line of lines) {
+		const trimmedLine = line.trim();
+		if (trimmedLine.startsWith("Name=")) {
+			currentName = trimmedLine.substring(5);
+		} else if (trimmedLine.startsWith("ProcessId=")) {
+			currentPid = trimmedLine.substring(10);
+
+			if (
+				currentName &&
+				currentPid &&
+				currentName.toLowerCase().includes(processName.toLowerCase())
+			) {
+				const pid = Number(currentPid);
+				if (!Number.isNaN(pid)) {
+					processes.push({
+						pid: pid,
+						name: currentName,
+						elevated: false,
+					});
+				}
+			}
+			currentName = "";
+			currentPid = "";
+		}
+	}
+
+	return processes;
+}
+
+async function findProcessesWindowsTasklist(
+	processName: string,
+): Promise<ProcessInfo[]> {
+	const command = `tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`;
+	logger.log("debug", `Executing tasklist command: ${command}`);
+
+	const { stdout } = await execPromise(command);
+	const processes: ProcessInfo[] = [];
+
+	const lines = stdout
+		.trim()
+		.split("\n")
+		.filter((line) => line.trim().length > 0);
+	for (const line of lines) {
+		const csvMatch = line.match(
+			/"([^"]+)","([^"]+)","([^"]+)","([^"]+)","([^"]+)"/,
+		);
+		if (csvMatch) {
+			const [, imageName, pidStr] = csvMatch;
+			const pid = Number(pidStr);
+
+			if (!Number.isNaN(pid)) {
+				processes.push({
+					pid: pid,
+					name: imageName,
+					elevated: false,
+				});
+			}
+		}
+	}
+
+	return processes;
+}
+
+async function findProcessesUnix(processName: string): Promise<ProcessInfo[]> {
+	const command = `pgrep -x "${processName}"`;
+	logger.log("debug", `Executing Unix command: ${command}`);
+
+	const { stdout } = await execPromise(command);
+	const processes: ProcessInfo[] = [];
+
+	const lines = stdout
+		.trim()
+		.split("\n")
+		.filter((line) => line.trim().length > 0);
+	for (const line of lines) {
+		const pid = Number(line.trim());
+		if (!Number.isNaN(pid)) {
+			processes.push({
+				pid: pid,
+				name: processName,
+				elevated: false,
+			});
+		}
+	}
+
+	return processes;
+}
+
+export async function findProcessByName(
+	processName: string,
+): Promise<number[]> {
+	logger.log("debug", `findProcessByName: Searching for '${processName}'`);
+
+	try {
+		const processes = await findProcessesByNameRobust(processName);
+		const pids = processes.map((p) => p.pid);
+
+		logger.log("debug", `findProcessByName: Found PIDs: [${pids.join(", ")}]`);
+
+		const elevatedCount = processes.filter((p) => p.elevated).length;
+		if (elevatedCount > 0) {
+			logger.log(
+				"info",
+				`findProcessByName: Found ${elevatedCount} elevated processes for '${processName}'`,
+			);
+		}
+
+		return pids;
+	} catch (error) {
+		logger.log(
+			"error",
+			`findProcessByName: Error searching for '${processName}': ${(error as Error).message}`,
+		);
+		return [];
+	}
+}
+
+export async function findProcessInfoByName(
+	processName: string,
+): Promise<ProcessInfo[]> {
+	logger.log("debug", `findProcessInfoByName: Searching for '${processName}'`);
+
+	try {
+		const processes = await findProcessesByNameRobust(processName);
+		logger.log(
+			"debug",
+			`findProcessInfoByName: Found ${processes.length} processes for '${processName}'`,
+		);
+		return processes;
+	} catch (error) {
+		logger.log(
+			"error",
+			`findProcessInfoByName: Error searching for '${processName}': ${(error as Error).message}`,
+		);
+		return [];
+	}
+}
+
 export async function isProcessRunning(processName: string): Promise<boolean> {
 	logger.log("debug", `isProcessRunning: Checking for '${processName}'`);
 	const pids = await findProcessByName(processName);
@@ -371,26 +617,48 @@ export async function isProcessRunning(processName: string): Promise<boolean> {
 	return isRunning;
 }
 
-/**
- * Waits for a process with the given name to start within a specified timeout.
- *
- * @param processName The name of the process to wait for.
- * @param timeoutMs The maximum time (in milliseconds) to wait for the process to start.
- * @param checkIntervalMs The interval (in milliseconds) between checks.
- * @returns A promise that resolves to the PID of the first found process, or `null` if the timeout is reached.
- */
-export async function waitForProcessToStart(
+export async function isProcessRunningWithElevation(
 	processName: string,
-	timeoutMs = 10000,
-	checkIntervalMs = 500,
-): Promise<number | null> {
-	const startTime = Date.now();
+): Promise<{
+	isRunning: boolean;
+	hasElevated: boolean;
+	processCount: number;
+	elevatedCount: number;
+}> {
 	logger.log(
 		"debug",
-		`waitForProcessToStart: Waiting for '${processName}' for max ${timeoutMs}ms (check every ${checkIntervalMs}ms).`,
+		`isProcessRunningWithElevation: Checking for '${processName}'`,
+	);
+	const processes = await findProcessInfoByName(processName);
+
+	const isRunning = processes.length > 0;
+	const elevatedProcesses = processes.filter((p) => p.elevated);
+	const hasElevated = elevatedProcesses.length > 0;
+
+	logger.log(
+		"debug",
+		`isProcessRunningWithElevation: '${processName}' - Running: ${isRunning}, ` +
+			`Total: ${processes.length}, Elevated: ${elevatedProcesses.length}`,
 	);
 
-	while (Date.now() - startTime < timeoutMs) {
+	return {
+		isRunning,
+		hasElevated,
+		processCount: processes.length,
+		elevatedCount: elevatedProcesses.length,
+	};
+}
+
+export async function waitForProcessToStart(
+	processName: string,
+	checkIntervalMs = 500,
+): Promise<number | null> {
+	logger.log(
+		"debug",
+		`waitForProcessToStart: Waiting indefinitely for '${processName}' (check every ${checkIntervalMs}ms).`,
+	);
+
+	while (true) {
 		const pids = await findProcessByName(processName);
 		if (pids.length > 0) {
 			logger.log(
@@ -404,13 +672,42 @@ export async function waitForProcessToStart(
 			"debug",
 			`waitForProcessToStart: Process '${processName}' not yet found. Retrying in ${checkIntervalMs}ms...`,
 		);
-		// Wait for a short duration before checking again to avoid busy-waiting.
 		await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
 	}
+}
+
+export async function waitForProcessToStartWithOptions(
+	processName: string,
+	options: {
+		checkIntervalMs?: number;
+		requireElevated?: boolean;
+	} = {},
+): Promise<ProcessInfo | null> {
+	const { checkIntervalMs = 500, requireElevated = false } = options;
 
 	logger.log(
-		"warn",
-		`waitForProcessToStart: Process '${processName}' not found within timeout of ${timeoutMs}ms.`,
+		"debug",
+		`waitForProcessToStartWithOptions: Waiting indefinitely for '${processName}' ` +
+			`(elevated: ${requireElevated})`,
 	);
-	return null;
+
+	while (true) {
+		const processes = await findProcessInfoByName(processName);
+
+		const targetProcesses = requireElevated
+			? processes.filter((p) => p.elevated)
+			: processes;
+
+		if (targetProcesses.length > 0) {
+			const foundProcess = targetProcesses[0];
+			logger.log(
+				"info",
+				`waitForProcessToStartWithOptions: Process '${processName}' detected - ` +
+					`PID: ${foundProcess.pid}, Elevated: ${foundProcess.elevated}`,
+			);
+			return foundProcess;
+		}
+
+		await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+	}
 }
