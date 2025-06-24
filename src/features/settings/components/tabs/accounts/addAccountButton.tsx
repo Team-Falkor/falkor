@@ -12,8 +12,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RealDebridDialogContent from "@/features/debrid/components/real-debrid/real-debrid-dialog-content";
-import { cn } from "@/lib";
 import TorBoxDialogContent from "@/features/debrid/components/torbox/torbox-dialog";
+import { cn } from "@/lib";
 
 type Account = RouterOutputs["accounts"]["getAll"];
 
@@ -87,7 +87,6 @@ const AddAccountButton = ({
 				<TorBoxDialogContent
 					setOpen={setIsTorBoxDialogOpen}
 					open={isTorBoxDialogOpen}
-					onAuthenticated={onAccountAdded}
 				/>
 			</Dialog>
 		</DropdownMenu>

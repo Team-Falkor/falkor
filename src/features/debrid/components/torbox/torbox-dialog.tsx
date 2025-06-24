@@ -11,7 +11,10 @@ interface TorBoxContentProps {
 	setOpen: (v: boolean) => void;
 }
 
-export default function TorBoxDialogContent({ open, setOpen }: TorBoxContentProps) {
+export default function TorBoxDialogContent({
+	open,
+	setOpen,
+}: TorBoxContentProps) {
 	const [apiKey, setApiKey] = useState("");
 	const addAccount = trpc.accounts.create.useMutation();
 	const validateKey = trpc.torbox.auth.validateKey.useMutation();
@@ -26,10 +29,13 @@ export default function TorBoxDialogContent({ open, setOpen }: TorBoxContentProp
 			toast.error(result.error.message);
 			return;
 		}
-		const user = result.user!;
+		const user = result.user;
+
+		const email = user?.email;
+
 		const ok = await addAccount.mutateAsync({
-			username: user.email,
-			email: user.email,
+			username: email ?? undefined,
+			email: email ?? undefined,
 			clientId: undefined,
 			clientSecret: key,
 			accessToken: key,
@@ -55,7 +61,9 @@ export default function TorBoxDialogContent({ open, setOpen }: TorBoxContentProp
 					placeholder="API Key"
 				/>
 				<div className="mt-3 flex justify-end gap-3">
-					<Button variant="destructive" onClick={() => setOpen(false)}>Cancel</Button>
+					<Button variant="destructive" onClick={() => setOpen(false)}>
+						Cancel
+					</Button>
 					<Button
 						variant="success"
 						onClick={handleSave}
