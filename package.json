@@ -2,7 +2,7 @@
   "name": "falkor",
   "description": "Dive into Falkor, where you'll discover a vast selection of games coupled with community-driven enhancements. Experience seamless and secure gaming within a single, universal hub.",
   "private": true,
-  "version": "0.6.0-beta",
+  "version": "0.6.1-beta",
   "type": "module",
   "main": "dist-electron/main/index.js",
   "author": {
@@ -107,7 +107,7 @@
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.1",
     "electron": "35.5.1",
-    "electron-builder": "26.0.12",
+    "electron-builder": "26.0.16",
     "postcss": "^8.5.3",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^13.0.1",
