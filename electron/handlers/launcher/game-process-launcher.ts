@@ -353,10 +353,11 @@ export default class GameProcessLauncher extends EventEmitter {
 		);
 
 		try {
-				if (processPid) {
-					// Reduce verbosity for repeated failures to minimize excessive logging
-					const verbose = (this.trackedProcessInfo?.pollingFailureCount || 0) <= 3;
-					const pids = await findProcessByName(processName, verbose);
+			if (processPid) {
+				// Reduce verbosity for repeated failures to minimize excessive logging
+				const verbose =
+					(this.trackedProcessInfo?.pollingFailureCount || 0) <= 3;
+				const pids = await findProcessByName(processName, verbose);
 
 				// Check if still active after async operation
 				if (!this.isActive) {
@@ -381,9 +382,10 @@ export default class GameProcessLauncher extends EventEmitter {
 					`isGameProcessRunning: PID ${processPid} not found among running '${processName}' processes. Current PIDs: [${pids.join(", ")}]`,
 				);
 			} else {
-					// Reduce verbosity for repeated failures to minimize excessive logging
-					const verbose = (this.trackedProcessInfo?.pollingFailureCount || 0) <= 3;
-					const pids = await findProcessByName(processName, verbose);
+				// Reduce verbosity for repeated failures to minimize excessive logging
+				const verbose =
+					(this.trackedProcessInfo?.pollingFailureCount || 0) <= 3;
+				const pids = await findProcessByName(processName, verbose);
 
 				// Check if still active after async operation
 				if (!this.isActive) {
