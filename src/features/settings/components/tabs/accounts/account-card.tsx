@@ -48,7 +48,9 @@ const maskToken = (token: string) => {
 };
 
 const formatExpiryTime = (expiresIn: number) => {
-	const expiryTime = Date.now() + expiresIn * 1000;
+	if (expiresIn === -1) return "Never";
+
+	const expiryTime = Date.now() + expiresIn * 10000;
 	const date = new Date(expiryTime);
 	return date.toLocaleString();
 };
