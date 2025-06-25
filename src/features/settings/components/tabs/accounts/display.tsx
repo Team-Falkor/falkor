@@ -1,5 +1,4 @@
 import { UserIcon } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 import type { RouterOutputs } from "@/@types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,9 +14,6 @@ type Props = {
 
 export const AccountsDisplay = ({ accounts }: Props) => {
 	const { settings, updateSetting } = useSettings();
-
-	const [openAccounts, setOpenAccounts] = useState<Set<number>>(new Set());
-	const [visibleTokens, setVisibleTokens] = useState<Set<string>>(new Set());
 
 	const utils = trpc.useUtils();
 	const { mutate: deleteAccount } = trpc.accounts.delete.useMutation({
@@ -37,26 +33,6 @@ export const AccountsDisplay = ({ accounts }: Props) => {
 		},
 	});
 
-	const toggleAccount = (accountId: number) => {
-		const newOpen = new Set(openAccounts);
-		if (newOpen.has(accountId)) {
-			newOpen.delete(accountId);
-		} else {
-			newOpen.add(accountId);
-		}
-		setOpenAccounts(newOpen);
-	};
-
-	const toggleTokenVisibility = (tokenKey: string) => {
-		const newVisible = new Set(visibleTokens);
-		if (newVisible.has(tokenKey)) {
-			newVisible.delete(tokenKey);
-		} else {
-			newVisible.add(tokenKey);
-		}
-		setVisibleTokens(newVisible);
-	};
-
 	if (accounts.length === 0) {
 		return (
 			<Card className="w-full transition-shadow hover:shadow-md">
@@ -74,7 +50,8 @@ export const AccountsDisplay = ({ accounts }: Props) => {
 	}
 
 	return (
-		<div className="grid grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-4">
+		// Added 'items-start' to prevent vertical stretching of grid items
+		<div className="grid grid-cols-[repeat(auto-fill,minmax(500px,1fr))] items-start gap-4">
 			{accounts?.map((account) => {
 				const isPreferred = settings?.preferredDebridService === account.type;
 
@@ -85,10 +62,6 @@ export const AccountsDisplay = ({ accounts }: Props) => {
 							...account,
 							isPreferred,
 						}}
-						isOpen={openAccounts.has(account.id)}
-						onToggle={toggleAccount}
-						visibleTokens={visibleTokens}
-						onToggleToken={toggleTokenVisibility}
 						onDelete={async (id) => {
 							if (!id) return;
 							deleteAccount(id);
