@@ -107,7 +107,7 @@ If you're unable to assist with any of these, no worries! We simply appreciate y
 
 We welcome you to contribute translations to Falkor! Here are some steps to help you get started with translating the app 😀
 
-1. Navigate to the `src/i18n/translations` folder and duplicate the `english.json` file.
+1. Navigate to the `src/i18n/translations` folder and duplicate the `en-US.json` file.
 2. Translate all the values, ensuring that you keep the keys the same.
 3. Go back to the `src/i18n` folder and open `index.tsx`. Import your new translation JSON file and add it to the `resources` object.
 
