@@ -1,6 +1,9 @@
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import type { SettingsConfig } from "@/@types";
+import { RealDebridClient } from "../api-wrappers/real-debrid";
+import { TorBoxClient } from "../api-wrappers/torbox";
 import { SettingsManager } from "../settings/settings";
+import type { DebridService } from "./map";
 import { debridProviders, ensureProvidersInitialized } from "./map";
 
 const settings = SettingsManager.getInstance();
@@ -14,6 +17,13 @@ type Return = {
 	fileSize?: number;
 };
 
+function isTorBoxClient(c: DebridService): c is TorBoxClient {
+	return c instanceof TorBoxClient;
+}
+
+function isRealDebridClient(c: DebridService): c is RealDebridClient {
+	return c instanceof RealDebridClient;
+}
 export class DebridManager {
 	private static instance: DebridManager;
 
@@ -33,8 +43,10 @@ export class DebridManager {
 		const provider = "real-debrid";
 		const client = debridProviders.get(provider);
 
-		if (!client) {
-			console.log("No client found for provider");
+		if (!client || !isRealDebridClient(client)) {
+			console.error(
+				"RealDebrid: client not found or client is not a RealDebridClient",
+			);
 			return null;
 		}
 
@@ -43,6 +55,7 @@ export class DebridManager {
 
 			if (type === "ddl") {
 				const result = await client.unrestrict.unrestrictLink(url);
+
 				if (!result?.download) {
 					console.error("RealDebrid: Failed to unrestrict link");
 					return null;
@@ -80,6 +93,90 @@ export class DebridManager {
 					provider,
 					progress,
 					fileSize,
+				};
+			}
+
+			return returnData;
+		} catch (error) {
+			console.error("RealDebrid: Error processing request:", error);
+			return null;
+		}
+	};
+
+	private torbox = async (
+		url: string,
+		type: PluginSearchResponse["type"],
+		_password?: string,
+	): Promise<Return | null> => {
+		// Ensure providers are initialized before accessing
+		await ensureProvidersInitialized();
+
+		const provider = "torbox";
+		const client = debridProviders.get(provider);
+
+		if (!client || !isTorBoxClient(client)) {
+			throw new Error(
+				"Torbox: client not found or client is not a TorBoxClient",
+			);
+		}
+
+		try {
+			let returnData: Return | null = null;
+			let returnURL: string = url;
+
+			if (type === "ddl") {
+				const result = await client.webDownloads.createWebDownload(url);
+
+				if (!result) {
+					console.error("RealDebrid: Failed to process torrent/magnet");
+					return null;
+				}
+
+				if (result.download_present) {
+					returnData = {
+						url: await client.webDownloads.getWebDownloadDownload(result.id),
+						isCaching: !result.download_present,
+						type: "ddl",
+						provider,
+						progress: result.progress,
+						fileSize: result.size,
+					};
+				} else {
+					returnData = {
+						url: url,
+						isCaching: !result.download_present,
+						type: "ddl",
+						provider,
+						progress: result.progress,
+						fileSize: result.size,
+					};
+				}
+			} else {
+				// Handle magnet/torrent types
+				const result = await client.downloadTorrentFromMagnet(url);
+				if (!result) {
+					console.error("RealDebrid: Failed to process torrent/magnet");
+					return null;
+				}
+
+				if (result.download_present) {
+					const repsonse = await client.torrents.getZipDL(result.id.toString());
+					if (!repsonse) {
+						console.error(
+							`TorBox: Failed to get download URL for torrent ${result.name}`,
+						);
+						return null;
+					}
+					returnURL = repsonse;
+				}
+
+				returnData = {
+					url: returnURL,
+					isCaching: !result.download_present,
+					type: "ddl",
+					provider: provider,
+					progress: result.progress,
+					fileSize: result.size,
 				};
 			}
 
@@ -131,9 +228,8 @@ export class DebridManager {
 					return result;
 				}
 				case "torbox": {
-					// TODO: torbox implementation
-					console.log("Torbox not implemented yet");
-					return null;
+					const result = await this.torbox(url, type, _password);
+					return result;
 				}
 				default: {
 					console.log("Unknown debrid service:", service);

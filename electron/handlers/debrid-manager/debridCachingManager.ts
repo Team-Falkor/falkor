@@ -3,6 +3,7 @@ import type { addDownloadSchema } from "@backend/api/routers/downloads";
 import type { z } from "zod";
 import { downloadQueue } from "../downloads/queue";
 import { DebridManager } from ".";
+import { debridCachingItems } from "./map";
 
 type Type = "http" | "torrent";
 
@@ -57,13 +58,15 @@ export class DebridCachingManager extends EventEmitter {
 				const payload: z.infer<typeof addDownloadSchema> = {
 					...this.inputFromAddDownload,
 					url: download?.url,
+					type: "http",
 				};
 
 				await downloadQueue.addDownload(payload);
+				debridCachingItems.delete(this.id);
 
 				this.emit("added_to_queue", {
 					id: this.id,
-					type: this.type,
+					type: "http",
 					url: this.url,
 					isCaching: false,
 				});

@@ -12,6 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RealDebridDialogContent from "@/features/debrid/components/real-debrid/real-debrid-dialog-content";
+import TorBoxDialogContent from "@/features/debrid/components/torbox/torbox-dialog";
 import { cn } from "@/lib";
 
 type Account = RouterOutputs["accounts"]["getAll"];
@@ -27,7 +28,7 @@ const AddAccountButton = ({
 	onAccountAdded,
 }: AddAccountButtonProps) => {
 	const [isRealDebridDialogOpen, setIsRealDebridDialogOpen] = useState(false);
-	const [_isTorBoxDialogOpen, setIsTorBoxDialogOpen] = useState(false);
+	const [isTorBoxDialogOpen, setIsTorBoxDialogOpen] = useState(false);
 	const [open, setOpen] = useState(false);
 
 	const realDebrid = accounts?.find(
@@ -82,12 +83,12 @@ const AddAccountButton = ({
 			</Dialog>
 
 			{/* TorBox Dialog */}
-			{/* <Dialog open={isTorBoxDialogOpen} onOpenChange={setIsTorBoxDialogOpen}>
-        <TorBoxDialogContent
-          setOpen={setIsTorBoxDialogOpen}
-          open={isTorBoxDialogOpen}
-        />
-      </Dialog> */}
+			<Dialog open={isTorBoxDialogOpen} onOpenChange={setIsTorBoxDialogOpen}>
+				<TorBoxDialogContent
+					setOpen={setIsTorBoxDialogOpen}
+					open={isTorBoxDialogOpen}
+				/>
+			</Dialog>
 		</DropdownMenu>
 	);
 };
