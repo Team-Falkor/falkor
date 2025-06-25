@@ -1,12 +1,3 @@
----
-name: Pull Request
-about: Create a pull request to contribute to Falkor.
-title: "[TYPE] - Short description of the change"
-labels: ''
-assignees: ''
-
----
-
 <!--
 Thank you for your contribution to Falkor!
 Before submitting this pull request, please ensure you have read the contribution guidelines.
