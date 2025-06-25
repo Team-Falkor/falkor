@@ -10,46 +10,310 @@ import util from "node:util";
 import logger from "@backend/handlers/logging";
 import sudo from "@expo/sudo-prompt";
 
+/**
+ * Extended spawn options with admin privilege support
+ */
 interface ExtendedSpawnOptions extends SpawnOptions {
+	/** Whether to run the process with administrator privileges */
 	runAsAdmin?: boolean;
 }
 
+/**
+ * Result of a process spawn operation
+ */
 interface SpawnResult {
+	/** The spawned child process (null for admin processes) */
 	process: ChildProcess | null;
+	/** Name of the process */
 	processName: string;
+	/** Whether the process requires polling for status checks */
 	requiresPolling: boolean;
 }
 
+/**
+ * Information about a running process
+ */
 interface ProcessInfo {
+	/** Process ID */
 	pid: number;
+	/** Process name */
 	name: string;
+	/** Whether the process is running with elevated privileges */
 	elevated?: boolean;
 }
 
+/**
+ * Cached process information with validation metadata
+ */
+interface CachedProcess {
+	/** Process ID */
+	pid: number;
+	/** Process name */
+	name: string;
+	/** Whether the process is running with elevated privileges */
+	elevated: boolean;
+	/** Timestamp of last validation check */
+	lastChecked: number;
+	/** Whether the cached entry is still valid */
+	isValid: boolean;
+}
+
+/**
+ * Cache storage for process information by process name
+ */
+interface ProcessCache {
+	[processName: string]: CachedProcess[];
+}
+
+/**
+ * Configuration options for process waiting operations
+ */
+interface WaitForProcessOptions {
+	/** Interval between checks in milliseconds */
+	checkIntervalMs?: number;
+	/** Whether to require elevated privileges */
+	requireElevated?: boolean;
+	/** Maximum number of attempts before giving up */
+	maxAttempts?: number;
+}
+
+/**
+ * Result of process elevation check
+ */
+interface ProcessElevationResult {
+	/** Whether any process is running */
+	isRunning: boolean;
+	/** Whether any elevated process is running */
+	hasElevated: boolean;
+	/** Total number of processes found */
+	processCount: number;
+	/** Number of elevated processes found */
+	elevatedCount: number;
+}
+
+/**
+ * Error types for process operations
+ */
+enum ProcessError {
+	SPAWN_FAILED = "SPAWN_FAILED",
+	PROCESS_NOT_FOUND = "PROCESS_NOT_FOUND",
+	TIMEOUT = "TIMEOUT",
+	PERMISSION_DENIED = "PERMISSION_DENIED",
+	INVALID_COMMAND = "INVALID_COMMAND",
+}
+
+/**
+ * Custom error class for process operations
+ */
+class ProcessOperationError extends Error {
+	constructor(
+		public readonly errorType: ProcessError,
+		message: string,
+		public readonly details?: Record<string, unknown>,
+	) {
+		super(message);
+		this.name = "ProcessOperationError";
+	}
+}
+
+// Module cleanup on process exit
+process.on("exit", cleanup);
+process.on("SIGINT", cleanup);
+process.on("SIGTERM", cleanup);
+
+/**
+ * Export summary:
+ *
+ * Core Functions:
+ * - safeSpawn: Safe process spawning with admin privilege handling
+ * - isProcessRunning: Fast process detection with caching
+ * - isProcessRunningWithElevation: Process detection with elevation info
+ * - waitForProcessToStart: Wait for process with timeout
+ * - waitForProcessToStartWithOptions: Advanced waiting with options
+ * - waitForPidToTerminate: Wait for specific PID termination
+ *
+ * Process Discovery:
+ * - findProcessByName: Find PIDs by process name
+ * - findProcessInfoByName: Find detailed process information
+ * - isSpecificPidRunning: Check if specific PID is running
+ *
+ * Cache Management:
+ * - clearProcessCache: Clear process cache
+ * - getCacheStats: Get cache statistics
+ *
+ * Advanced Monitoring:
+ * - ProcessMonitor: High-performance continuous monitoring
+ * - globalProcessMonitor: Global monitor instance
+ *
+ * Error Handling:
+ * - ProcessOperationError: Custom error class
+ * - ProcessError: Error type enumeration
+ *
+ * All functions include comprehensive error handling, input validation,
+ * and detailed logging for production use.
+ */
+
 const execPromise = util.promisify(exec);
 
+/**
+ * Configuration object for process management
+ */
+const ProcessConfig = {
+	/** Cache time-to-live in milliseconds */
+	CACHE_TTL: 2000,
+	/** Interval for PID validity checks in milliseconds */
+	PID_CHECK_INTERVAL: 500,
+	/** Interval for cache cleanup in milliseconds */
+	CACHE_CLEANUP_INTERVAL: 30000,
+	/** Default timeout for command execution in milliseconds */
+	DEFAULT_COMMAND_TIMEOUT: 5000,
+	/** Default check interval for process waiting in milliseconds */
+	DEFAULT_WAIT_INTERVAL: 500,
+	/** Default maximum attempts for process waiting */
+	DEFAULT_MAX_ATTEMPTS: 60,
+	/** Multiplier for cache retention during cleanup */
+	CACHE_RETENTION_MULTIPLIER: 5,
+} as const;
+
+// Process cache to avoid repeated expensive lookups
+const processCache: ProcessCache = {};
+
+/**
+ * Validates the process configuration on module load
+ */
+function validateConfig(): void {
+	const config = ProcessConfig;
+	if (config.CACHE_TTL <= 0 || config.PID_CHECK_INTERVAL <= 0) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Invalid process configuration: intervals must be positive",
+			{ config },
+		);
+	}
+}
+
+// Validate configuration on module initialization
+validateConfig();
+
+/**
+ * Performs periodic cache cleanup to prevent memory leaks
+ */
+function performCacheCleanup(): void {
+	try {
+		const now = Date.now();
+		const retentionTime =
+			ProcessConfig.CACHE_TTL * ProcessConfig.CACHE_RETENTION_MULTIPLIER;
+		let cleanedEntries = 0;
+		let cleanedProcesses = 0;
+
+		for (const processName in processCache) {
+			const originalLength = processCache[processName].length;
+			processCache[processName] = processCache[processName].filter(
+				(p) => now - p.lastChecked < retentionTime,
+			);
+
+			const removedEntries = originalLength - processCache[processName].length;
+			cleanedEntries += removedEntries;
+
+			if (processCache[processName].length === 0) {
+				delete processCache[processName];
+				cleanedProcesses++;
+			}
+		}
+
+		if (cleanedEntries > 0 || cleanedProcesses > 0) {
+			logger.log(
+				"debug",
+				`Cache cleanup: removed ${cleanedEntries} entries and ${cleanedProcesses} process types`,
+			);
+		}
+	} catch (error) {
+		logger.log("error", `Cache cleanup failed: ${(error as Error).message}`);
+	}
+}
+
+// Periodic cache cleanup to prevent memory leaks
+const cacheCleanupInterval = setInterval(
+	performCacheCleanup,
+	ProcessConfig.CACHE_CLEANUP_INTERVAL,
+);
+
+/**
+ * Cleanup function to be called when the module is being unloaded
+ */
+export function cleanup(): void {
+	clearInterval(cacheCleanupInterval);
+	for (const key in processCache) {
+		delete processCache[key];
+	}
+	logger.log("debug", "Process spawning module cleanup completed");
+}
+
+/**
+ * Safely spawns a process with comprehensive error handling and logging
+ *
+ * @param command - The command to execute
+ * @param args - Arguments to pass to the command
+ * @param options - Extended spawn options including admin privilege support
+ * @returns SpawnResult containing process information and metadata
+ * @throws ProcessOperationError for invalid inputs or spawn failures
+ */
 export function safeSpawn(
 	command: string,
 	args: string[] = [],
 	options: ExtendedSpawnOptions = {},
 ): SpawnResult {
+	// Input validation
+	if (!command || typeof command !== "string" || command.trim().length === 0) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Command must be a non-empty string",
+			{ command, args, options },
+		);
+	}
+
+	if (!Array.isArray(args)) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Arguments must be an array",
+			{ command, args, options },
+		);
+	}
+
 	const platform = os.platform();
 	const processName = path.basename(command, path.extname(command));
 
 	logger.log(
 		"debug",
-		`safeSpawn: Command: '${command}', Args: [${args.join(", ")}], Options: ${JSON.stringify(options)}`,
+		`safeSpawn: Command: '${command}', Args: [${args.join(", ")}], Platform: ${platform}, Options: ${JSON.stringify(options)}`,
 	);
 
-	if (options.runAsAdmin) {
-		logger.log(
-			"info",
-			`Attempting to run as admin on ${platform} using @expo/sudo-prompt`,
-		);
-		return handleSudoPromptLaunch(command, args, processName);
-	}
+	try {
+		if (options.runAsAdmin) {
+			logger.log(
+				"info",
+				`Attempting to run as admin on ${platform} using @expo/sudo-prompt`,
+			);
+			return handleSudoPromptLaunch(command, args, processName);
+		}
 
-	return spawnNonAdmin(command, args, options, processName);
+		return spawnNonAdmin(command, args, options, processName);
+	} catch (error) {
+		logger.log(
+			"error",
+			`safeSpawn failed for command '${command}': ${(error as Error).message}`,
+		);
+
+		if (error instanceof ProcessOperationError) {
+			throw error;
+		}
+
+		throw new ProcessOperationError(
+			ProcessError.SPAWN_FAILED,
+			`Failed to spawn process: ${(error as Error).message}`,
+			{ command, args, options, originalError: error },
+		);
+	}
 }
 
 function handleSudoPromptLaunch(
@@ -199,15 +463,18 @@ function generateProcessNamePermutations(originalName: string): string[] {
 
 async function findProcessesByNameRobust(
 	processName: string,
+	verbose = true,
 ): Promise<ProcessInfo[]> {
 	const platform = os.platform();
 	const allProcesses: ProcessInfo[] = [];
 	const namesToTry = generateProcessNamePermutations(processName);
 
-	logger.log(
-		"debug",
-		`findProcessesByNameRobust: Searching for '${processName}' on ${platform}`,
-	);
+	if (verbose) {
+		logger.log(
+			"debug",
+			`findProcessesByNameRobust: Searching for '${processName}' on ${platform}`,
+		);
+	}
 
 	if (platform === "win32") {
 		for (const name of namesToTry) {
@@ -220,10 +487,12 @@ async function findProcessesByNameRobust(
 				]);
 				allProcesses.push(...standardResults);
 			} catch (error) {
-				logger.log(
-					"debug",
-					`Standard method failed for '${name}': ${(error as Error).message}`,
-				);
+				if (verbose) {
+					logger.log(
+						"debug",
+						`Standard method failed for '${name}': ${(error as Error).message}`,
+					);
+				}
 			}
 		}
 
@@ -262,10 +531,12 @@ async function findProcessesByNameRobust(
 					allProcesses.push(...newResults);
 					if (newResults.length > 0) break;
 				} catch (error) {
-					logger.log(
-						"debug",
-						`PowerShell method failed for '${name}': ${(error as Error).message}`,
-					);
+					if (verbose) {
+						logger.log(
+							"debug",
+							`PowerShell method failed for '${name}': ${(error as Error).message}`,
+						);
+					}
 				}
 			}
 		}
@@ -285,10 +556,12 @@ async function findProcessesByNameRobust(
 					allProcesses.push(...newResults);
 					if (newResults.length > 0) break;
 				} catch (error) {
-					logger.log(
-						"debug",
-						`Alternative WMIC method failed for '${name}': ${(error as Error).message}`,
-					);
+					if (verbose) {
+						logger.log(
+							"debug",
+							`Alternative WMIC method failed for '${name}': ${(error as Error).message}`,
+						);
+					}
 				}
 			}
 		}
@@ -306,10 +579,12 @@ async function findProcessesByNameRobust(
 				);
 				allProcesses.push(...newResults);
 			} catch (error) {
-				logger.log(
-					"debug",
-					`Unix method failed for '${name}': ${(error as Error).message}`,
-				);
+				if (verbose) {
+					logger.log(
+						"debug",
+						`Unix method failed for '${name}': ${(error as Error).message}`,
+					);
+				}
 			}
 		}
 	}
@@ -321,10 +596,12 @@ async function findProcessesByNameRobust(
 		)
 		.sort((a, b) => a.pid - b.pid);
 
-	logger.log(
-		"debug",
-		`findProcessesByNameRobust: Found ${uniqueProcesses.length} unique processes for '${processName}'`,
-	);
+	if (verbose) {
+		logger.log(
+			"debug",
+			`findProcessesByNameRobust: Found ${uniqueProcesses.length} unique processes for '${processName}'`,
+		);
+	}
 	return uniqueProcesses;
 }
 
@@ -556,16 +833,124 @@ async function findProcessesUnix(processName: string): Promise<ProcessInfo[]> {
 	return processes;
 }
 
-export async function findProcessByName(
-	processName: string,
-): Promise<number[]> {
-	logger.log("debug", `findProcessByName: Searching for '${processName}'`);
+// Efficient PID validation functions
+async function isPidRunning(pid: number): Promise<boolean> {
+	const platform = os.platform();
 
 	try {
-		const processes = await findProcessesByNameRobust(processName);
+		if (platform === "win32") {
+			const command = `tasklist /FI "PID eq ${pid}" /FO CSV /NH`;
+			const { stdout } = await execPromise(command, { timeout: 1000 });
+			return stdout.trim().length > 0 && !stdout.includes("INFO: No tasks");
+		}
+		// Unix-like systems
+		const command = `kill -0 ${pid} 2>/dev/null`;
+		await execPromise(command, { timeout: 1000 });
+		return true; // If no error, process exists
+	} catch {
+		return false; // Process doesn't exist or error occurred
+	}
+}
+
+/**
+ * Validates cached processes by checking if their PIDs are still running
+ *
+ * @param processName - Name of the process to validate
+ * @returns Array of valid cached processes
+ */
+async function validateCachedProcesses(
+	processName: string,
+): Promise<CachedProcess[]> {
+	if (!processName || typeof processName !== "string") {
+		return [];
+	}
+
+	const cached = processCache[processName] || [];
+	const now = Date.now();
+	const validProcesses: CachedProcess[] = [];
+
+	for (const process of cached) {
+		try {
+			// Check if we need to validate this PID
+			if (now - process.lastChecked > ProcessConfig.PID_CHECK_INTERVAL) {
+				process.isValid = await isPidRunning(process.pid);
+				process.lastChecked = now;
+			}
+
+			if (process.isValid) {
+				validProcesses.push(process);
+			}
+		} catch (error) {
+			logger.log(
+				"debug",
+				`Failed to validate cached PID ${process.pid} for '${processName}': ${(error as Error).message}`,
+			);
+			// Mark as invalid on error
+			process.isValid = false;
+		}
+	}
+
+	processCache[processName] = validProcesses;
+	return validProcesses;
+}
+
+function updateProcessCache(
+	processName: string,
+	processes: ProcessInfo[],
+): void {
+	const now = Date.now();
+	processCache[processName] = processes.map((p) => ({
+		pid: p.pid,
+		name: p.name,
+		elevated: p.elevated || false,
+		lastChecked: now,
+		isValid: true,
+	}));
+}
+
+export async function findProcessByName(
+	processName: string,
+	verbose = true,
+): Promise<number[]> {
+	if (verbose) {
+		logger.log("debug", `findProcessByName: Searching for '${processName}'`);
+	}
+
+	try {
+		// First, check and validate cached processes
+		const cachedProcesses = await validateCachedProcesses(processName);
+		const now = Date.now();
+
+		// If we have valid cached processes and cache is still fresh, use them
+		if (cachedProcesses.length > 0) {
+			const oldestCache = Math.min(
+				...cachedProcesses.map((p) => p.lastChecked),
+			);
+			if (now - oldestCache < ProcessConfig.CACHE_TTL) {
+				const pids = cachedProcesses.map((p) => p.pid);
+				if (verbose) {
+					logger.log(
+						"debug",
+						`findProcessByName: Using cached PIDs: [${pids.join(", ")}]`,
+					);
+				}
+				return pids;
+			}
+		}
+
+		// Cache miss or expired, do full search
+		const processes = await findProcessesByNameRobust(processName, verbose);
 		const pids = processes.map((p) => p.pid);
 
-		logger.log("debug", `findProcessByName: Found PIDs: [${pids.join(", ")}]`);
+		// Update cache with new results
+		updateProcessCache(processName, processes);
+
+		if (verbose) {
+			logger.log(
+				"debug",
+				`findProcessByName: Found PIDs: [${pids.join(", ")}]`,
+			);
+		}
 
 		const elevatedCount = processes.filter((p) => p.elevated).length;
 		if (elevatedCount > 0) {
@@ -591,7 +976,35 @@ export async function findProcessInfoByName(
 	logger.log("debug", `findProcessInfoByName: Searching for '${processName}'`);
 
 	try {
+		// First, check and validate cached processes
+		const cachedProcesses = await validateCachedProcesses(processName);
+		const now = Date.now();
+
+		// If we have valid cached processes and cache is still fresh, use them
+		if (cachedProcesses.length > 0) {
+			const oldestCache = Math.min(
+				...cachedProcesses.map((p) => p.lastChecked),
+			);
+			if (now - oldestCache < ProcessConfig.CACHE_TTL) {
+				const processes = cachedProcesses.map((p) => ({
+					pid: p.pid,
+					name: p.name,
+					elevated: p.elevated,
+				}));
+				logger.log(
+					"debug",
+					`findProcessInfoByName: Using cached processes: ${processes.length}`,
+				);
+				return processes;
+			}
+		}
+
+		// Cache miss or expired, do full search
 		const processes = await findProcessesByNameRobust(processName);
+
+		// Update cache with new results
+		updateProcessCache(processName, processes);
+
 		logger.log(
 			"debug",
 			`findProcessInfoByName: Found ${processes.length} processes for '${processName}'`,
@@ -606,96 +1019,465 @@ export async function findProcessInfoByName(
 	}
 }
 
-export async function isProcessRunning(processName: string): Promise<boolean> {
-	logger.log("debug", `isProcessRunning: Checking for '${processName}'`);
-	const pids = await findProcessByName(processName);
-	const isRunning = pids.length > 0;
+// Fast PID-specific check without full process search
+export async function isSpecificPidRunning(pid: number): Promise<boolean> {
+	logger.log("debug", `isSpecificPidRunning: Checking PID ${pid}`);
+	const isRunning = await isPidRunning(pid);
 	logger.log(
 		"debug",
-		`isProcessRunning: '${processName}' is running: ${isRunning} (Found PIDs: ${pids.length})`,
+		`isSpecificPidRunning: PID ${pid} is running: ${isRunning}`,
 	);
 	return isRunning;
 }
 
-export async function isProcessRunningWithElevation(
-	processName: string,
-): Promise<{
-	isRunning: boolean;
-	hasElevated: boolean;
-	processCount: number;
-	elevatedCount: number;
-}> {
-	logger.log(
-		"debug",
-		`isProcessRunningWithElevation: Checking for '${processName}'`,
-	);
-	const processes = await findProcessInfoByName(processName);
-
-	const isRunning = processes.length > 0;
-	const elevatedProcesses = processes.filter((p) => p.elevated);
-	const hasElevated = elevatedProcesses.length > 0;
-
-	logger.log(
-		"debug",
-		`isProcessRunningWithElevation: '${processName}' - Running: ${isRunning}, ` +
-			`Total: ${processes.length}, Elevated: ${elevatedProcesses.length}`,
-	);
-
-	return {
-		isRunning,
-		hasElevated,
-		processCount: processes.length,
-		elevatedCount: elevatedProcesses.length,
-	};
-}
-
-export async function waitForProcessToStart(
-	processName: string,
+// Efficient function to wait for a specific PID to terminate
+export async function waitForPidToTerminate(
+	pid: number,
 	checkIntervalMs = 500,
-	maxAttempts = 60, // 30 seconds with 500ms intervals
-): Promise<number | null> {
+	maxAttempts = 120, // 60 seconds with 500ms intervals
+): Promise<boolean> {
 	logger.log(
 		"debug",
-		`waitForProcessToStart: Waiting for '${processName}' (max ${maxAttempts} attempts, ${checkIntervalMs}ms intervals).`,
+		`waitForPidToTerminate: Waiting for PID ${pid} to terminate (max ${maxAttempts} attempts)`,
 	);
 
 	let attempts = 0;
 	while (attempts < maxAttempts) {
-		const pids = await findProcessByName(processName);
-		if (pids.length > 0) {
+		const isRunning = await isPidRunning(pid);
+		if (!isRunning) {
 			logger.log(
 				"info",
-				`waitForProcessToStart: Process '${processName}' detected with PID: ${pids[0]} after ${attempts + 1} attempts`,
+				`waitForPidToTerminate: PID ${pid} terminated after ${attempts + 1} attempts`,
 			);
-			return pids[0];
+			return true;
 		}
 
 		attempts++;
 		if (attempts < maxAttempts) {
-			logger.log(
-				"debug",
-				`waitForProcessToStart: Process '${processName}' not found (attempt ${attempts}/${maxAttempts}). Retrying in ${checkIntervalMs}ms...`,
-			);
 			await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
 		}
 	}
 
 	logger.log(
 		"warn",
-		`waitForProcessToStart: Process '${processName}' not found after ${maxAttempts} attempts. Giving up.`,
+		`waitForPidToTerminate: PID ${pid} still running after ${maxAttempts} attempts`,
 	);
-	return null;
+	return false;
 }
 
+// Cache management utilities
+/**
+ * Clears the process cache for a specific process or all processes
+ *
+ * @param processName - Optional process name to clear. If not provided, clears entire cache
+ * @remarks This will force subsequent process checks to perform full searches
+ */
+export function clearProcessCache(processName?: string): void {
+	if (processName) {
+		delete processCache[processName];
+		logger.log(
+			"debug",
+			`clearProcessCache: Cleared cache for '${processName}'`,
+		);
+	} else {
+		for (const key in processCache) {
+			delete processCache[key];
+		}
+		logger.log("debug", "clearProcessCache: Cleared entire process cache");
+	}
+}
+
+/**
+ * Gets statistics about the current process cache
+ *
+ * @returns Object containing cache statistics
+ */
+export function getCacheStats(): {
+	totalEntries: number;
+	processNames: string[];
+	totalCachedPids: number;
+} {
+	const processNames = Object.keys(processCache);
+	const totalCachedPids = processNames.reduce(
+		(sum, name) => sum + processCache[name].length,
+		0,
+	);
+
+	return {
+		totalEntries: processNames.length,
+		processNames,
+		totalCachedPids,
+	};
+}
+
+// High-performance process monitor class for continuous monitoring
+export class ProcessMonitor {
+	private monitoredPids: Set<number> = new Set();
+	private monitorInterval: NodeJS.Timeout | null = null;
+	private callbacks: Map<number, (isRunning: boolean) => void> = new Map();
+	private checkIntervalMs: number;
+
+	constructor(checkIntervalMs = 1000) {
+		this.checkIntervalMs = checkIntervalMs;
+	}
+
+	// Add a PID to monitor with a callback
+	addPid(pid: number, callback: (isRunning: boolean) => void): void {
+		this.monitoredPids.add(pid);
+		this.callbacks.set(pid, callback);
+		logger.log("debug", `ProcessMonitor: Added PID ${pid} to monitoring`);
+
+		if (!this.monitorInterval) {
+			this.startMonitoring();
+		}
+	}
+
+	// Remove a PID from monitoring
+	removePid(pid: number): void {
+		this.monitoredPids.delete(pid);
+		this.callbacks.delete(pid);
+		logger.log("debug", `ProcessMonitor: Removed PID ${pid} from monitoring`);
+
+		if (this.monitoredPids.size === 0) {
+			this.stopMonitoring();
+		}
+	}
+
+	// Start the monitoring loop
+	private startMonitoring(): void {
+		logger.log("debug", "ProcessMonitor: Starting monitoring loop");
+		this.monitorInterval = setInterval(async () => {
+			const pidsToCheck = Array.from(this.monitoredPids);
+
+			for (const pid of pidsToCheck) {
+				try {
+					const isRunning = await isPidRunning(pid);
+					const callback = this.callbacks.get(pid);
+
+					if (callback) {
+						callback(isRunning);
+					}
+
+					// Auto-remove terminated processes
+					if (!isRunning) {
+						this.removePid(pid);
+					}
+				} catch (error) {
+					logger.log(
+						"error",
+						`ProcessMonitor: Error checking PID ${pid}: ${(error as Error).message}`,
+					);
+					this.removePid(pid);
+				}
+			}
+		}, this.checkIntervalMs);
+	}
+
+	// Stop the monitoring loop
+	private stopMonitoring(): void {
+		if (this.monitorInterval) {
+			logger.log("debug", "ProcessMonitor: Stopping monitoring loop");
+			clearInterval(this.monitorInterval);
+			this.monitorInterval = null;
+		}
+	}
+
+	// Clean up all monitoring
+	destroy(): void {
+		this.stopMonitoring();
+		this.monitoredPids.clear();
+		this.callbacks.clear();
+		logger.log("debug", "ProcessMonitor: Destroyed");
+	}
+
+	// Get current monitoring stats
+	getStats(): { monitoredCount: number; pids: number[] } {
+		return {
+			monitoredCount: this.monitoredPids.size,
+			pids: Array.from(this.monitoredPids),
+		};
+	}
+}
+
+// Global process monitor instance for convenience
+export const globalProcessMonitor = new ProcessMonitor();
+
+/**
+ * Checks if a process is currently running
+ *
+ * @param processName - Name of the process to check
+ * @returns Promise that resolves to true if process is running, false otherwise
+ * @throws ProcessOperationError for invalid process names
+ */
+export async function isProcessRunning(
+	processName: string,
+	verbose = true,
+): Promise<boolean> {
+	if (
+		!processName ||
+		typeof processName !== "string" ||
+		processName.trim().length === 0
+	) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Process name must be a non-empty string",
+			{ processName },
+		);
+	}
+
+	logger.log("debug", `isProcessRunning: Checking for '${processName}'`);
+
+	try {
+		// Try cache first for faster response
+		const cachedProcesses = await validateCachedProcesses(processName);
+		if (cachedProcesses.length > 0) {
+			logger.log(
+				"debug",
+				`isProcessRunning: '${processName}' found in cache: true`,
+			);
+			return true;
+		}
+
+		// Fallback to full search if not in cache
+		const pids = await findProcessByName(processName, verbose);
+		const isRunning = pids.length > 0;
+		logger.log(
+			"debug",
+			`isProcessRunning: '${processName}' is running: ${isRunning} (Found PIDs: ${pids.length})`,
+		);
+		return isRunning;
+	} catch (error) {
+		logger.log(
+			"error",
+			`isProcessRunning failed for '${processName}': ${(error as Error).message}`,
+		);
+
+		if (error instanceof ProcessOperationError) {
+			throw error;
+		}
+
+		throw new ProcessOperationError(
+			ProcessError.PROCESS_NOT_FOUND,
+			`Failed to check if process is running: ${(error as Error).message}`,
+			{ processName, originalError: error },
+		);
+	}
+}
+
+/**
+ * Checks if a process is running and provides elevation information
+ *
+ * @param processName - Name of the process to check
+ * @returns ProcessElevationResult with detailed process information
+ * @throws ProcessOperationError for invalid process names
+ */
+export async function isProcessRunningWithElevation(
+	processName: string,
+): Promise<ProcessElevationResult> {
+	if (
+		!processName ||
+		typeof processName !== "string" ||
+		processName.trim().length === 0
+	) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Process name must be a non-empty string",
+			{ processName },
+		);
+	}
+
+	logger.log(
+		"debug",
+		`isProcessRunningWithElevation: Checking for '${processName}'`,
+	);
+
+	try {
+		const processes = await findProcessInfoByName(processName);
+
+		const isRunning = processes.length > 0;
+		const elevatedProcesses = processes.filter((p) => p.elevated);
+		const hasElevated = elevatedProcesses.length > 0;
+
+		logger.log(
+			"debug",
+			`isProcessRunningWithElevation: '${processName}' - Running: ${isRunning}, ` +
+				`Total: ${processes.length}, Elevated: ${elevatedProcesses.length}`,
+		);
+
+		return {
+			isRunning,
+			hasElevated,
+			processCount: processes.length,
+			elevatedCount: elevatedProcesses.length,
+		};
+	} catch (error) {
+		logger.log(
+			"error",
+			`isProcessRunningWithElevation failed for '${processName}': ${(error as Error).message}`,
+		);
+
+		if (error instanceof ProcessOperationError) {
+			throw error;
+		}
+
+		throw new ProcessOperationError(
+			ProcessError.PROCESS_NOT_FOUND,
+			`Failed to check process elevation: ${(error as Error).message}`,
+			{ processName, originalError: error },
+		);
+	}
+}
+
+/**
+ * Waits for a process to start and returns its PID
+ *
+ * @param processName - Name of the process to wait for
+ * @param checkIntervalMs - Interval between checks in milliseconds
+ * @param maxAttempts - Maximum number of attempts before giving up
+ * @returns Promise that resolves to PID if found, null if timeout
+ * @throws ProcessOperationError for invalid parameters
+ */
+export async function waitForProcessToStart(
+	processName: string,
+	checkIntervalMs: number = ProcessConfig.DEFAULT_WAIT_INTERVAL,
+	maxAttempts: number = ProcessConfig.DEFAULT_MAX_ATTEMPTS,
+	verbose = true,
+): Promise<number | null> {
+	if (
+		!processName ||
+		typeof processName !== "string" ||
+		processName.trim().length === 0
+	) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Process name must be a non-empty string",
+			{ processName },
+		);
+	}
+
+	if (checkIntervalMs <= 0 || !Number.isFinite(checkIntervalMs)) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Check interval must be a positive finite number",
+			{ checkIntervalMs },
+		);
+	}
+
+	if (maxAttempts <= 0 || !Number.isInteger(maxAttempts)) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Max attempts must be a positive integer",
+			{ maxAttempts },
+		);
+	}
+
+	logger.log(
+		"debug",
+		`waitForProcessToStart: Waiting for '${processName}' (max ${maxAttempts} attempts, ${checkIntervalMs}ms intervals).`,
+	);
+
+	try {
+		let attempts = 0;
+		while (attempts < maxAttempts) {
+			// First check cache for faster response
+			const cachedProcesses = await validateCachedProcesses(processName);
+			if (cachedProcesses.length > 0) {
+				const pid = cachedProcesses[0].pid;
+				logger.log(
+					"info",
+					`waitForProcessToStart: Process '${processName}' found in cache with PID: ${pid} after ${attempts + 1} attempts`,
+				);
+				return pid;
+			}
+
+			// Fallback to full search
+			const pids = await findProcessByName(processName, verbose);
+			if (pids.length > 0) {
+				logger.log(
+					"info",
+					`waitForProcessToStart: Process '${processName}' detected with PID: ${pids[0]} after ${attempts + 1} attempts`,
+				);
+				return pids[0];
+			}
+
+			attempts++;
+			if (attempts < maxAttempts) {
+				logger.log(
+					"debug",
+					`waitForProcessToStart: Process '${processName}' not found (attempt ${attempts}/${maxAttempts}). Retrying in ${checkIntervalMs}ms...`,
+				);
+				await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+			}
+		}
+
+		logger.log(
+			"warn",
+			`waitForProcessToStart: Process '${processName}' not found after ${maxAttempts} attempts. Giving up.`,
+		);
+		return null;
+	} catch (error) {
+		logger.log(
+			"error",
+			`waitForProcessToStart failed for '${processName}': ${(error as Error).message}`,
+		);
+
+		if (error instanceof ProcessOperationError) {
+			throw error;
+		}
+
+		throw new ProcessOperationError(
+			ProcessError.PROCESS_NOT_FOUND,
+			`Failed to wait for process: ${(error as Error).message}`,
+			{ processName, checkIntervalMs, maxAttempts, originalError: error },
+		);
+	}
+}
+
+/**
+ * Waits for a process to start with advanced options
+ *
+ * @param processName - Name of the process to wait for
+ * @param options - Configuration options for waiting
+ * @returns Promise that resolves to ProcessInfo if found, null if timeout
+ * @throws ProcessOperationError for invalid parameters
+ */
 export async function waitForProcessToStartWithOptions(
 	processName: string,
-	options: {
-		checkIntervalMs?: number;
-		requireElevated?: boolean;
-		maxAttempts?: number;
-	} = {},
+	options: WaitForProcessOptions = {},
 ): Promise<ProcessInfo | null> {
-	const { checkIntervalMs = 500, requireElevated = false, maxAttempts = 60 } = options;
+	if (
+		!processName ||
+		typeof processName !== "string" ||
+		processName.trim().length === 0
+	) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Process name must be a non-empty string",
+			{ processName },
+		);
+	}
+
+	const {
+		checkIntervalMs = ProcessConfig.DEFAULT_WAIT_INTERVAL,
+		requireElevated = false,
+		maxAttempts = ProcessConfig.DEFAULT_MAX_ATTEMPTS,
+	} = options;
+
+	if (checkIntervalMs <= 0 || !Number.isFinite(checkIntervalMs)) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Check interval must be a positive finite number",
+			{ checkIntervalMs },
+		);
+	}
+
+	if (maxAttempts <= 0 || !Number.isInteger(maxAttempts)) {
+		throw new ProcessOperationError(
+			ProcessError.INVALID_COMMAND,
+			"Max attempts must be a positive integer",
+			{ maxAttempts },
+		);
+	}
 
 	logger.log(
 		"debug",
@@ -703,33 +1485,50 @@ export async function waitForProcessToStartWithOptions(
 			`(elevated: ${requireElevated}, max ${maxAttempts} attempts)`,
 	);
 
-	let attempts = 0;
-	while (attempts < maxAttempts) {
-		const processes = await findProcessInfoByName(processName);
+	try {
+		let attempts = 0;
+		while (attempts < maxAttempts) {
+			const processes = await findProcessInfoByName(processName);
 
-		const targetProcesses = requireElevated
-			? processes.filter((p) => p.elevated)
-			: processes;
+			const targetProcesses = requireElevated
+				? processes.filter((p) => p.elevated)
+				: processes;
 
-		if (targetProcesses.length > 0) {
-			const foundProcess = targetProcesses[0];
-			logger.log(
-				"info",
-				`waitForProcessToStartWithOptions: Process '${processName}' detected - ` +
-					`PID: ${foundProcess.pid}, Elevated: ${foundProcess.elevated} after ${attempts + 1} attempts`,
-			);
-			return foundProcess;
+			if (targetProcesses.length > 0) {
+				const foundProcess = targetProcesses[0];
+				logger.log(
+					"info",
+					`waitForProcessToStartWithOptions: Process '${processName}' detected - ` +
+						`PID: ${foundProcess.pid}, Elevated: ${foundProcess.elevated} after ${attempts + 1} attempts`,
+				);
+				return foundProcess;
+			}
+
+			attempts++;
+			if (attempts < maxAttempts) {
+				await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+			}
 		}
 
-		attempts++;
-		if (attempts < maxAttempts) {
-			await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+		logger.log(
+			"warn",
+			`waitForProcessToStartWithOptions: Process '${processName}' not found after ${maxAttempts} attempts. Giving up.`,
+		);
+		return null;
+	} catch (error) {
+		logger.log(
+			"error",
+			`waitForProcessToStartWithOptions failed for '${processName}': ${(error as Error).message}`,
+		);
+
+		if (error instanceof ProcessOperationError) {
+			throw error;
 		}
+
+		throw new ProcessOperationError(
+			ProcessError.PROCESS_NOT_FOUND,
+			`Failed to wait for process with options: ${(error as Error).message}`,
+			{ processName, options, originalError: error },
+		);
 	}
-
-	logger.log(
-		"warn",
-		`waitForProcessToStartWithOptions: Process '${processName}' not found after ${maxAttempts} attempts. Giving up.`,
-	);
-	return null;
 }
