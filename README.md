@@ -113,6 +113,13 @@ We welcome you to contribute translations to Falkor! Here are some steps to help
 
 That's it! Thank you for helping make Falkor accessible to more users.
 
+## Contributors
+
+<a href="https://github.com/team-falkor/falkor/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=team-falkor/falkor" />
+</a>
+
+
 ## Acknowledgments
 
 - Built with [Electron](https://www.electronjs.org) and [React](https://react.dev/).
