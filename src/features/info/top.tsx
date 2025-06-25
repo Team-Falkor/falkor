@@ -79,12 +79,14 @@ const InfoTop = (props: Props) => {
 						>
 							Game Details
 						</Button>
-						<Button
-							onClick={() => setActiveTab(1)}
-							variant={activeTab === 1 ? "active" : "default"}
-						>
-							System Requirements
-						</Button>
+						{!!data?.steam?.data?.pc_requirements && (
+							<Button
+								onClick={() => setActiveTab(1)}
+								variant={activeTab === 1 ? "active" : "default"}
+							>
+								System Requirements
+							</Button>
+						)}
 					</div>
 					<SelectedInfoTab selectedTab={activeTab} {...props} />
 				</div>
