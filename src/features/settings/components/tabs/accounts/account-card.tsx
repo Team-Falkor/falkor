@@ -8,9 +8,10 @@ import {
 	EyeOffIcon,
 	KeyIcon,
 	MailIcon,
-	StarIcon, // Added for the 'preferred' button
+	StarIcon,
 	UserIcon,
 } from "lucide-react";
+import { useState } from "react";
 import type { RouterOutputs } from "@/@types";
 import Confirmation from "@/components/confirmation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,18 +30,12 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
-// By including `isPreferred`, the component can visually represent this state.
 type Account = RouterOutputs["accounts"]["getAll"][number] & {
 	isPreferred?: boolean;
 };
 
 type AccountCardProps = {
 	account: Account;
-	isOpen: boolean;
-	onToggle: (accountId: number) => void;
-	visibleTokens: Set<string>;
-	onToggleToken: (tokenKey: string) => void;
-	// Adding handlers makes the component's actions configurable from the parent
 	onSetPreferred: (accountType: Account["type"]) => void;
 	onDelete: (accountId: number) => void;
 };
@@ -53,9 +48,9 @@ const maskToken = (token: string) => {
 };
 
 const formatExpiryTime = (expiresIn: number) => {
-	// Note: OAuth `expires_in` is typically in seconds.
-	// Ensure this value is in milliseconds before adding to Date.now().
-	const expiryTime = Date.now() + expiresIn * 1000;
+	if (expiresIn === -1) return "Never";
+
+	const expiryTime = Date.now() + expiresIn * 10000;
 	const date = new Date(expiryTime);
 	return date.toLocaleString();
 };
@@ -144,21 +139,39 @@ const SecretField = ({
 
 export const AccountCard = ({
 	account,
-	isOpen,
-	onToggle,
-	visibleTokens,
-	onToggleToken,
 	onSetPreferred,
 	onDelete,
 }: AccountCardProps) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const [visibleTokens, setVisibleTokens] = useState<Set<string>>(new Set());
+
+	const toggleTokenVisibility = (tokenKey: string) => {
+		const newVisible = new Set(visibleTokens);
+		if (newVisible.has(tokenKey)) {
+			newVisible.delete(tokenKey);
+		} else {
+			newVisible.add(tokenKey);
+		}
+		setVisibleTokens(newVisible);
+	};
+
 	const accountTypeDisplay = account.type
 		?.split("-")
 		?.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		?.join(" ");
 
+	const fallbackText = accountTypeDisplay
+		?.split(" ")
+		?.map((word) => word.charAt(0).toUpperCase())
+		?.join("");
+
 	return (
-		<Card className="w-full overflow-hidden p-0 transition-shadow hover:shadow-md">
-			<Collapsible open={isOpen} onOpenChange={() => onToggle(account.id)}>
+		<Card
+			className={cn(
+				"w-full overflow-hidden p-0 transition-shadow hover:shadow-md",
+			)}
+		>
+			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
 				<CollapsibleTrigger asChild>
 					<CardHeader
 						className={cn(
@@ -169,19 +182,31 @@ export const AccountCard = ({
 					>
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-3">
-								<Avatar className="h-10 w-10 ring-2 ring-muted-foreground/10">
-									<AvatarImage
-										src={account.avatar || undefined}
-										alt={account.username || "Account"}
-									/>
-									<AvatarFallback className="bg-muted">
-										{account.username?.charAt(0).toUpperCase() ||
-											account.email?.charAt(0).toUpperCase() ||
-											"A"}
-									</AvatarFallback>
-								</Avatar>
+								<div className="relative">
+									<Avatar className="h-10 w-10 ring-2 ring-muted-foreground/10">
+										<AvatarImage
+											src={account.avatar || undefined}
+											alt={account.username || "Account"}
+										/>
+										<AvatarFallback className="bg-muted">
+											{account.username?.charAt(0).toUpperCase() ||
+												account.email?.charAt(0).toUpperCase() ||
+												fallbackText}
+										</AvatarFallback>
+									</Avatar>
+									{account.isPreferred && (
+										<div className="-top-1 -right-1 absolute flex size-5 items-center justify-center rounded-full bg-primary">
+											<StarIcon
+												className={cn(
+													"size-3 fill-current",
+													"-translate-y-[0.5px] translate-x-[0.5px]",
+												)}
+											/>
+										</div>
+									)}
+								</div>
 								<div className="flex flex-col items-start">
-									<div className="flex flex-wrap items-center gap-2">
+									<div className="flex flex-wrap items-center justify-center gap-2">
 										<h3 className="font-semibold">
 											{account.username || account.email || "Unknown"}
 										</h3>
@@ -194,11 +219,6 @@ export const AccountCard = ({
 											</Badge>
 										)}
 									</div>
-									{account.username && account.email && (
-										<p className="text-muted-foreground text-sm">
-											{account.email}
-										</p>
-									)}
 								</div>
 							</div>
 							{isOpen ? (
@@ -213,7 +233,6 @@ export const AccountCard = ({
 				<CollapsibleContent>
 					<CardContent className="px-4 pt-2 pb-4 sm:px-6 sm:pt-4 sm:pb-6">
 						<div className="grid gap-6">
-							{/* Basic Information */}
 							<div className="grid gap-3">
 								<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
 									Account Information
@@ -234,7 +253,6 @@ export const AccountCard = ({
 								)}
 							</div>
 
-							{/* API Credentials */}
 							{(account.clientId || account.clientSecret) && (
 								<div className="grid gap-3">
 									<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
@@ -246,7 +264,7 @@ export const AccountCard = ({
 											value={account.clientId}
 											visibilityKey={`client-${account.id}`}
 											isVisible={visibleTokens.has(`client-${account.id}`)}
-											onToggleVisibility={onToggleToken}
+											onToggleVisibility={toggleTokenVisibility}
 										/>
 									)}
 									{account.clientSecret && (
@@ -255,13 +273,12 @@ export const AccountCard = ({
 											value={account.clientSecret}
 											visibilityKey={`secret-${account.id}`}
 											isVisible={visibleTokens.has(`secret-${account.id}`)}
-											onToggleVisibility={onToggleToken}
+											onToggleVisibility={toggleTokenVisibility}
 										/>
 									)}
 								</div>
 							)}
 
-							{/* Tokens */}
 							{(account.accessToken || account.refreshToken) && (
 								<div className="grid gap-3">
 									<h4 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
@@ -273,7 +290,7 @@ export const AccountCard = ({
 											value={account.accessToken}
 											visibilityKey={`access-${account.id}`}
 											isVisible={visibleTokens.has(`access-${account.id}`)}
-											onToggleVisibility={onToggleToken}
+											onToggleVisibility={toggleTokenVisibility}
 											expiryTime={account.expiresIn}
 										/>
 									)}
@@ -283,7 +300,7 @@ export const AccountCard = ({
 											value={account.refreshToken}
 											visibilityKey={`refresh-${account.id}`}
 											isVisible={visibleTokens.has(`refresh-${account.id}`)}
-											onToggleVisibility={onToggleToken}
+											onToggleVisibility={toggleTokenVisibility}
 										/>
 									)}
 								</div>

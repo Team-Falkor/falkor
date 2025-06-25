@@ -76,9 +76,7 @@ const DefaultCard = ({
 			<div className="relative mb-3 overflow-hidden rounded-lg">
 				{isLinkDisabled ? (
 					// If disabled, render a simple div with no interaction
-					<div className="block">
-						{CardImageContent}
-					</div>
+					<div className="block">{CardImageContent}</div>
 				) : (
 					// If enabled, render the fully interactive Link
 					<Link
@@ -89,7 +87,7 @@ const DefaultCard = ({
 						}}
 						className="block transition-transform duration-300 hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
 						style={{
-							transformOrigin: 'center center'
+							transformOrigin: "center center",
 						}}
 					>
 						{CardImageContent}

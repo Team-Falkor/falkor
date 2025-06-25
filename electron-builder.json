@@ -2,11 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "moe.falkor",
   "asar": true,
-  "productName": "falkor",
+  "productName": "Falkor",
+  "icon": "./build/icons/256x256.png",
   "protocols": [
     {
       "name": "falkor",
-      "schemes": ["falkor"]
+      "schemes": [
+        "falkor"
+      ]
     }
   ],
   "directories": {
@@ -16,20 +19,41 @@
     {
       "from": "./resources",
       "to": "resources",
-      "filter": ["**/*"]
+      "filter": [
+        "**/*"
+      ]
     }
   ],
-  "appImage": {},
-  "files": ["dist", "dist-electron"],
+  "files": [
+    "dist",
+    "dist-electron",
+    "package.json",
+    {
+      "from": "[...]/node_modules",
+      "to": "[...]/node_modules",
+      "filter": [
+        "/*",
+        "!/.bin/**"
+      ]
+    },
+    {
+      "from": "[...]/node_modules/.bin",
+      "to": "[...]/node_modules/.bin"
+    }
+  ],
   "mac": {
-    "target": ["dmg"],
+    "target": [
+      "dmg"
+    ],
     "artifactName": "${productName}.${ext}"
   },
   "win": {
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64"]
+        "arch": [
+          "x64"
+        ]
       }
     ],
     "artifactName": "${productName}.${ext}"
@@ -46,11 +70,22 @@
     "uninstallerIcon": "./build/icon.ico"
   },
   "linux": {
-    "target": ["AppImage", "deb", "pacman", "rpm", "tar.gz"],
+    "target": [
+      "AppImage",
+      "deb",
+      "pacman",
+      "rpm",
+      "tar.gz"
+    ],
     "artifactName": "${productName}.${ext}",
     "category": "Game",
     "maintainer": "team-falkor",
-    "mimeTypes": ["x-scheme-handler/falkor"]
+    "mimeTypes": [
+      "x-scheme-handler/falkor"
+    ],
+    "publish": [
+      "github"
+    ]
   },
   "publish": {
     "provider": "github",
