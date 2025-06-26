@@ -130,13 +130,27 @@ function Carousel({
 	);
 }
 
-function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
+function CarouselContent({
+	className,
+	// showXAxis = false,
+	showYAxis = false,
+	...props
+}: React.ComponentProps<"div"> & {
+	showYAxis?: boolean;
+	// showXAxis?: boolean;
+}) {
 	const { carouselRef, orientation } = useCarousel();
 
 	return (
 		<div
 			ref={carouselRef}
-			className="overflow-hidden"
+			className={cn(
+				// showXAxis ? "overflow-x-visible" : "overflow-x-hidden",
+				showYAxis ? "overflow-y-visible" : "overflow-y-hidden",
+				{
+					"overflow-hidden": !showYAxis,
+				},
+			)}
 			data-slot="carousel-content"
 		>
 			<div

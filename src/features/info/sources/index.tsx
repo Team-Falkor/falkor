@@ -29,9 +29,9 @@ const Sources = ({ itadData, title, game_data }: DownloadDialogProps) => {
 	} = useSources(title, itadData);
 
 	return (
-		<div className="flex w-full flex-col gap-1">
+		<div className="flex w-full flex-col gap-1 overflow-y-visible">
 			<TypographySmall>{t("sources")}</TypographySmall>
-			<div className="flex flex-col gap-2">
+			<div className="flex flex-col gap-2 overflow-y-visible">
 				<Carousel opts={{ skipSnaps: true, dragFree: true }}>
 					<CarouselContent>
 						{providers.map(({ value, label }) => (
@@ -52,8 +52,11 @@ const Sources = ({ itadData, title, game_data }: DownloadDialogProps) => {
 				{isError ? (
 					<P className="text-red-500">{t("error_loading_sources")}</P>
 				) : filteredSources.length > 0 ? (
-					<Carousel opts={{ skipSnaps: true, dragFree: true }} className="mt-2">
-						<CarouselContent>
+					<Carousel
+						opts={{ skipSnaps: true, dragFree: true }}
+						className="mt-4 overflow-y-visible"
+					>
+						<CarouselContent showYAxis={true}>
 							<SourceShowcase game_data={game_data} sources={filteredSources} />
 						</CarouselContent>
 					</Carousel>

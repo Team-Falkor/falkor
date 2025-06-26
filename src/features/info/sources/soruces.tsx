@@ -32,7 +32,7 @@ const SourceShowcase = ({ sources, game_data, slug }: SourceShowcaseProps) => {
 			return (item.sources as PluginSearchResponse[]).map((source, i) => (
 				<CarouselItem
 					key={`${item.id}-${i}`}
-					className="relative overflow-hidden sm:basis-1/2 md:basis-1/2 2xl:basis-1/3"
+					className="relative overflow-y-visible sm:basis-1/2 md:basis-1/2 2xl:basis-1/3"
 				>
 					<SourceCard
 						source={source}

@@ -1,13 +1,13 @@
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
-import { CloudDownload, ShoppingCart } from "lucide-react";
+import { CloudDownload, Save, ShoppingCart, Users } from "lucide-react";
 import type { DownloadgameData, RouterOutputs } from "@/@types";
-import { useSettings } from "@/features/settings/hooks/useSettings";
 import { useDownloadActions } from "@/hooks/use-download-actions";
 import { useLanguageContext } from "@/i18n/I18N";
-import { cn } from "@/lib";
-import { Button, buttonVariants } from "../ui/button";
-import { Card } from "../ui/card";
-import { H3, P } from "../ui/typography";
+import { cn, formatBytes } from "@/lib";
+import { Button, buttonVariants } from "../../ui/button";
+import { Card } from "../../ui/card";
+import { H3, P } from "../../ui/typography";
+import StatPill from "./statPill";
 
 type Deal =
 	RouterOutputs["itad"]["pricesByName"]["prices"][number]["deals"][number];
@@ -23,14 +23,14 @@ type SourceCardProps = {
 export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 	const { t } = useLanguageContext();
 	const { addDownload } = useDownloadActions();
-	const { settings } = useSettings();
+	// const { settings } = useSettings();
 
 	const isDeal = (item: SourceCardProps["source"]): item is Deal =>
 		"price" in item && "shop" in item;
 
 	return (
-		<Card className="h-28 w-full overflow-hidden rounded-2xl border-none p-2.5">
-			<div className="flex h-full w-full flex-col items-start justify-between overflow-hidden">
+		<Card className="relative h-28 w-full rounded-2xl border-none p-2.5">
+			<div className="flex h-full w-full flex-col items-start justify-between">
 				{isDeal(source) ? (
 					<>
 						<H3>{source.shop.name}</H3>
@@ -54,6 +54,15 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 					</>
 				) : (
 					<>
+						<div className="-top-4 absolute left-2">
+							{!!source?.size && (
+								<StatPill icon={Save} value={formatBytes(source.size)} />
+							)}
+
+							{"seeds" in source && !!source?.seeds && (
+								<StatPill icon={Users} value={source.seeds} />
+							)}
+						</div>
 						<P className="line-clamp-2 w-full">{source.name}</P>
 						<Button
 							className="w-full items-center gap-3 rounded-full font-bold capitalize"
