@@ -175,7 +175,6 @@ export const gameLauncherRouter = router({
 			if (launcher) {
 				try {
 					await launcher.stop();
-					logger.log("info", `Successfully stopped game ${input.id}`);
 					// The 'game:stopped' event handler will perform further cleanup.
 					return { success: true };
 				} catch (error) {

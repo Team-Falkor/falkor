@@ -337,11 +337,6 @@ class AchievementFileLocator {
 
 		const gameAchievementFiles = new Map<string, AchievementFile[]>();
 
-		logger.log(
-			"info",
-			`Searching for achievement files for platform: ${process.platform}`,
-		);
-
 		for (const [cracker, paths] of Object.entries(
 			AchievementFileLocator.crackerPaths,
 		) as [Cracker, FilePath[]][]) {
@@ -369,7 +364,6 @@ class AchievementFileLocator {
 						);
 
 						if (!existsSync(filePath)) {
-							logger.log("debug", `File not found: ${filePath}`);
 							return;
 						}
 
