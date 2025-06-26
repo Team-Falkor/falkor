@@ -106,10 +106,8 @@ function AchievementItem({
 	return (
 		<Card
 			className={cn(
-				"h-full min-w-72 transition-colors hover:bg-muted/50",
-				achievement.unlocked
-					? "border-primary/20 bg-primary/5"
-					: "border-border bg-muted/20",
+				"h-full min-w-72 transition-colors hover:bg-muted/30",
+				achievement.unlocked ? "border-primary/20" : "border-border",
 				className,
 			)}
 		>
@@ -319,7 +317,7 @@ function RouteComponent() {
 					</div>
 
 					{/* Overall Progress Card */}
-					<Card className="border-primary/20 bg-primary/5">
+					<Card>
 						<CardContent className="p-4 sm:p-6">
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
 								<StatsCard
