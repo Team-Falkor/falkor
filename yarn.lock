@@ -1982,10 +1982,10 @@
   resolved "https://registry.yarnpkg.com/@tanstack/zod-adapter/-/zod-adapter-1.121.34.tgz#daab1e23718664fa62155d4eab37e1167c14054d"
   integrity sha512-tUFjmJL4e3S6Au1KH0xCM12OejsnnPUS8dTfKlzYCnYmwMLHoXGOKKwBYtOvypZqi4EXrtoajI7CSneVA7bl0A==
 
-"@team-falkor/shared-types@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@team-falkor/shared-types/-/shared-types-1.0.3.tgz#6de34450a9379fb27738d14cd1bb3644c1fd8179"
-  integrity sha512-sJwHb99D7QD1iDhjLclGx7TiUDo3IRxmu+Nk+SJzgXpwG/re2QYCy1x2Fof4K5TLlMRgYQSsZ8lKS/+7D2MUWA==
+"@team-falkor/shared-types@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@team-falkor/shared-types/-/shared-types-1.0.6.tgz#32b1113edd8183af81ae7ad84d3019f2eb96fa84"
+  integrity sha512-w5J6mqr5bHzfzdll8gOiWMWAof5pbreiFQyzSff+Ei/P22JvBdp5FbYo3vEXLpLaEP9+ZQj2YDRVePLIuosvmA==
 
 "@thaunknown/simple-peer@^10.0.11", "@thaunknown/simple-peer@^10.0.8":
   version "10.0.11"
