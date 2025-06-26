@@ -3,7 +3,7 @@
   "description": "Dive into Falkor, where you'll discover a vast selection of games coupled with community-driven enhancements. Experience seamless and secure gaming within a single, universal hub.",
   "version": "0.6.2-beta",
   "main": "dist-electron/main/index.js",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "private": true,
   "author": {
     "name": "team-falkor",
