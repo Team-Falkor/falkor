@@ -151,7 +151,7 @@ const InfoAboutTab = ({
 					)}
 				</div>
 
-				<TypographyMuted className="line-clamp-3 place-self-end overflow-hidden text-pretty">
+				<TypographyMuted className="line-clamp-3 place-self-start overflow-hidden text-pretty">
 					{data?.storyline ?? data?.summary ?? ""}
 				</TypographyMuted>
 			</div>
