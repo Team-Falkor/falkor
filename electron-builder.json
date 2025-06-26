@@ -25,21 +25,8 @@
     }
   ],
   "files": [
-    "dist",
     "dist-electron",
-    "package.json",
-    {
-      "from": "[...]/node_modules",
-      "to": "[...]/node_modules",
-      "filter": [
-        "/*",
-        "!/.bin/**"
-      ]
-    },
-    {
-      "from": "[...]/node_modules/.bin",
-      "to": "[...]/node_modules/.bin"
-    }
+    "dist"
   ],
   "mac": {
     "target": [
@@ -62,7 +49,7 @@
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": true,
+    "deleteAppDataOnUninstall": false,
     "shortcutName": "${productName}",
     "createDesktopShortcut": true,
     "uninstallDisplayName": "${productName} ${version}",

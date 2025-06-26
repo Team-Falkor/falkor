@@ -1,12 +1,13 @@
 {
-	"typescript.tsdk": "node_modules/typescript/lib",
-	"typescript.tsc.autoDetect": "off",
-  "editor.defaultFormatter": "biomejs.biome",
-	"editor.formatOnSave": true,
-	"json.schemas": [
-		{
-			"fileMatch": ["/*electron-builder.json5", "/*electron-builder.json"],
-			"url": "https://json.schemastore.org/electron-builder"
-		}
-	]
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.tsc.autoDetect": "off",
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/*electron-builder.json5",
+        "/*electron-builder.json"
+      ],
+      "url": "https://json.schemastore.org/electron-builder"
+    }
+  ]
 }
