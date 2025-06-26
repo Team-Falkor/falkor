@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react"; // Import useEffect
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react"; // Import useEffect
 import type { RouterInputs } from "@/@types";
 import { DatePicker } from "@/components/date-picker";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,7 @@ function makeRangeHandler<
 	OP extends Record<string, any>,
 	K1 extends keyof OP,
 	K2 extends keyof OP,
->(
-	setFilters: React.Dispatch<React.SetStateAction<OP>>,
-	fromKey: K1,
-	toKey: K2,
-) {
+>(setFilters: Dispatch<SetStateAction<OP>>, fromKey: K1, toKey: K2) {
 	return (range: { from?: Date; to?: Date }) => {
 		setFilters(
 			(prev) =>

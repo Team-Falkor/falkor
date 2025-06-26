@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import Confirmation from "@/components/confirmation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -8,13 +9,29 @@ import { trpc } from "@/lib";
 import LogWindow from "./logWindow";
 
 const LogDisplay = () => {
-	const { mutate: removeLogs } = trpc.logging.clearLogs.useMutation();
+	const utils = trpc.useUtils();
+
+	const { mutate: removeLogs } = trpc.logging.clearLogs.useMutation({
+		onError: (err) => {
+			toast.error("error clearing logs", {
+				description: err.message,
+			});
+			console.error("Error clearing logs:", err);
+		},
+		onSuccess: () => {
+			toast.success("Logs cleared");
+			utils.logging.invalidate(undefined, {
+				refetchType: "all",
+				type: "all",
+			});
+		},
+	});
 	const { t } = useLanguageContext();
 
-	const getInitialEnabledState = () => {
+	const getInitialEnabledState = useCallback(() => {
 		const storedValue = localStorage.getItem("enableDevConsole");
 		return storedValue ? JSON.parse(storedValue) : false;
-	};
+	}, []);
 
 	const [enabled, setEnabled] = useState<boolean>(getInitialEnabledState);
 
@@ -41,7 +58,7 @@ const LogDisplay = () => {
 					</Label>
 				</div>
 
-				<Confirmation onConfirm={removeLogs}>
+				<Confirmation onConfirm={() => removeLogs()}>
 					<Button>Clear Logs</Button>
 				</Confirmation>
 			</div>

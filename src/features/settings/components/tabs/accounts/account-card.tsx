@@ -11,7 +11,7 @@ import {
 	StarIcon,
 	UserIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { type ElementType, useState } from "react";
 import type { RouterOutputs } from "@/@types";
 import Confirmation from "@/components/confirmation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,7 +68,7 @@ const InfoRow = ({
 	label,
 	value,
 }: {
-	icon: React.ElementType;
+	icon: ElementType;
 	label: string;
 	value: string;
 }) => (

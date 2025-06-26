@@ -1,12 +1,16 @@
 import type { i18n as i18next } from "i18next";
-import type React from "react";
-import { createContext, type PropsWithChildren, useContext } from "react";
+import {
+	type ChangeEvent,
+	createContext,
+	type PropsWithChildren,
+	useContext,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 interface LanguageContextProps {
 	t: (key: string) => string;
 	i18n: i18next;
-	onClickLanguageChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+	onClickLanguageChange: (e: ChangeEvent<HTMLSelectElement>) => void;
 	languages: { [key: string]: { nativeName: string } };
 }
 
@@ -34,7 +38,7 @@ export const LanguageContextProvider = ({ children }: PropsWithChildren) => {
 	};
 	const { t, i18n } = useTranslation();
 
-	const onClickLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+	const onClickLanguageChange = (e: ChangeEvent<HTMLSelectElement>) => {
 		const language = e.target.value;
 		i18n.changeLanguage(language);
 	};

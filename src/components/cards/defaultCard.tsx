@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
+import type { ReactNode } from "react";
 import IGDBImage from "../IGDBImage";
 import { Badge } from "../ui/badge";
 import { H5 } from "../ui/typography";
@@ -16,10 +17,10 @@ type DefaultCardProps = {
 	id: number | null;
 	total_rating?: number;
 	aggregated_rating?: number;
-	renderBadge?: (id: number | null) => React.ReactNode;
-	renderTitle?: (id: number | null, name: string) => React.ReactNode;
-	renderActionButton?: (id: number | null) => React.ReactNode;
-	renderBottomOfImage?: (id: number | null) => React.ReactNode;
+	renderBadge?: (id: number | null) => ReactNode;
+	renderTitle?: (id: number | null, name: string) => ReactNode;
+	renderActionButton?: (id: number | null) => ReactNode;
+	renderBottomOfImage?: (id: number | null) => ReactNode;
 };
 
 const DefaultCard = ({

@@ -1,4 +1,4 @@
-import React from "react";
+import { createElement, type ReactNode } from "react";
 
 // A whitelist of allowed tags.
 const allowedTags = [
@@ -49,7 +49,7 @@ const voidElements = [
 export function convertNodeToElement(
 	node: Node,
 	key: number | string,
-): React.ReactNode {
+): ReactNode {
 	// For text nodes, simply return the text content.
 	if (node.nodeType === Node.TEXT_NODE) {
 		return node.textContent;
@@ -87,11 +87,11 @@ export function convertNodeToElement(
 		if (tagName === "hr") {
 			return <hr key={key} className="my-4 border-border border-t" />;
 		}
-		return React.createElement(tagName, { key });
+		return createElement(tagName, { key });
 	}
 
 	// Recursively process child nodes.
-	const children: React.ReactNode[] = [];
+	const children: ReactNode[] = [];
 	element.childNodes.forEach((child, index) => {
 		const childElement = convertNodeToElement(child, index);
 		if (childElement !== null) {
@@ -132,7 +132,7 @@ export function convertNodeToElement(
 			break;
 	}
 
-	return React.createElement(tagName, props, children);
+	return createElement(tagName, props, children);
 }
 
 /**
@@ -141,13 +141,13 @@ export function convertNodeToElement(
  * @param htmlString - The HTML string to parse.
  * @returns An array of React nodes.
  */
-export function parseHtmlString(htmlString: string): Array<React.ReactNode> {
+export function parseHtmlString(htmlString: string): Array<ReactNode> {
 	// Use DOMParser to convert the string into a document.
 	const parser = new DOMParser();
 	const doc = parser.parseFromString(htmlString, "text/html");
 	const body = doc.body;
 
-	const elements: React.ReactNode[] = [];
+	const elements: ReactNode[] = [];
 	Array.from(body.childNodes).forEach((node, index) => {
 		const element = convertNodeToElement(node, index);
 		if (element !== null) {

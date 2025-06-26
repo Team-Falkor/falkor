@@ -138,7 +138,7 @@ export class JsonFileEditor<T extends object> {
 		return this.write(this.defaultContent);
 	}
 
-	private writeRaw(text: string) {
+	public writeRaw(text: string) {
 		fs.writeFileSync(this.filePath, text, "utf8");
 		this.log(`Wrote ${this.filePath}`);
 	}

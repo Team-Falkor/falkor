@@ -1,14 +1,18 @@
-import type React from "react";
-import { forwardRef, type InputHTMLAttributes } from "react";
+import {
+	type FocusEventHandler,
+	forwardRef,
+	type InputHTMLAttributes,
+	type ReactElement,
+} from "react";
 import { cn } from "@/lib";
 import { Input } from "./ui/input";
 
 interface Props extends InputHTMLAttributes<HTMLInputElement> {
-	startIcon?: React.ReactElement;
-	endIcon?: React.ReactElement;
+	startIcon?: ReactElement;
+	endIcon?: ReactElement;
 	divClassName?: string;
-	onFocus?: React.FocusEventHandler<HTMLInputElement>;
-	onBlur?: React.FocusEventHandler<HTMLInputElement>;
+	onFocus?: FocusEventHandler<HTMLInputElement>;
+	onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 
 export const InputWithIcon = forwardRef<HTMLInputElement, Props>(

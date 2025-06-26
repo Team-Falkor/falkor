@@ -52,6 +52,10 @@ export const loggingRouter = router({
 			return Logger.advancedFilter(input);
 		}),
 
+	getLoggerDates: publicProcedure.query(() => {
+		return Logger.getLoggedDates();
+	}),
+
 	// Add new log
 	addLog: publicProcedure
 		.input(
@@ -66,8 +70,15 @@ export const loggingRouter = router({
 
 	// Clear all logs
 	clearLogs: publicProcedure.mutation(async () => {
-		await Logger.clear();
-		return { success: true };
+		try {
+			await Logger.clear();
+			return { success: true };
+		} catch (error) {
+			// Convert error to a serializable format
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to clear logs";
+			throw new Error(errorMessage);
+		}
 	}),
 
 	// Remove specific log
@@ -78,7 +89,14 @@ export const loggingRouter = router({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			await Logger.remove(input.timestamp);
-			return { success: true };
+			try {
+				await Logger.remove(input.timestamp);
+				return { success: true };
+			} catch (error) {
+				// Convert error to a serializable format
+				const errorMessage =
+					error instanceof Error ? error.message : "Failed to remove log";
+				throw new Error(errorMessage);
+			}
 		}),
 });

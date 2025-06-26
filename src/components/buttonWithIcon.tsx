@@ -1,11 +1,14 @@
-import type React from "react";
-import { type ButtonHTMLAttributes, forwardRef } from "react";
+import {
+	type ButtonHTMLAttributes,
+	forwardRef,
+	type ReactElement,
+} from "react";
 import { cn } from "@/lib";
 import { Button } from "./ui/button";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
-	startIcon?: React.ReactElement;
-	endIcon?: React.ReactElement;
+	startIcon?: ReactElement;
+	endIcon?: ReactElement;
 	divClassName?: string;
 }
 

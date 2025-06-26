@@ -1,11 +1,14 @@
+import { memo } from "react";
 import type { LogEntry } from "@/@types/logs";
 import {
+	ConsoleDebugDisplay,
 	ConsoleErrorDisplay,
 	ConsoleInfoDisplay,
+	ConsoleTraceDisplay,
 	ConsoleWarningDisplay,
 } from "./logTypes";
 
-const LogSwitch = ({ message, timestamp, level }: LogEntry) => {
+const LogSwitch = memo(({ message, timestamp, level }: LogEntry) => {
 	switch (level) {
 		case "error":
 			return (
@@ -23,7 +26,6 @@ const LogSwitch = ({ message, timestamp, level }: LogEntry) => {
 					timestamp={timestamp}
 				/>
 			);
-
 		case "info":
 			return (
 				<ConsoleInfoDisplay
@@ -32,16 +34,33 @@ const LogSwitch = ({ message, timestamp, level }: LogEntry) => {
 					timestamp={timestamp}
 				/>
 			);
-
+		case "debug":
+			return (
+				<ConsoleDebugDisplay
+					key={timestamp}
+					description={message}
+					timestamp={timestamp}
+				/>
+			);
+		case "trace":
+			return (
+				<ConsoleTraceDisplay
+					key={timestamp}
+					description={message}
+					timestamp={timestamp}
+				/>
+			);
 		default:
 			return (
-				<ConsoleErrorDisplay
+				<ConsoleInfoDisplay
 					key={timestamp}
 					description={message}
 					timestamp={timestamp}
 				/>
 			);
 	}
-};
+});
+
+LogSwitch.displayName = "LogSwitch";
 
 export default LogSwitch;

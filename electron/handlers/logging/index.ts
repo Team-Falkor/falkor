@@ -498,7 +498,7 @@ export const getLogger = () => {
 		try {
 			// Use the singleton instance directly since we're in the same module
 			loggerModule = Logger.getInstance();
-		} catch (err) {
+		} catch (_err) {
 			// If logger isn't available yet (during initialization), use console as fallback
 			loggerModule = {
 				log: (level: string, message: string) => {
