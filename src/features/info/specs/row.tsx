@@ -20,7 +20,7 @@ const RequirementsRow = ({ type, data }: RequirementsRowProps) => {
 	if (!isSpecsEm) return null;
 
 	return (
-		<div className="flex w-full shrink-0 flex-col gap-2 overflow-hidden rounded-2xl bg-background p-4">
+		<div className="flex w-full shrink-0 flex-col gap-2 overflow-hidden rounded-2xl bg-card p-4">
 			<H4 className="p-4 pt-1 pb-2 capitalize">{t(type?.toLowerCase())}</H4>
 
 			{Object.entries(specs).map(([key, value]) => (

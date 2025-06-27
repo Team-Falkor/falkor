@@ -22,7 +22,7 @@ const SimilarGames = ({ data }: SimilarGamesProps) => {
 	if (!items?.length) return null;
 
 	return (
-		<div>
+		<div className="rounded-lg bg-muted/30 p-6">
 			<Carousel
 				opts={{
 					skipSnaps: true,
@@ -30,7 +30,7 @@ const SimilarGames = ({ data }: SimilarGamesProps) => {
 				}}
 				className="w-full"
 			>
-				<div className="mb-2 flex justify-between">
+				<div className="flex items-center justify-between pb-2">
 					<H2>{t("you_may_also_like")}</H2>
 					<div>
 						<CarouselButton direction="left" />

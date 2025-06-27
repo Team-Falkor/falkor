@@ -74,8 +74,7 @@ const ListsDropdownItem = ({
 		<div className="flex flex-row items-center justify-between gap-1">
 			<div className="flex-1">
 				<DropdownMenuCheckboxItem
-					// biome-ignore lint/suspicious/noExplicitAny: TODO FIX LATER
-					checked={games.some((g: any) => g.gameId === game.id)}
+					checked={games.some((g) => g.igdbId === game.id)}
 					onSelect={handleSelect}
 					disabled={loading || addGameToList.isPending}
 				>
