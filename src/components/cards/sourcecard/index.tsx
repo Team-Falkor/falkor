@@ -1,8 +1,6 @@
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import { ShoppingCart } from "lucide-react";
 import type { DownloadgameData, RouterOutputs } from "@/@types";
-import { useDownloadActions } from "@/hooks/use-download-actions";
-import { useLanguageContext } from "@/i18n/I18N";
 import { cn } from "@/lib";
 import { buttonVariants } from "../../ui/button";
 import { Card } from "../../ui/card";
@@ -21,8 +19,6 @@ type SourceCardProps = {
 };
 
 export const SourceCard = ({ source, ...props }: SourceCardProps) => {
-	const { t } = useLanguageContext();
-	const { addDownload } = useDownloadActions();
 	// const { settings } = useSettings();
 
 	const isDeal = (item: SourceCardProps["source"]): item is Deal =>

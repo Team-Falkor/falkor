@@ -24,8 +24,6 @@ export const DownloadSourceContent = ({
 	const { t } = useLanguageContext();
 	const { addDownload } = useDownloadActions();
 
-	console.log(source);
-
 	const stats = {
 		...(source?.size ? { size: formatBytes(source.size) } : {}),
 		...("seeds" in source && !!source?.seeds ? { seeds: source.seeds } : {}),
