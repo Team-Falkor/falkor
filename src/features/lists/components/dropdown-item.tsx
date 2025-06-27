@@ -55,8 +55,7 @@ const ListsDropdownItem = ({
 	const games = Array.isArray(gamesInList?.games) ? gamesInList.games : [];
 
 	const handleSelect = useCallback(async () => {
-		// biome-ignore lint/suspicious/noExplicitAny: TODO FIX LATER
-		const gameExists = games.some((g: any) => g.gameId === game.id);
+		const gameExists = games.some((g) => g.igdbId === game.id);
 		if (gameExists) {
 			removeGameFromList.mutate({ listId, gameId: game.id });
 		} else {
