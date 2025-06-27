@@ -52,7 +52,7 @@ function RouteComponent() {
 			<div className="flex h-full w-full grow flex-col overflow-y-auto md:pl-80">
 				<Suspense
 					fallback={
-						<div className="flex size-full items-center justify-center">
+						<div className="flex h-[calc(100vh-64px)] w-full items-center justify-center">
 							<Spinner size={23} />
 						</div>
 					}

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -85,7 +85,7 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
 	const hasMoreLogs = (displayLogs?.length || 0) > ITEMS_PER_PAGE;
 
 	// Reset page when logs change
-	useMemo(() => {
+	useEffect(() => {
 		setCurrentPage(0);
 	}, []);
 
@@ -194,10 +194,10 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
 							</CardHeader>
 
 							{/* Logs content */}
-							<div className="min-h-0 flex-1 overflow-hidden">
+							<div className="flex min-h-0 flex-1 flex-col">
 								{displayLogs?.length ? (
-									<div className="flex h-full flex-col">
-										<ScrollArea className="flex-1">
+									<>
+										<ScrollArea className="min-h-0 flex-1">
 											<div className="space-y-1 p-4">
 												{paginatedLogs.map((log) => (
 													<LogSwitch
@@ -210,7 +210,7 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
 
 										{/* Pagination controls */}
 										{hasMoreLogs && (
-											<div className="flex items-center justify-between border-muted border-t bg-muted/10 px-4 py-3">
+											<div className="flex flex-shrink-0 items-center justify-between border-muted border-t bg-muted/10 px-4 py-3">
 												<TypographyMuted className="text-xs">
 													Showing {currentPage * ITEMS_PER_PAGE + 1}-
 													{Math.min(
@@ -241,7 +241,7 @@ const LogWindow = ({ enabled }: LogWindowProps) => {
 												</div>
 											</div>
 										)}
-									</div>
+									</>
 								) : (
 									<div className="flex h-64 flex-col items-center justify-center text-center">
 										<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">

@@ -31,7 +31,7 @@ const DeveloperSettings = () => {
 								key={sound}
 								disabled={testSound.isPending}
 								onClick={async () =>
-									await testSound.mutate({
+									testSound.mutate({
 										sound,
 									})
 								}
