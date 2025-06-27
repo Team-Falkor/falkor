@@ -26,7 +26,7 @@ function CalendarRoute() {
 		() => ({
 			year: currentMonth.getFullYear(),
 			month: currentMonth.getMonth(),
-			limit: 100,
+			limit: 250,
 			offset: 0,
 		}),
 		[currentMonth],
