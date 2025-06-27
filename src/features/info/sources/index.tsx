@@ -54,7 +54,7 @@ const Sources = ({ itadData, title, game_data }: DownloadDialogProps) => {
 				) : filteredSources.length > 0 ? (
 					<Carousel
 						opts={{ skipSnaps: true, dragFree: true }}
-						className="mt-4 overflow-y-visible"
+						className="mt-1 overflow-y-visible"
 					>
 						<CarouselContent showYAxis={true}>
 							<SourceShowcase game_data={game_data} sources={filteredSources} />

@@ -1,13 +1,13 @@
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
-import { CloudDownload, Save, ShoppingCart, Users } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import type { DownloadgameData, RouterOutputs } from "@/@types";
 import { useDownloadActions } from "@/hooks/use-download-actions";
 import { useLanguageContext } from "@/i18n/I18N";
-import { cn, formatBytes } from "@/lib";
-import { Button, buttonVariants } from "../../ui/button";
+import { cn } from "@/lib";
+import { buttonVariants } from "../../ui/button";
 import { Card } from "../../ui/card";
 import { H3, P } from "../../ui/typography";
-import StatPill from "./statPill";
+import { DownloadSourceContent } from "./downloadSourceContent";
 
 type Deal =
 	RouterOutputs["itad"]["pricesByName"]["prices"][number]["deals"][number];
@@ -29,7 +29,7 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 		"price" in item && "shop" in item;
 
 	return (
-		<Card className="relative h-28 w-full rounded-2xl border-none p-2.5">
+		<Card className="relative h-[7.5rem] w-full rounded-2xl border-none p-2.5">
 			<div className="flex h-full w-full flex-col items-start justify-between">
 				{isDeal(source) ? (
 					<>
@@ -53,42 +53,12 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 						</a>
 					</>
 				) : (
-					<>
-						<div className="-top-4 absolute left-2">
-							{!!source?.size && (
-								<StatPill icon={Save} value={formatBytes(source.size)} />
-							)}
-
-							{"seeds" in source && !!source?.seeds && (
-								<StatPill icon={Users} value={source.seeds} />
-							)}
-						</div>
-						<P className="line-clamp-2 w-full">{source.name}</P>
-						<Button
-							className="w-full items-center gap-3 rounded-full font-bold capitalize"
-							variant="success"
-							onClick={() => {
-								addDownload({
-									pluginId: props.pluginId,
-									type: source.type === "ddl" ? "http" : "torrent",
-									url: source.return,
-									multiple_choice: props.multiple_choice,
-									game_data: props.game_data,
-									name: source.name,
-									autoStart: true,
-								});
-							}}
-						>
-							<CloudDownload
-								size={18}
-								fill="currentColor"
-								className="shrink-0"
-							/>
-							<P className="max-w-full truncate capitalize">
-								{source?.uploader ?? t("download")}
-							</P>
-						</Button>
-					</>
+					<DownloadSourceContent
+						source={source}
+						pluginId={props.pluginId}
+						game_data={props.game_data}
+						multiple_choice={props.multiple_choice}
+					/>
 				)}
 			</div>
 		</Card>

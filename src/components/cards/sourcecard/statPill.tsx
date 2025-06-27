@@ -14,7 +14,7 @@ const StatPill = ({ icon: Icon, value, isVisible = true }: StatPillProps) => {
 	}
 
 	return (
-		<div className="flex items-center gap-2 rounded-full bg-card/80 px-2 py-1 shadow-sm backdrop-blur-sm">
+		<div className="flex items-center gap-2 rounded-full bg-muted px-2 py-1 shadow-sm">
 			<Icon className="size-3" />
 			<TypographySmall className="flex-1 text-xs">{value}</TypographySmall>
 		</div>
