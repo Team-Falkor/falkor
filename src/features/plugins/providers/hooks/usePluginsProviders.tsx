@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { trpc } from "@/lib";
+import { usePluginsStore } from "@/stores/plugins";
 
 /**
  * Custom hook for plugin operations using tRPC.
@@ -7,17 +8,7 @@ import { trpc } from "@/lib";
  * updates, and listing of plugins with cache invalidation.
  */
 export const usePluginsProviders = () => {
-	const [enabledOnly, setEnabledOnly] = useState(
-		localStorage.getItem("showEnabledOnly") === "true",
-	);
-
-	const changeEnabledOnly = () => {
-		const currentValue = localStorage.getItem("showEnabledOnly") === "true";
-		const newValue = !currentValue;
-
-		localStorage.setItem("showEnabledOnly", String(newValue));
-		setEnabledOnly(newValue);
-	};
+	const { enabledOnly, toggleEnabledOnly } = usePluginsStore();
 
 	// tRPC context for cache operations
 	const utils = trpc.useUtils();
@@ -123,6 +114,6 @@ export const usePluginsProviders = () => {
 
 		// State
 		enabledOnly,
-		changeEnabledOnly,
+		changeEnabledOnly: toggleEnabledOnly,
 	};
 };

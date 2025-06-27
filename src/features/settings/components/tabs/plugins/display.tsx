@@ -21,7 +21,6 @@ const PluginDisplay = ({ showRows, sortBy, search }: Props) => {
 		isErrorPlugins,
 		errorPlugins,
 		isLoadingPlugins,
-		enabledOnly,
 	} = usePluginsProviders();
 
 	const onSearch = useCallback(
@@ -37,7 +36,7 @@ const PluginDisplay = ({ showRows, sortBy, search }: Props) => {
 		[plugins],
 	);
 
-	const filteredAndSortedPlugins = () => {
+	const filteredAndSortedPlugins = useCallback(() => {
 		let filtered = plugins;
 
 		if (sortBy === "alphabetic-asc") {
@@ -51,13 +50,7 @@ const PluginDisplay = ({ showRows, sortBy, search }: Props) => {
 		}
 
 		return filtered;
-	};
-
-	console.log({
-		filteredAndSortedPlugins: filteredAndSortedPlugins(),
-		plugins,
-		enabledOnly: enabledOnly,
-	});
+	}, [plugins, sortBy, search, onSearch]);
 
 	if (isLoadingPlugins) {
 		return (
