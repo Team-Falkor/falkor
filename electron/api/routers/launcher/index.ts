@@ -216,6 +216,8 @@ export const gameLauncherRouter = router({
 					"info",
 					`Game ${input.id} detected as not running; cleaning up launcher.`,
 				);
+				// Emit stopped event to notify subscribers before cleanup
+				emitter.emit("game:stopped", input.id);
 				launcher.stop(); // Ensures any internal resources are released.
 				const storedListeners = eventListeners.get(launcher);
 				if (storedListeners) {
@@ -248,6 +250,8 @@ export const gameLauncherRouter = router({
 					"info",
 					`Game ${gameId} detected as not running during getRunning; cleaning up.`,
 				);
+				// Emit stopped event to notify subscribers before cleanup
+				emitter.emit("game:stopped", gameId);
 				launcher.stop(); // Ensures any internal resources are released.
 				const storedListeners = eventListeners.get(launcher);
 				if (storedListeners) {
@@ -284,28 +288,32 @@ export const gameLauncherRouter = router({
 	 * Ensures proper cleanup of listeners when a subscription ends.
 	 */
 	onGameStateChange: publicProcedure.subscription(async function* () {
-		// Defines a cleanup function to remove all listeners and prevent memory leaks
-		// when the subscription ends or an error occurs.
+		// Create unique listeners for this specific subscription to avoid conflicts
+		const subscriptionId = Math.random().toString(36).substring(7);
+
+		// Define subscription-specific event handlers
+		const onPlayingHandler = (_id: number) => {
+			// This will be handled by the subscription loop
+		};
+
+		const onStoppedHandler = (_id: number) => {
+			// This will be handled by the subscription loop
+		};
+
+		// Cleanup function that only removes this subscription's listeners
 		const cleanup = () => {
 			logger.log(
 				"debug",
-				"Cleaning up game state change subscription listeners.",
+				`Cleaning up game state change subscription ${subscriptionId}.`,
 			);
-			// Remove all listeners from the global emitter specifically for game state events.
-			emitter.removeAllListeners("game:playing");
-			emitter.removeAllListeners("game:stopped");
-
-			// Also ensure any lingering specific launcher listeners are detached,
-			// though the `onStopped` handler should primarily manage this.
-			for (const launcher of gamesLaunched.values()) {
-				const listeners = eventListeners.get(launcher);
-				if (listeners) {
-					launcher.off("game:playing", listeners.onPlaying);
-					launcher.off("game:stopped", listeners.onStopped);
-					eventListeners.delete(launcher);
-				}
-			}
+			// Remove only this subscription's listeners, not all listeners
+			emitter.off("game:playing", onPlayingHandler);
+			emitter.off("game:stopped", onStoppedHandler);
 		};
+
+		// Add listeners for this subscription
+		emitter.on("game:playing", onPlayingHandler);
+		emitter.on("game:stopped", onStoppedHandler);
 
 		try {
 			while (true) {
