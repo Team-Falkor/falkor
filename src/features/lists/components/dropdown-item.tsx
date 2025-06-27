@@ -99,7 +99,7 @@ const ListsDropdownItem = ({
 							<P
 								className={cn(
 									"truncate font-medium transition-colors",
-									isGameInList ? "text-primary" : "text-foreground",
+									isGameInList ? "text-white" : "text-muted-foreground",
 								)}
 							>
 								{children || game.name}
