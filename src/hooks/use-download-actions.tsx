@@ -10,16 +10,25 @@ export const useDownloadActions = () => {
 		isPending: isAddingDownload,
 		error: addDownloadError,
 	} = trpc.downloads.add.useMutation({
+		onMutate: () => {
+			toast.loading("Starting download...", {
+				id: "addDownloadToast",
+			});
+		},
 		onSuccess: async (data) => {
 			await utils.downloads.invalidate(undefined, {
 				refetchType: "all",
 				type: "all",
 			});
-			toast.success(`${data?.isCaching ? "Caching" : "Download"} started`);
+			toast.success(`${data?.isCaching ? "Caching" : "Download"} started`, {
+				id: "addDownloadToast",
+			});
 			return data;
 		},
 		onError: (error) => {
-			toast.error(`Failed to add download: ${error.message}`);
+			toast.error(`Failed to add download: ${error.message}`, {
+				id: "addDownloadToast",
+			});
 		},
 	});
 
