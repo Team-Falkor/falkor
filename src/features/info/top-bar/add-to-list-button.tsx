@@ -17,7 +17,7 @@ export const AddToListButton = (props: IGDBReturnDataType) => {
 		<Dialog open={openDialog} onOpenChange={setOpenDialog}>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button className="gap-2" variant={"functional"}>
+					<Button className="gap-2" size={"lg"} variant={"functional"}>
 						<Bookmark size={15} className="fill-current" />
 						Add to list
 					</Button>

@@ -85,10 +85,11 @@ const ListsDropdownItem = ({
 					disabled={loading || isProcessing}
 					className={cn(
 						"relative flex items-center rounded-md py-2.5 transition-all duration-200",
-						"focus-states:bg-accent/50 focus:bg-accent/50",
+						"focus-states:bg-accent focus:bg-accent",
+						"focus-states:bg-accent/80",
 						"disabled:cursor-not-allowed disabled:opacity-50",
 						isProcessing && "cursor-wait",
-						isGameInList ? "pl-9" : "pl-2",
+						isGameInList ? "pl-8" : "pl-2",
 					)}
 				>
 					<div className="flex min-w-0 flex-1 items-center gap-3">
@@ -99,7 +100,7 @@ const ListsDropdownItem = ({
 							<P
 								className={cn(
 									"truncate font-medium transition-colors",
-									isGameInList ? "text-white" : "text-muted-foreground",
+									isGameInList ? "text-foreground" : "text-muted-foreground",
 								)}
 							>
 								{children || game.name}
@@ -126,8 +127,10 @@ const ListsDropdownItem = ({
 						size="icon"
 						variant="ghost"
 						className={cn(
-							"size-8 text-muted-foreground focus-states:bg-destructive/10 focus-states:text-destructive",
-							"rounded-md transition-all duration-200",
+							"size-8 text-muted-foreground transition-all duration-200",
+							"hover:bg-destructive/10 hover:text-destructive",
+							"focus-states:bg-destructive/10 focus-states:text-destructive",
+							"rounded-md",
 							isDeleting && "cursor-wait",
 						)}
 						disabled={isDeleting}
