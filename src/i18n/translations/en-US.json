@@ -166,5 +166,10 @@
 	"game_id_missing": "Game Id Missing",
 	"game_name_or_path_missing": "Game Name Or Path Missing",
 	"saving": "Saving",
-	"achievements": "Achievements"
+	"achievements": "Achievements",
+	"loading": "Loading...",
+	"no_lists_yet": "No lists yet",
+	"create_your_first_list": "Create your first list to organize games",
+	"organize_your_games": "Organize your games",
+	"select_lists_to_add_game": "Select lists to add this game to"
 }
