@@ -27,8 +27,35 @@ export function useGameLauncher(game: LibraryGame) {
 	}, [initialIsRunningData]);
 
 	// Mutations for launching and stopping the game
-	const launchMutation = trpc.launcher.launch.useMutation();
-	const stopMutation = trpc.launcher.stop.useMutation();
+	const launchMutation = trpc.launcher.launch.useMutation({
+		onSuccess: () => {
+			toast.success("Game launched", { description: game.gameName });
+		},
+		onError: (err) => {
+			toast.error("Launch failed", {
+				description: err.message.replace(/^TRPCClientError: /, ""),
+			});
+		},
+		onSettled: () => {
+			utils.launcher.invalidate();
+			utils.library.invalidate();
+		},
+	});
+
+	const stopMutation = trpc.launcher.stop.useMutation({
+		onSuccess: () => {
+			toast.success("Game stopped", { description: game.gameName });
+		},
+		onError: (err) => {
+			toast.error("Stop failed", {
+				description: err.message.replace(/^TRPCClientError: /, ""),
+			});
+		},
+		onSettled: () => {
+			utils.launcher.invalidate();
+			utils.library.invalidate();
+		},
+	});
 
 	// Combined loading state for mutations and initial fetch
 	const isMutating = launchMutation.isPending || stopMutation.isPending;
@@ -50,74 +77,26 @@ export function useGameLauncher(game: LibraryGame) {
 		},
 	});
 
-	// Invalidation function to refetch all relevant queries
-	const invalidateAll = useCallback(async () => {
-		await Promise.allSettled([
-			utils.lists.invalidate(),
-			utils.launcher.invalidate(),
-			utils.library.invalidate(),
-		]);
-	}, [utils]);
-
 	const toggleGameState = useCallback(async () => {
 		if (!id) {
 			toast.error("Game ID is missing.");
 			return;
 		}
 
-		// Optimistically update the UI to reflect the intended state
-		const previousRunningState = isRunning;
-		const targetRunningState = !isRunning;
-		setIsRunning(targetRunningState);
+		// Optimistically update the UI
+		setIsRunning(!isRunning);
 
 		try {
-			if (previousRunningState) {
-				// If the game was running, attempt to stop it
+			if (isRunning) {
 				await stopMutation.mutateAsync({ id });
-				toast.success("Game stopped", { description: game.gameName });
 			} else {
-				// If the game was not running, attempt to launch it
 				await launchMutation.mutateAsync({ id });
-				toast.success("Game launched", { description: game.gameName });
 			}
-		} catch (err) {
-			// Revert the optimistic update if the mutation fails
-			setIsRunning(previousRunningState);
-
-			// Log the full error for debugging purposes
-			console.error("Game action failed:", err);
-
-			// Extract a user-friendly error message
-			let errorMessage = "An unknown error occurred.";
-			if (err instanceof Error) {
-				errorMessage = err.message;
-			} else if (
-				typeof err === "object" &&
-				err !== null &&
-				"message" in err &&
-				typeof err.message === "string"
-			) {
-				errorMessage = err.message;
-			}
-			// Clean up the TRPCClientError prefix if it exists
-			errorMessage = errorMessage.replace(/^TRPCClientError: /, "");
-
-			toast.error("Action failed", {
-				description: errorMessage,
-			});
-		} finally {
-			// Invalidate queries to ensure data consistency with the backend,
-			// regardless of optimistic update success or failure.
-			await invalidateAll();
+		} catch {
+			// Revert optimistic update on error, which is handled by the mutation's onError callback
+			setIsRunning(isRunning);
 		}
-	}, [
-		id,
-		isRunning,
-		stopMutation,
-		launchMutation,
-		game.gameName,
-		invalidateAll,
-	]);
+	}, [id, isRunning, stopMutation, launchMutation]);
 
 	return {
 		isRunning,

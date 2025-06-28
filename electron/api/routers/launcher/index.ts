@@ -1,7 +1,10 @@
 import { EventEmitter } from "node:events";
 import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames } from "@backend/database/schemas";
-import GameProcessLauncher from "@backend/handlers/launcher/game-process-launcher";
+import GameProcessLauncher, {
+	LaunchError,
+	LaunchOperationError,
+} from "@backend/handlers/launcher/game-process-launcher";
 import { gamesLaunched } from "@backend/handlers/launcher/games-launched";
 import logger from "@backend/handlers/logging";
 import { emitOnce } from "@backend/utils/emit-once";
@@ -143,21 +146,46 @@ export const gameLauncherRouter = router({
 					requiresPolling: launcher.getSessionInfo().requiresPolling,
 				};
 			} catch (error) {
+				let errorMessage = "An unknown error occurred.";
+				if (error instanceof LaunchOperationError) {
+					switch (error.errorType) {
+						case LaunchError.EXECUTABLE_NOT_FOUND:
+							errorMessage = "Game executable not found. Please check the path.";
+							break;
+						case LaunchError.INVALID_PATH:
+							errorMessage =
+								"The configured game path is invalid. It must be a file.";
+							break;
+						case LaunchError.PERMISSION_DENIED:
+							errorMessage =
+								"Permission denied. Cannot access the game executable.";
+							break;
+						case LaunchError.ALREADY_RUNNING:
+							errorMessage = "The game is already running.";
+							break;
+						default:
+							errorMessage = `Launch failed: ${error.message}`;
+					}
+				} else if (error instanceof Error) {
+					errorMessage = error.message;
+				}
+
 				logger.log(
 					"error",
-					`Failed to launch game ${input.id}: ${(error as Error).message}`,
+					`Failed to launch game ${input.id}: ${errorMessage}`,
 				);
-				// If launch fails, immediately clean up the attached listeners to prevent leaks.
+
+				// Cleanup listeners on failure
 				const storedListeners = eventListeners.get(launcher);
 				if (storedListeners) {
 					launcher.off("game:playing", storedListeners.onPlaying);
 					launcher.off("game:stopped", storedListeners.onStopped);
 					eventListeners.delete(launcher);
 				}
-				// No need to delete from gamesLaunched as it was never successfully added.
+
 				return {
 					success: false,
-					error: `Launch failed: ${(error as Error).message}`,
+					error: errorMessage,
 				};
 			}
 		}),
@@ -369,10 +397,8 @@ export const gameLauncherRouter = router({
 			);
 			// Ensure cleanup is called even if an error occurs.
 			cleanup();
-			throw error; // Re-throw to propagate the error through the subscription.
+			throw error;
 		} finally {
-			// `finally` block ensures cleanup always runs when the subscription terminates,
-			// whether due to completion, error, or client disconnection.
 			cleanup();
 		}
 	}),

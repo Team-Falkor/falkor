@@ -1019,15 +1019,44 @@ export async function findProcessInfoByName(
 	}
 }
 
-// Fast PID-specific check without full process search
+/**
+ * Checks if a specific process ID (PID) is currently running.
+ * This function is highly optimized for performance, especially on Windows,
+ * by using a lightweight system command.
+ *
+ * @param pid - The process ID to check.
+ * @returns A promise that resolves to true if the process is running, false otherwise.
+ */
 export async function isSpecificPidRunning(pid: number): Promise<boolean> {
-	logger.log("debug", `isSpecificPidRunning: Checking PID ${pid}`);
-	const isRunning = await isPidRunning(pid);
-	logger.log(
-		"debug",
-		`isSpecificPidRunning: PID ${pid} is running: ${isRunning}`,
-	);
-	return isRunning;
+	if (typeof pid !== "number" || !Number.isInteger(pid) || pid <= 0) {
+		logger.log("warn", `isSpecificPidRunning: Invalid PID provided: ${pid}`);
+		return false;
+	}
+
+	const command =
+		os.platform() === "win32"
+			? `tasklist /fi "pid eq ${pid}" /nh`
+			: `ps -p ${pid} -o pid=`;
+
+	try {
+		const { stdout } = await execPromise(command, {
+			timeout: ProcessConfig.DEFAULT_COMMAND_TIMEOUT,
+		});
+
+		// If stdout contains the PID, the process is running.
+		// Trim and check length to handle whitespace and empty lines.
+		return stdout.trim().length > 0;
+	} catch (error) {
+		// An error (e.g., process not found) means it's not running.
+		// Log other unexpected errors for debugging.
+		if (!(error as Error).message.includes("not found")) {
+			logger.log(
+				"debug",
+				`isSpecificPidRunning: Error checking PID ${pid}: ${(error as Error).message}`,
+			);
+		}
+		return false;
+	}
 }
 
 // Efficient function to wait for a specific PID to terminate
