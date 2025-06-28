@@ -158,6 +158,7 @@ export const igdbRouter = router({
 				releaseDateTo: endDate,
 				onlyMainGames: true,
 				excludeVersions: true,
+				minHypes: 1,
 			};
 
 			return igdb.filter(filters, "first_release_date asc", limit, offset);

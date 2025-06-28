@@ -1,24 +1,52 @@
+// src/components/featuredGames.tsx
+
 import { Link } from "@tanstack/react-router";
 import Autoplay from "embla-carousel-autoplay";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react"; // Import useState, useEffect
 import Banner from "@/components/banner";
 import CarouselButton from "@/components/carouselButton";
-import { Carousel } from "@/components/ui/carousel";
+// Import Carousel and CarouselApi type
+import { Carousel, type CarouselApi } from "@/components/ui/carousel";
 import { H2, TypographySmall } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
 
 const FeaturedGames = () => {
 	const { t } = useLanguageContext();
 	const autoplay = useRef(
-		Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true }),
+		Autoplay({ delay: 10000, stopOnInteraction: true, stopOnMouseEnter: true }),
 	);
+
+	const [api, setApi] = useState<CarouselApi>();
+	const [currentSlide, setCurrentSlide] = useState(0);
+	const [totalSlides, setTotalSlides] = useState(0);
+
+	// Effect to manage carousel state
+	useEffect(() => {
+		if (!api) {
+			return;
+		}
+
+		const updateSlideInfo = () => {
+			setTotalSlides(api.scrollSnapList().length);
+			setCurrentSlide(api.selectedScrollSnap() + 1);
+		};
+
+		updateSlideInfo();
+
+		api.on("select", updateSlideInfo);
+
+		return () => {
+			api.off("select", updateSlideInfo);
+		};
+	}, [api]);
 
 	return (
 		<div className="mb-16 rounded-lg bg-muted/30">
 			<Carousel
 				id="top-rated-carousel"
 				plugins={[autoplay.current]}
-				className="rounded-lg shadow-lg ring-1 ring-muted/20"
+				className="relative rounded-lg shadow-lg ring-1 ring-muted/20"
+				setApi={setApi}
 			>
 				<div className="flex w-full items-center justify-between gap-2 p-4">
 					<div className="flex items-end gap-3">
@@ -43,6 +71,12 @@ const FeaturedGames = () => {
 				</div>
 
 				<Banner id="top-rated-banner" />
+
+				{totalSlides > 1 && (
+					<div className="absolute right-6 bottom-4 z-30 rounded-full bg-black/40 px-3 py-1 font-medium text-sm text-white/70 shadow-md backdrop-blur-sm">
+						{currentSlide} / {totalSlides}
+					</div>
+				)}
 			</Carousel>
 		</div>
 	);

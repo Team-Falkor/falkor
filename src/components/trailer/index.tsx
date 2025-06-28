@@ -4,15 +4,20 @@ import { Button } from "../ui/button";
 import { Dialog, DialogTrigger } from "../ui/dialog";
 import TrailerDialogContent from "./dialogContent";
 
-type Props = Pick<IGDBReturnDataType, "name" | "videos">;
+type Props = Pick<IGDBReturnDataType, "name" | "videos"> & {
+	className?: string;
+	children?: React.ReactNode;
+};
 
-const TrailerButton = (props: Props) => {
+const TrailerButton = ({ className, children, ...props }: Props) => {
 	const { t } = useLanguageContext();
 
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button className="capitalize">{t("trailer")}</Button>
+				<Button className={className || "capitalize"}>
+					{children || t("trailer")}
+				</Button>
 			</DialogTrigger>
 
 			<TrailerDialogContent {...props} />

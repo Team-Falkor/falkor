@@ -1,3 +1,5 @@
+// src/components/banner/index.tsx (or wherever your Banner component is located)
+
 import type { HTMLAttributes } from "react";
 import { cn, trpc } from "@/lib";
 import BannerCard from "./cards/bannerCard";
