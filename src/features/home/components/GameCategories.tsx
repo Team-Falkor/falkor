@@ -1,5 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRightIcon, User, Users } from "lucide-react";
+import {
+	ArrowRightIcon,
+	Brain,
+	Gamepad2,
+	Ghost,
+	MapIcon,
+	Sword,
+	User,
+	Users,
+	Wrench,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguageContext } from "@/i18n/I18N";
@@ -14,10 +24,30 @@ type Category = {
 };
 
 const categories: Category[] = [
-	{ titleKey: "categories.action", icon: "🎮", id: "1", type: "theme" },
-	{ titleKey: "categories.adventure", icon: "🗺️", id: "31", type: "genre" },
-	{ titleKey: "categories.rpg", icon: "⚔️", id: "12", type: "genre" },
-	{ titleKey: "categories.strategy", icon: "🧠", id: "15", type: "genre" },
+	{
+		titleKey: "categories.action",
+		icon: <Gamepad2 className="h-4 w-4" />,
+		id: "1",
+		type: "theme",
+	},
+	{
+		titleKey: "categories.adventure",
+		icon: <MapIcon className="h-4 w-4" />,
+		id: "31",
+		type: "genre",
+	},
+	{
+		titleKey: "categories.rpg",
+		icon: <Sword className="h-4 w-4" />,
+		id: "12",
+		type: "genre",
+	},
+	{
+		titleKey: "categories.strategy",
+		icon: <Brain className="h-4 w-4" />,
+		id: "15",
+		type: "genre",
+	},
 	{
 		titleKey: "categories.coop",
 		icon: <Users className="h-4 w-4" />,
@@ -26,7 +56,7 @@ const categories: Category[] = [
 	},
 	{
 		titleKey: "categories.horror",
-		icon: "👻",
+		icon: <Ghost className="h-4 w-4" />,
 		id: "19",
 		type: "theme",
 	},
@@ -36,7 +66,12 @@ const categories: Category[] = [
 		id: "1",
 		type: "game_mode",
 	},
-	{ titleKey: "categories.simulation", icon: "🏗️", id: "13", type: "genre" },
+	{
+		titleKey: "categories.simulation",
+		icon: <Wrench className="h-4 w-4" />,
+		id: "13",
+		type: "genre",
+	},
 ];
 
 const GameCategories = () => {
