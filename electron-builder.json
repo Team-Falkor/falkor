@@ -49,7 +49,7 @@
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false,
+    "deleteAppDataOnUninstall": true,
     "shortcutName": "${productName}",
     "createDesktopShortcut": true,
     "uninstallDisplayName": "${productName} ${version}",
