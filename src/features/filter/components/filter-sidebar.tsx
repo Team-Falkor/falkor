@@ -70,6 +70,8 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 		trpc.igdb.genres.useQuery({ limit: 50, offset: 0 });
 	const { data: themesList = [], isLoading: themesLoading } =
 		trpc.igdb.themes.useQuery({ limit: 50, offset: 0 });
+	const { data: gameModesList = [], isLoading: gameModesLoading } =
+		trpc.igdb.game_modes.useQuery({ limit: 50, offset: 0 });
 
 	// Query to get developer names if IDs are present in filters
 	const { data: fetchedDeveloperNames, isLoading: devNamesLoading } =
@@ -149,6 +151,18 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 				...prev,
 				themes: list.includes(id)
 					? list.filter((t) => t !== id)
+					: [...list, id],
+			};
+		});
+	};
+
+	const handleGameModeToggle = (id: number) => {
+		setFilters((prev) => {
+			const list = prev.gameModes ?? [];
+			return {
+				...prev,
+				gameModes: list.includes(id)
+					? list.filter((gm) => gm !== id)
 					: [...list, id],
 			};
 		});
@@ -364,6 +378,42 @@ export function FilterSidebar({ initialFilters }: FilterSidebarProps) {
 										onClick={() => handleThemeToggle(t.id)}
 									>
 										<span className="w-full truncate">{t.name}</span>
+									</Button>
+								))}
+							</div>
+						)}
+					</CollapsibleContent>
+				</Collapsible>
+
+				{/* Game Modes */}
+				<Collapsible defaultOpen>
+					<CollapsibleTrigger className="flex w-full items-center justify-between">
+						<Label className="font-medium">
+							Game Modes
+							{filters.gameModes?.length ? (
+								<span className="ml-1 text-muted-foreground text-xs">
+									({filters.gameModes.length})
+								</span>
+							) : null}
+						</Label>
+						<ChevronDown className="h-4 w-4" />
+					</CollapsibleTrigger>
+					<CollapsibleContent className="max-w-full pt-3">
+						{gameModesLoading ? (
+							<div>Loading game modes...</div>
+						) : (
+							<div className="flex max-w-full flex-wrap gap-2">
+								{gameModesList.map((gm) => (
+									<Button
+										key={gm.id}
+										variant={
+											filters.gameModes?.includes(gm.id) ? "active" : "outline"
+										}
+										size="sm"
+										className="min-w-fit rounded-full"
+										onClick={() => handleGameModeToggle(gm.id)}
+									>
+										{gm.name}
 									</Button>
 								))}
 							</div>

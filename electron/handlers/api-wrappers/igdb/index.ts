@@ -107,6 +107,22 @@ export class IGDBWrapper extends IGDBApiBase {
 		});
 	}
 
+	/**
+	 * Fetches available game modes from IGDB.
+	 */
+	public async getGameModes(
+		limit = DEFAULT_LIMIT,
+		offset = 0,
+	): Promise<IGDBOption[]> {
+		return this.makeReq<IGDBOption[]>("game_modes", {
+			fields: ["id", "name"],
+			includeDefaultFields: false,
+			sort: "name asc",
+			limit,
+			offset,
+		});
+	}
+
 	public async getCompanies(ids: number[]): Promise<IGDBOption[]> {
 		if (!ids || ids.length === 0) return [];
 		return this.makeReq<IGDBOption[]>("companies", {

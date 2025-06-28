@@ -111,6 +111,15 @@ export const igdbRouter = router({
 		)
 		.query(({ input }) => igdb.getThemes(input.limit, input.offset)),
 
+	game_modes: publicProcedure
+		.input(
+			z.object({
+				limit: z.number().int().positive().optional().default(20),
+				offset: z.number().int().min(0).optional().default(0),
+			}),
+		)
+		.query(({ input }) => igdb.getGameModes(input.limit, input.offset)),
+
 	filter: publicProcedure
 		.input(
 			z.object({

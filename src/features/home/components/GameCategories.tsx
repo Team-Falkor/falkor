@@ -1,9 +1,19 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRightIcon, Shuffle, User, Users } from "lucide-react";
+import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguageContext } from "@/i18n/I18N";
 
-const categories = [
+type CategoryType = "theme" | "genre" | "game_mode";
+
+type Category = {
+	titleKey: string;
+	icon: string | ReactNode;
+	id: string;
+	type: CategoryType;
+};
+
+const categories: Category[] = [
 	{ titleKey: "categories.action", icon: "🎮", id: "1", type: "theme" },
 	{ titleKey: "categories.adventure", icon: "🗺️", id: "31", type: "genre" },
 	{ titleKey: "categories.rpg", icon: "⚔️", id: "12", type: "genre" },
@@ -11,23 +21,23 @@ const categories = [
 	{
 		titleKey: "categories.coop",
 		icon: <Users className="h-4 w-4" />,
-		id: "9",
-		type: "theme",
+		id: "3",
+		type: "game_mode",
 	},
 	{
-		titleKey: "categories.roguelike",
-		icon: <Shuffle className="h-4 w-4" />,
-		id: "42",
+		titleKey: "categories.horror",
+		icon: "👻",
+		id: "19",
 		type: "theme",
 	},
 	{
 		titleKey: "categories.singleplayer",
 		icon: <User className="h-4 w-4" />,
-		id: "32",
-		type: "theme",
+		id: "1",
+		type: "game_mode",
 	},
 	{ titleKey: "categories.simulation", icon: "🏗️", id: "13", type: "genre" },
-] as const;
+];
 
 const GameCategories = () => {
 	const { t } = useLanguageContext();
@@ -44,10 +54,18 @@ const GameCategories = () => {
 			</div>
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
 				{categories.map((category) => {
-					const searchParams =
-						category.type === "theme"
-							? { themes: [Number(category.id)] }
-							: { genreIds: [Number(category.id)] };
+					const searchParams = (() => {
+						switch (category.type) {
+							case "theme":
+								return { themes: [Number(category.id)] };
+							case "genre":
+								return { genreIds: [Number(category.id)] };
+							case "game_mode":
+								return { gameModes: [Number(category.id)] };
+							default:
+								return {};
+						}
+					})();
 
 					return (
 						<Card
