@@ -23,7 +23,7 @@ const BannerCard = ({
 	const description = storyline || summary || t("no_description_available");
 
 	return (
-		<Card className="group relative h-[24rem] w-full overflow-hidden rounded-t-none border-0 bg-transparent p-0 shadow-2xl transition-all duration-500 ease-out hover:shadow-3xl sm:h-[28rem] lg:h-[32rem] xl:h-[36rem]">
+		<Card className="group relative h-[24rem] w-full overflow-hidden rounded-t-none border-0 bg-transparent p-0 shadow-2xl transition-all duration-500 ease-out focus-states:shadow-3xl sm:h-[28rem] lg:h-[32rem] xl:h-[36rem]">
 			{/* Background Image Container */}
 			<div className="absolute inset-0 overflow-hidden">
 				{/* Enhanced gradient overlay for better text readability */}
@@ -34,7 +34,7 @@ const BannerCard = ({
 				<IGDBImage
 					imageSize="original"
 					imageId={cover.image_id}
-					className="h-full w-full scale-100 transform object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+					className="h-full w-full scale-100 transform object-cover object-center transition-transform duration-700 ease-out group-focus-states:scale-105"
 					alt={name}
 				/>
 			</div>
@@ -80,12 +80,12 @@ const BannerCard = ({
 									size: "lg",
 								}),
 								"backdrop-blur-sm transition-all duration-300",
-								"hover:scale-105 hover:shadow-lg",
+								"focus-states:scale-105 focus-states:shadow-lg",
 								"focus-visible:ring-2 focus-visible:ring-primary/50",
 								"group/button",
 							)}
 						>
-							<Info className="transition-transform group-hover/button:scale-110" />
+							<Info className="transition-transform group-focus-states/button:scale-110" />
 							{t("more_info")}
 						</Link>
 
@@ -99,12 +99,12 @@ const BannerCard = ({
 										size: "lg",
 									}),
 									"border-white/30 bg-white/10 text-white backdrop-blur-sm",
-									"hover:scale-105 hover:border-white/50 hover:bg-white/20",
+									"focus-states:scale-105 focus-states:border-white/50 focus-states:bg-white/20",
 									"transition-all duration-300",
 									"group/trailer",
 								)}
 							>
-								<Play className=" transition-transform group-hover/trailer:scale-110" />
+								<Play className=" transition-transform group-focus-states/trailer:scale-110" />
 								{t("trailer")}
 							</TrailerButton>
 						)}
