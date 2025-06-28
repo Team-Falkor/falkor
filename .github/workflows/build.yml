@@ -81,6 +81,7 @@ jobs:
           sudo apt-get install -y libarchive-tools fakeroot dpkg snapd flatpak flatpak-builder rpm
           sudo ln -s /snap/bin/snapcraft /usr/local/bin/snapcraft
           sudo snap install snapcraft --classic
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           yarn run build:linux
 
       - name: Build on Windows

@@ -62,6 +62,8 @@
       "deb",
       "pacman",
       "rpm",
+      "flatpak",
+      "snap",
       "tar.gz"
     ],
     "artifactName": "${productName}.${ext}",
