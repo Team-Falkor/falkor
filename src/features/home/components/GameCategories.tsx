@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRightIcon, Shuffle, User, Users } from "lucide-react";
+import { ArrowRightIcon, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguageContext } from "@/i18n/I18N";
