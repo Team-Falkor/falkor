@@ -6,7 +6,8 @@
 		"continue_playing": "کھیلنا جاری رکھیں",
 		"settings": "سیٹنگز",
 		"downloads": "ڈاؤن لوڈز",
-		"metadata": "Metadata"
+		"metadata": "میٹا ڈیٹا",
+		"recently_played": "حال ہی میں کھیلا گیا"
 	},
 	"settings": {
 		"titles": {
@@ -19,7 +20,7 @@
 		},
 		"plugins": {
 			"community_title": "Community Plugins",
-			"community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+			"community_disclaimer": "یہ پلگ ان کمیونٹی کے اراکین کے ذریعہ بنائے اور برقرار رکھے جاتے ہیں اور یہ Falkor سے سرکاری طور پر وابستہ یا کنٹرول نہیں ہیں۔"
 		},
 		"settings": {
 			"reset-igdb-cache": "IGDB کیش کو دوبارہ ترتیب دیں",
@@ -30,7 +31,10 @@
 			"check-for-app-updates-on-startup": "اسٹارٹ اپ پر ایپ کی اپ ڈیٹس چیک کریں",
 			"update_settings": "سیٹنگز کو اپ ڈیٹ کریں",
 			"enable_developer_console": "ڈویلپر کنسول کو فعال کریں",
-			"show_dev_console": "Show Developer Console",
+			"show_dev_console": "ڈویلپر کنسول دکھائیں",
+			"change-api-url": "API یو آر ایل تبدیل کریں",
+			"change-api-url-description": "گیم ڈیٹا حاصل کرنے کے لیے استعمال ہونے والے API یو آر ایل کو تبدیل کریں۔",
+			"test_sounds": "آوازوں کی جانچ کریں",
 			"change-title-bar-style": "عنوان بار کا انداز تبدیل کریں",
 			"change_title_bar_style_description": "کچھ اختیارات کے لیے دوبارہ شروع کی ضرورت ہو سکتی ہے",
 			"launch-on-startup": "اسٹارٹ اپ پر Falkor لانچ کریں",
@@ -104,6 +108,7 @@
 	"star_us_on_github": "ہمیں GitHub پر اسٹار دیں",
 	"join_the_discord": "Discord میں شامل ہوں",
 	"start_download_message": "کھیل ڈاؤن لوڈ کرنا شروع کریں یا شروع کرنے کے لیے ٹورینٹ شامل کریں۔",
+	"continue_playing_description": "آپ نے یہ کھیل پہلے ہی کھیلے ہیں۔ کیوں نہ جاری رکھیں؟",
 	"update_game": "کھیل کو اپ ڈیٹ کریں",
 	"update": "اپ ڈیٹ کریں",
 	"updating": "اپ ڈیٹ ہو رہا ہے",
@@ -142,5 +147,33 @@
 	"update_description": "Falkor کے لیے ایک نئی اپ ڈیٹ دستیاب ہے۔ کیا آپ ابھی اپ ڈیٹ کرنا چاہتے ہیں؟",
 	"update_now": "ابھی اپ ڈیٹ کریں",
 	"later": "بعد میں",
-	"changelog": "تبدیلیوں کی فہرست"
+	"changelog": "تبدیلیوں کی فہرست",
+	"empty_section": {
+		"new_releases": "معذرت، اس وقت کوئی نئی ریلیز نہیں ملی۔",
+		"most_anticipated": "معذرت، اس وقت کوئی زیادہ متوقع کھیل نہیں ملا۔",
+		"top_rated": "معذرت، اس وقت کوئی اعلی درجہ کا کھیل نہیں ملا۔"
+	},
+	"notifications": {
+		"download_complete": "ڈاؤن لوڈ مکمل ہو گیا",
+		"download_complete_description": "{title} کا ڈاؤن لوڈ مکمل ہو گیا ہے۔",
+		"download_starting": "ڈاؤن لوڈ شروع ہو رہا ہے",
+		"download_starting_description": "{title} کا ڈاؤن لوڈ جلد ہی شروع ہو جائے گا۔"
+	},
+	"categories": {
+		"main_game": "مرکزی کھیل",
+		"dlc_addon": "ڈی ایل سی اور ایڈ آن",
+		"expansion": "توسیع" ,
+		"bundle": "بنڈل",
+		"standalone_expansion": "اسٹینڈ اسٹون توسیع",
+		"mod": "موڈ",
+		"episode": "قسط",
+		"season": "سیزن",
+		"remake": "ریمیک",
+		"remaster": "ریماسٹر",
+		"expanded_game": "توسیع شدہ کھیل",
+		"port": "پورٹ",
+		"fork": "فورک",
+		"pack": "پیک",
+		"update": "اپ ڈیٹ"
+	}
 }

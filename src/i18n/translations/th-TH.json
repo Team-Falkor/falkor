@@ -6,7 +6,8 @@
 		"continue_playing": "เล่นต่อ",
 		"settings": "การตั้งค่า",
 		"downloads": "การดาวน์โหลด",
-		"metadata": "Metadata"
+		"metadata": "เมตาดาต้า",
+		"recently_played": "เล่นล่าสุด"
 	},
 	"settings": {
 		"titles": {
@@ -19,7 +20,7 @@
 		},
 		"plugins": {
 			"community_title": "Community Plugins",
-			"community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+			"community_disclaimer": "ปลั๊กอินเหล่านี้สร้างและดูแลโดยสมาชิกชุมชนและไม่มีส่วนเกี่ยวข้องหรือควบคุมโดย Falkor อย่างเป็นทางการ"
 		},
 		"settings": {
 			"reset-igdb-cache": "รีเซ็ตแคช IGDB",
@@ -30,7 +31,10 @@
 			"check-for-app-updates-on-startup": "ตรวจสอบการอัปเดตแอปขณะเริ่มต้น",
 			"update_settings": "อัปเดตการตั้งค่า",
 			"enable_developer_console": "เปิดใช้งานคอนโซลนักพัฒนา",
-			"show_dev_console": "Show Developer Console",
+			"show_dev_console": "แสดงคอนโซลนักพัฒนา",
+			"change-api-url": "เปลี่ยน URL ของ API",
+			"change-api-url-description": "เปลี่ยน URL ของ API ที่ใช้ในการดึงข้อมูลเกม",
+			"test_sounds": "ทดสอบเสียง",
 			"change-title-bar-style": "เปลี่ยนสไตล์แถบชื่อเรื่อง",
 			"change_title_bar_style_description": "บางตัวเลือกอาจต้องรีสตาร์ทเพื่อให้มีผล",
 			"launch-on-startup": "เปิด Falkor เมื่อเริ่มต้นระบบ",
@@ -104,6 +108,7 @@
 	"star_us_on_github": "ให้ดาวบน GitHub",
 	"join_the_discord": "เข้าร่วม Discord",
 	"start_download_message": "เริ่มดาวน์โหลดเกมหรือเพิ่มทอร์เรนต์เพื่อเริ่มต้น",
+	"continue_playing_description": "คุณเล่นเกมเหล่านี้ไปแล้ว ทำไมไม่เล่นต่อล่ะ?",
 	"update_game": "อัปเดตเกม",
 	"update": "อัปเดต",
 	"updating": "กำลังอัปเดต",
@@ -142,5 +147,33 @@
 	"update_description": "มีการอัปเดตใหม่สำหรับ Falkor คุณต้องการอัปเดตเดี๋ยวนี้หรือไม่?",
 	"update_now": "อัปเดตเดี๋ยวนี้",
 	"later": "ภายหลัง",
-	"changelog": "บันทึกการเปลี่ยนแปลง"
+	"changelog": "บันทึกการเปลี่ยนแปลง",
+	"empty_section": {
+		"new_releases": "ขออภัย ไม่พบเกมใหม่ในขณะนี้",
+		"most_anticipated": "ขออภัย ไม่พบเกมที่คาดว่าจะวางจำหน่ายในขณะนี้",
+		"top_rated": "ขออภัย ไม่พบเกมยอดนิยมในขณะนี้"
+	},
+	"notifications": {
+		"download_complete": "ดาวน์โหลดเสร็จสมบูรณ์",
+		"download_complete_description": "การดาวน์โหลด {title} เสร็จสมบูรณ์แล้ว",
+		"download_starting": "กำลังเริ่มดาวน์โหลด",
+		"download_starting_description": "การดาวน์โหลด {title} กำลังจะเริ่มขึ้นในไม่ช้า"
+	},
+	"categories": {
+		"main_game": "เกมหลัก",
+		"dlc_addon": "DLC และส่วนเสริม",
+		"expansion": "ภาคเสริม",
+		"bundle": "บันเดิล",
+		"standalone_expansion": "ภาคเสริมแบบสแตนด์อโลน",
+		"mod": "ม็อด",
+		"episode": "ตอน",
+		"season": "ซีซัน",
+		"remake": "รีเมค",
+		"remaster": "รีมาสเตอร์",
+		"expanded_game": "เกมภาคขยาย",
+		"port": "พอร์ต",
+		"fork": "ฟอร์ค",
+		"pack": "แพ็ค",
+		"update": "อัปเดต"
+	}
 }

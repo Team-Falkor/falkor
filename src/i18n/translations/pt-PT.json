@@ -6,7 +6,7 @@
 		"continue_playing": "Continuar Jogando",
 		"settings": "Configurações",
 		"downloads": "Downloads",
-		"metadata": "Metadata"
+		"metadata": "Metadados"
 	},
 	"settings": {
 		"titles": {
@@ -18,8 +18,8 @@
 			"miscellaneous": "Configurações Diversas"
 		},
 		"plugins": {
-			"community_title": "Community Plugins",
-			"community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+			"community_title": "Plugins da Comunidade",
+			"community_disclaimer": "Estes plugins são criados e mantidos por membros da comunidade e não são oficialmente afiliados ou controlados pela Falkor."
 		},
 		"settings": {
 			"reset-igdb-cache": "Resetar Cache do IGDB",
@@ -29,7 +29,7 @@
 			"check-for-plugin-updates-on-startup": "Verificar Atualizações de Plugins ao Iniciar",
 			"check-for-app-updates-on-startup": "Verificar Atualizações do App ao Iniciar",
 			"update_settings": "Atualizar Configurações",
-			"show_dev_console": "Ativar Console de Desenvolvedor",
+			"show_dev_console": "Mostrar Console de Desenvolvedor",
 			"change-title-bar-style": "Alterar Estilo da Barra de Título",
 			"change_title_bar_style_description": "Algumas opções exigem reinício para surtir efeito",
 			"launch-on-startup": "Iniciar o Falkor ao iniciar o sistema",
@@ -40,7 +40,10 @@
 			"max_speed_description": "A velocidade máxima para os downloads serem limitados (-1 para ilimitado)",
 			"toggle-notifications": "Ativar Notificações",
 			"title-bar-style": "Alterar o estilo da barra de título",
-			"language": "Alterar o idioma do aplicativo"
+			"language": "Alterar o idioma do aplicativo",
+			"change-api-url": "Alterar URL da API",
+			"change-api-url-description": "Não altere isto a menos que saiba o que está a fazer",
+			"test_sounds": "Testar Sons"
 		}
 	},
 	"view_more": "Ver Mais",
@@ -102,7 +105,7 @@
 	"open_downloads_folder": "Abrir pasta de downloads",
 	"star_us_on_github": "Dê uma estrela para nós no GitHub",
 	"join_the_discord": "Entrar no Discord",
-	"start_download_message": "Start downloading a game or add a torrent to begin.",
+	"start_download_message": "Comece a baixar um jogo ou adicione um torrent para começar.",
 	"update_game": "Atualizar Jogo",
 	"update": "Atualizar",
 	"updating": "Atualizando",
@@ -113,6 +116,7 @@
 	"actions": "Ações",
 	"stop_playing": "Parar de Jogar",
 	"continue_playing": "Continuar Jogando",
+	"continue_playing_description": "Continue a jogar os seus jogos instalados",
 	"igdb_id": "ID IGDB",
 	"support_me_on_kofi": "Apoie-me no Ko‑fi",
 	"create_new_list": "Criar Nova Lista",
@@ -133,13 +137,51 @@
 	"max_upload_speed": "Velocidade máxima de upload",
 	"add-to-list": "Adicionar à Lista",
 	"steam_id": "Steam ID",
-	"wine_prefix_folder": "Wine Prefix Folder",
-	"the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
-	"import_from_igdb": "Import From IGDB",
-	"install_plugin": "Install Plugin",
-	"update_available": "Update Available",
-	"update_description": "A new update is available for Falkor. Do you want to update now?",
-	"update_now": "Update Now",
-	"later": "Later",
-	"changelog": "Changelog"
+	"wine_prefix_folder": "Pasta de Prefixo do Wine",
+	"the_path_to_your_wine_prefix_folder": "O caminho para a sua pasta de prefixo do wine",
+	"import_from_igdb": "Importar do IGDB",
+	"install_plugin": "Instalar Plugin",
+	"update_available": "Atualização Disponível",
+	"update_description": "Uma nova atualização está disponível para o Falkor. Deseja atualizar agora?",
+	"update_now": "Atualizar Agora",
+	"later": "Mais Tarde",
+	"changelog": "Registro de Alterações",
+	"no_games_installed": "Nenhum jogo instalado ainda",
+	"installed": "Instalado",
+	"installed_description": "Este jogo está instalado?",
+	"calendar": "Calendário",
+	"game_updated_successfully": "Jogo atualizado com sucesso",
+	"error_updating_game": "Erro ao atualizar o jogo",
+	"save_game": "Salvar Jogo",
+	"save_changes": "Salvar Alterações",
+	"save": "Salvar",
+	"error_loading_sources": "Erro ao carregar fontes",
+	"profile": "Perfil",
+	"update_ready_to_install": "Atualização pronta para instalar",
+	"update_ready_description": "Descrição da atualização pronta",
+	"downloading_update": "Baixando atualização",
+	"restart_and_install": "Reiniciar e instalar",
+	"restart_to_install": "Reiniciar para instalar",
+	"error_opening_file_dialog": "Erro ao abrir o diálogo de arquivo",
+	"game_id_missing": "ID do jogo ausente",
+	"game_name_or_path_missing": "Nome ou caminho do jogo ausente",
+	"saving": "Salvando",
+	"achievements": "Conquistas",
+	"loading": "Carregando...",
+	"no_lists_yet": "Nenhuma lista ainda",
+	"create_your_first_list": "Crie sua primeira lista para organizar seus jogos",
+	"organize_your_games": "Organize seus jogos",
+	"select_lists_to_add_game": "Selecione as listas para adicionar este jogo",
+	"browse_by_category": "Navegar por categoria",
+	"discover_games_by_genres_themes": "Descubra jogos por seus gêneros e temas favoritos",
+	"categories": {
+		"action": "Ação",
+		"adventure": "Aventura",
+		"rpg": "RPG",
+		"strategy": "Estratégia",
+		"coop": "Cooperativo",
+		"horror": "Terror",
+		"singleplayer": "Um Jogador",
+		"simulation": "Simulação"
+	}
 }

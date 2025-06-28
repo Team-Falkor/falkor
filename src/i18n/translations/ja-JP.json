@@ -6,7 +6,7 @@
 		"continue_playing": "プレイを続ける",
 		"settings": "設定",
 		"downloads": "ダウンロード",
-		"metadata": "Metadata"
+		"metadata": "メタデータ"
 	},
 	"settings": {
 		"titles": {
@@ -18,8 +18,8 @@
 			"miscellaneous": "その他の設定"
 		},
 		"plugins": {
-			"community_title": "Community Plugins",
-			"community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+			"community_title": "コミュニティプラグイン",
+			"community_disclaimer": "これらのプラグインはコミュニティメンバーによって作成および維持されており、Falkorと公式に提携または管理されているものではありません。"
 		},
 		"settings": {
 			"reset-igdb-cache": "IGDBキャッシュをリセット",
@@ -29,7 +29,7 @@
 			"check-for-plugin-updates-on-startup": "起動時にプラグインの更新を確認",
 			"check-for-app-updates-on-startup": "起動時にアプリの更新を確認",
 			"update_settings": "設定を更新",
-			"show_dev_console": "開発者コンソールを有効化",
+			"show_dev_console": "開発者コンソールを表示",
 			"change-title-bar-style": "タイトルバーのスタイルを変更",
 			"change_title_bar_style_description": "一部のオプションは適用するために再起動が必要です",
 			"launch-on-startup": "システム起動時にFalkorを起動",
@@ -40,7 +40,10 @@
 			"max_speed_description": "ダウンロードの最大速度を制限（-1で制限なし）",
 			"toggle-notifications": "通知を有効化",
 			"title-bar-style": "タイトルバーのスタイル",
-			"language": "アプリの言語"
+			"language": "アプリの言語",
+			"change-api-url": "API URLを変更",
+			"change-api-url-description": "何をしているか理解していない限り、これを変更しないでください",
+			"test_sounds": "サウンドをテスト"
 		}
 	},
 	"view_more": "もっと見る",
@@ -102,7 +105,7 @@
 	"open_downloads_folder": "ダウンロードフォルダを開く",
 	"star_us_on_github": "GitHubでスターを付ける",
 	"join_the_discord": "Discordに参加",
-	"start_download_message": "Start downloading a game or add a torrent to begin.",
+	"start_download_message": "ゲームのダウンロードを開始するか、トレントを追加して開始します。",
 	"update_game": "ゲームを更新",
 	"update": "更新",
 	"updating": "更新中",
@@ -113,6 +116,7 @@
 	"actions": "アクション",
 	"stop_playing": "プレイを中止",
 	"continue_playing": "プレイを続ける",
+	"continue_playing_description": "インストールしたゲームのプレイを続ける",
 	"igdb_id": "IGDB ID",
 	"support_me_on_kofi": "Ko‑fiでサポート",
 	"create_new_list": "新しいリストを作成",
@@ -133,13 +137,51 @@
 	"max_upload_speed": "最大アップロード速度",
 	"add-to-list": "リストに追加",
 	"steam_id": "Steam ID",
-	"wine_prefix_folder": "Wine Prefix Folder",
-	"the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
-	"import_from_igdb": "Import From IGDB",
-	"install_plugin": "Install Plugin",
-	"update_available": "Update Available",
-	"update_description": "A new update is available for Falkor. Do you want to update now?",
-	"update_now": "Update Now",
-	"later": "Later",
-	"changelog": "Changelog"
+	"wine_prefix_folder": "Wineプレフィックスフォルダ",
+	"the_path_to_your_wine_prefix_folder": "Wineプレフィックスフォルダへのパス",
+	"import_from_igdb": "IGDBからインポート",
+	"install_plugin": "プラグインをインストール",
+	"update_available": "アップデートが利用可能です",
+	"update_description": "Falkorの新しいアップデートが利用可能です。今すぐアップデートしますか？",
+	"update_now": "今すぐアップデート",
+	"later": "後で",
+	"changelog": "変更履歴",
+	"no_games_installed": "まだゲームをインストールしていません",
+	"installed": "インストール済み",
+	"installed_description": "このゲームはインストールされていますか？",
+	"calendar": "カレンダー",
+	"game_updated_successfully": "ゲームが正常に更新されました",
+	"error_updating_game": "ゲームの更新中にエラーが発生しました",
+	"save_game": "ゲームを保存",
+	"save_changes": "変更を保存",
+	"save": "保存",
+	"error_loading_sources": "ソースの読み込み中にエラーが発生しました",
+	"profile": "プロフィール",
+	"update_ready_to_install": "アップデートのインストール準備完了",
+	"update_ready_description": "アップデート準備完了の説明",
+	"downloading_update": "アップデートをダウンロード中",
+	"restart_and_install": "再起動してインストール",
+	"restart_to_install": "インストールするために再起動",
+	"error_opening_file_dialog": "ファイルダイアログを開く際にエラーが発生しました",
+	"game_id_missing": "ゲームIDがありません",
+	"game_name_or_path_missing": "ゲーム名またはパスがありません",
+	"saving": "保存中",
+	"achievements": "実績",
+	"loading": "読み込み中...",
+	"no_lists_yet": "まだリストはありません",
+	"create_your_first_list": "ゲームを整理するために最初のリストを作成します",
+	"organize_your_games": "ゲームを整理する",
+	"select_lists_to_add_game": "このゲームを追加するリストを選択します",
+	"browse_by_category": "カテゴリで閲覧",
+	"discover_games_by_genres_themes": "お気に入りのジャンルやテーマでゲームを発見",
+	"categories": {
+		"action": "アクション",
+		"adventure": "アドベンチャー",
+		"rpg": "RPG",
+		"strategy": "ストラテジー",
+		"coop": "協力プレイ",
+		"horror": "ホラー",
+		"singleplayer": "シングルプレイヤー",
+		"simulation": "シミュレーション"
+	}
 }

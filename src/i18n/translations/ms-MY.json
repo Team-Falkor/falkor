@@ -18,8 +18,8 @@
 			"miscellaneous": "Tetapan Lain-lain"
 		},
 		"plugins": {
-			"community_title": "Community Plugins",
-			"community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+			"community_title": "Plugin Komuniti",
+			"community_disclaimer": "Plugin ini dicipta dan diselenggara oleh ahli komuniti dan tidak bergabung secara rasmi atau dikawal oleh Falkor."
 		},
 		"settings": {
 			"reset-igdb-cache": "Tetapkan Semula Cache IGDB",
@@ -29,7 +29,7 @@
 			"check-for-plugin-updates-on-startup": "Semak Kemas Kini Plugin Semasa Permulaan",
 			"check-for-app-updates-on-startup": "Semak Kemas Kini Aplikasi Semasa Permulaan",
 			"update_settings": "Kemas Kini Tetapan",
-			"show_dev_console": "Show Developer Console",
+			"show_dev_console": "Tunjukkan Konsol Pembangun",
 			"change-title-bar-style": "Tukar Gaya Bar Tajuk",
 			"change_title_bar_style_description": "Beberapa pilihan memerlukan but semula",
 			"launch-on-startup": "Lancarkan Falkor Semasa Permulaan Sistem",
@@ -40,7 +40,10 @@
 			"max_speed_description": "Had kelajuan muat turun maksimum (-1 untuk tidak terhad)",
 			"toggle-notifications": "Aktifkan Pemberitahuan",
 			"title-bar-style": "Gaya Bar Tajuk",
-			"language": "Bahasa Aplikasi"
+			"language": "Bahasa Aplikasi",
+			"change-api-url": "Tukar URL API",
+			"change-api-url-description": "Jangan ubah ini melainkan anda tahu apa yang anda lakukan",
+			"test_sounds": "Uji Bunyi"
 		}
 	},
 	"view_more": "Lihat Lagi",
@@ -113,6 +116,7 @@
 	"actions": "Tindakan",
 	"stop_playing": "Berhenti Bermain",
 	"continue_playing": "Terus Bermain",
+	"continue_playing_description": "Teruskan bermain permainan yang dipasang",
 	"igdb_id": "IGDB ID",
 	"support_me_on_kofi": "Sokong Saya di Ko‑fi",
 	"create_new_list": "Buat Senarai Baru",
@@ -141,5 +145,43 @@
 	"update_description": "Kemas kini baru tersedia untuk Falkor. Adakah anda mahu kemas kini sekarang?",
 	"update_now": "Kemas Kini Sekarang",
 	"later": "Kemudian",
-	"changelog": "Log Perubahan"
+	"changelog": "Log Perubahan",
+	"no_games_installed": "Tiada permainan dipasang lagi",
+	"installed": "Dipasang",
+	"installed_description": "Adakah permainan ini dipasang?",
+	"calendar": "Kalendar",
+	"game_updated_successfully": "Permainan berjaya dikemas kini",
+	"error_updating_game": "Ralat semasa mengemas kini permainan",
+	"save_game": "Simpan Permainan",
+	"save_changes": "Simpan Perubahan",
+	"save": "Simpan",
+	"error_loading_sources": "Ralat semasa memuatkan sumber",
+	"profile": "Profil",
+	"update_ready_to_install": "Kemas kini sedia untuk dipasang",
+	"update_ready_description": "Penerangan sedia kemas kini",
+	"downloading_update": "Memuat turun kemas kini",
+	"restart_and_install": "Mula semula dan pasang",
+	"restart_to_install": "Mula semula untuk memasang",
+	"error_opening_file_dialog": "Ralat membuka dialog fail",
+	"game_id_missing": "ID Permainan tiada",
+	"game_name_or_path_missing": "Nama atau laluan permainan tiada",
+	"saving": "Menyimpan",
+	"achievements": "Pencapaian",
+	"loading": "Memuatkan...",
+	"no_lists_yet": "Belum ada senarai",
+	"create_your_first_list": "Buat senarai pertama anda untuk menyusun permainan anda",
+	"organize_your_games": "Susun permainan anda",
+	"select_lists_to_add_game": "Pilih senarai untuk menambah permainan ini",
+	"browse_by_category": "Layari mengikut kategori",
+	"discover_games_by_genres_themes": "Temui permainan mengikut genre dan tema kegemaran anda",
+	"categories": {
+		"action": "Aksi",
+		"adventure": "Pengembaraan",
+		"rpg": "RPG",
+		"strategy": "Strategi",
+		"coop": "Kerjasama",
+		"horror": "Seram",
+		"singleplayer": "Pemain Tunggal",
+		"simulation": "Simulasi"
+	}
 }

@@ -6,7 +6,7 @@
 		"continue_playing": "계속 플레이하기",
 		"settings": "설정",
 		"downloads": "다운로드",
-		"metadata": "Metadata"
+		"metadata": "메타데이터"
 	},
 	"settings": {
 		"titles": {
@@ -18,8 +18,8 @@
 			"miscellaneous": "기타 설정"
 		},
 		"plugins": {
-			"community_title": "Community Plugins",
-			"community_disclaimer": "These plugins are created and maintained by community members and are not officially affiliated with or controlled by Falkor."
+			"community_title": "커뮤니티 플러그인",
+			"community_disclaimer": "이 플러그인들은 커뮤니티 멤버에 의해 생성 및 유지보수되며, Falkor와 공식적으로 제휴하거나 통제하지 않습니다."
 		},
 		"settings": {
 			"reset-igdb-cache": "IGDB 캐시 재설정",
@@ -29,7 +29,7 @@
 			"check-for-plugin-updates-on-startup": "시작 시 플러그인 업데이트 확인",
 			"check-for-app-updates-on-startup": "시작 시 앱 업데이트 확인",
 			"update_settings": "설정 업데이트",
-			"enable_developer_console": "개발자 콘솔 활성화",
+			"show_dev_console": "개발자 콘솔 표시",
 			"change-title-bar-style": "제목 표시줄 스타일 변경",
 			"change_title_bar_style_description": "일부 옵션은 재시작 후 적용됩니다",
 			"launch-on-startup": "시스템 시작 시 Falkor 실행",
@@ -40,7 +40,10 @@
 			"max_speed_description": "다운로드 제한 최대 속도 (-1은 무제한)",
 			"toggle-notifications": "알림 활성화",
 			"title-bar-style": "제목 표시줄 스타일 변경",
-			"language": "애플리케이션 언어 변경"
+			"language": "애플리케이션 언어 변경",
+			"change-api-url": "API URL 변경",
+			"change-api-url-description": "무엇을 하는지 모르는 경우 이 값을 변경하지 마십시오",
+			"test_sounds": "사운드 테스트"
 		}
 	},
 	"view_more": "더 보기",
@@ -102,7 +105,7 @@
 	"open_downloads_folder": "다운로드 폴더 열기",
 	"star_us_on_github": "GitHub에서 별표를 눌러주세요",
 	"join_the_discord": "디스코드에 참여하세요",
-	"start_download_message": "Start downloading a game or add a torrent to begin.",
+	"start_download_message": "게임을 다운로드하거나 토렌트를 추가하여 시작하세요.",
 	"update_game": "게임 업데이트",
 	"update": "업데이트",
 	"updating": "업데이트 중",
@@ -113,6 +116,7 @@
 	"actions": "작업",
 	"stop_playing": "플레이 중지",
 	"continue_playing": "계속 플레이",
+	"continue_playing_description": "설치된 게임 계속 플레이하기",
 	"igdb_id": "IGDB ID",
 	"support_me_on_kofi": "Ko‑fi에서 지원하기",
 	"create_new_list": "새 목록 만들기",
@@ -133,13 +137,51 @@
 	"max_upload_speed": "최대 업로드 속도",
 	"add-to-list": "목록에 추가",
 	"steam_id": "Steam ID",
-	"wine_prefix_folder": "Wine Prefix Folder",
-	"the_path_to_your_wine_prefix_folder": "The path to your wine prefix folder",
-	"import_from_igdb": "Import From IGDB",
-	"install_plugin": "Install Plugin",
-	"update_available": "Update Available",
-	"update_description": "A new update is available for Falkor. Do you want to update now?",
-	"update_now": "Update Now",
-	"later": "Later",
-	"changelog": "Changelog"
+	"wine_prefix_folder": "Wine 프리픽스 폴더",
+	"the_path_to_your_wine_prefix_folder": "Wine 프리픽스 폴더 경로",
+	"import_from_igdb": "IGDB에서 가져오기",
+	"install_plugin": "플러그인 설치",
+	"update_available": "업데이트 가능",
+	"update_description": "Falkor에 대한 새 업데이트가 있습니다. 지금 업데이트하시겠습니까?",
+	"update_now": "지금 업데이트",
+	"later": "나중에",
+	"changelog": "변경 로그",
+	"no_games_installed": "아직 설치된 게임이 없습니다",
+	"installed": "설치됨",
+	"installed_description": "이 게임이 설치되었습니까?",
+	"calendar": "캘린더",
+	"game_updated_successfully": "게임이 성공적으로 업데이트되었습니다",
+	"error_updating_game": "게임 업데이트 중 오류 발생",
+	"save_game": "게임 저장",
+	"save_changes": "변경 사항 저장",
+	"save": "저장",
+	"error_loading_sources": "소스를 로드하는 중 오류 발생",
+	"profile": "프로필",
+	"update_ready_to_install": "업데이트 설치 준비 완료",
+	"update_ready_description": "업데이트 준비 완료 설명",
+	"downloading_update": "업데이트 다운로드 중",
+	"restart_and_install": "재시작 및 설치",
+	"restart_to_install": "설치하려면 재시작",
+	"error_opening_file_dialog": "파일 대화 상자를 여는 중 오류 발생",
+	"game_id_missing": "게임 ID가 없습니다",
+	"game_name_or_path_missing": "게임 이름 또는 경로가 없습니다",
+	"saving": "저장 중",
+	"achievements": "업적",
+	"loading": "로드 중...",
+	"no_lists_yet": "아직 목록이 없습니다",
+	"create_your_first_list": "게임을 정리하기 위해 첫 번째 목록을 만드세요",
+	"organize_your_games": "게임 정리",
+	"select_lists_to_add_game": "이 게임을 추가할 목록을 선택하세요",
+	"browse_by_category": "카테고리별로 찾아보기",
+	"discover_games_by_genres_themes": "좋아하는 장르와 테마로 게임을 찾아보세요",
+	"categories": {
+		"action": "액션",
+		"adventure": "어드벤처",
+		"rpg": "RPG",
+		"strategy": "전략",
+		"coop": "협동",
+		"horror": "공포",
+		"singleplayer": "싱글플레이어",
+		"simulation": "시뮬레이션"
+	}
 }

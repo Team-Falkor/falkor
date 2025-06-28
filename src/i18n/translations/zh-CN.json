@@ -6,7 +6,8 @@
 		"continue_playing": "继续玩",
 		"settings": "设置",
 		"downloads": "下载",
-		"metadata": "元数据"
+		"metadata": "元数据",
+		"recently_played": "最近玩过"
 	},
 	"settings": {
 		"titles": {
@@ -30,6 +31,10 @@
 			"check-for-app-updates-on-startup": "启动时检查应用更新",
 			"update_settings": "更新设置",
 			"enable_developer_console": "启用开发者控制台",
+			"show_dev_console": "显示开发者控制台",
+			"change-api-url": "更改API网址",
+			"change-api-url-description": "更改用于获取游戏数据的API网址",
+			"test_sounds": "测试声音",
 			"change-title-bar-style": "更改标题栏样式",
 			"change_title_bar_style_description": "某些选项需要重启才能生效",
 			"launch-on-startup": "系统启动时启动 Falkor",
@@ -103,6 +108,7 @@
 	"star_us_on_github": "在 GitHub 上给我们加星",
 	"join_the_discord": "加入 Discord",
 	"start_download_message": "开始下载游戏或添加种子以开始。",
+	"continue_playing_description": "您已经玩过这些游戏。为什么不继续呢？",
 	"update_game": "更新游戏",
 	"update": "更新",
 	"updating": "正在更新",
@@ -141,5 +147,33 @@
 	"update_description": "Falkor 有新的更新可用。您想现在更新吗？",
 	"update_now": "现在更新",
 	"later": "稍后",
-	"changelog": "更新日志"
+	"changelog": "更新日志",
+	"empty_section": {
+		"new_releases": "抱歉，当前没有找到新的发布。",
+		"most_anticipated": "抱歉，当前没有找到最受期待的游戏。",
+		"top_rated": "抱歉，当前没有找到评分最高的游戏。"
+	},
+	"notifications": {
+		"download_complete": "下载完成",
+		"download_complete_description": "{title} 的下载已完成。",
+		"download_starting": "开始下载",
+		"download_starting_description": "{title} 的下载即将开始。"
+	},
+	"categories": {
+		"main_game": "主游戏",
+		"dlc_addon": "DLC和附加内容",
+		"expansion": "扩展包",
+		"bundle": "捆绑包",
+		"standalone_expansion": "独立扩展包",
+		"mod": "模组",
+		"episode": "章节",
+		"season": "季",
+		"remake": "重制版",
+		"remaster": "重置版",
+		"expanded_game": "扩展版游戏",
+		"port": "移植版",
+		"fork": "分支",
+		"pack": "包",
+		"update": "更新"
+	}
 }

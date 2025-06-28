@@ -6,7 +6,8 @@
 		"continue_playing": "Tiếp tục chơi",
 		"settings": "Cài đặt",
 		"downloads": "Tải xuống",
-		"metadata": "Metadata"
+		"metadata": "Siêu dữ liệu",
+		"recently_played": "Chơi gần đây"
 	},
 	"settings": {
 		"titles": {
@@ -31,6 +32,9 @@
 			"update_settings": "Cập nhật cài đặt",
 			"enable_developer_console": "Kích hoạt bảng điều khiển nhà phát triển",
 			"show_dev_console": "Hiển thị bảng điều khiển nhà phát triển",
+			"change-api-url": "Thay đổi URL API",
+			"change-api-url-description": "Thay đổi URL API được sử dụng để tìm nạp dữ liệu trò chơi",
+			"test_sounds": "Kiểm tra âm thanh",
 			"change-title-bar-style": "Thay đổi phong cách thanh tiêu đề",
 			"change_title_bar_style_description": "Một số tùy chọn yêu cầu khởi động lại để có hiệu lực",
 			"launch-on-startup": "Khởi chạy Falkor khi hệ thống khởi động",
@@ -104,6 +108,7 @@
 	"star_us_on_github": "Đánh giá chúng tôi trên GitHub",
 	"join_the_discord": "Tham gia Discord",
 	"start_download_message": "Bắt đầu tải xuống một trò chơi hoặc thêm một torrent để bắt đầu.",
+	"continue_playing_description": "Bạn đã chơi những trò chơi này. Tại sao không tiếp tục?",
 	"update_game": "Cập nhật trò chơi",
 	"update": "Cập nhật",
 	"updating": "Đang cập nhật",
@@ -142,5 +147,33 @@
 	"update_description": "Có một bản cập nhật mới cho Falkor. Bạn có muốn cập nhật ngay không?",
 	"update_now": "Cập nhật ngay",
 	"later": "Để sau",
-	"changelog": "Nhật ký thay đổi"
+	"changelog": "Nhật ký thay đổi",
+	"empty_section": {
+		"new_releases": "Xin lỗi, không tìm thấy bản phát hành mới nào vào lúc này.",
+		"most_anticipated": "Xin lỗi, không tìm thấy trò chơi được mong đợi nhất nào vào lúc này.",
+		"top_rated": "Xin lỗi, không tìm thấy trò chơi được xếp hạng cao nhất nào vào lúc này."
+	},
+	"notifications": {
+		"download_complete": "Tải xuống hoàn tất",
+		"download_complete_description": "Tải xuống {title} đã hoàn tất.",
+		"download_starting": "Bắt đầu tải xuống",
+		"download_starting_description": "Tải xuống {title} sẽ sớm bắt đầu."
+	},
+	"categories": {
+		"main_game": "Trò chơi chính",
+		"dlc_addon": "DLC & Add-on",
+		"expansion": "Bản mở rộng",
+		"bundle": "Gói",
+		"standalone_expansion": "Bản mở rộng độc lập",
+		"mod": "Mod",
+		"episode": "Tập",
+		"season": "Mùa",
+		"remake": "Làm lại",
+		"remaster": "Làm lại đồ họa",
+		"expanded_game": "Trò chơi mở rộng",
+		"port": "Cổng",
+		"fork": "Nhánh",
+		"pack": "Gói",
+		"update": "Cập nhật"
+	}
 }
