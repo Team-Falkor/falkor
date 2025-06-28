@@ -290,14 +290,38 @@ export const gameLauncherRouter = router({
 	onGameStateChange: publicProcedure.subscription(async function* () {
 		// Create unique listeners for this specific subscription to avoid conflicts
 		const subscriptionId = Math.random().toString(36).substring(7);
+		logger.log(
+			"debug",
+			`Creating game state change subscription ${subscriptionId}`,
+		);
 
-		// Define subscription-specific event handlers
-		const onPlayingHandler = (_id: number) => {
-			// This will be handled by the subscription loop
+		// Create a queue to store events for this subscription
+		const eventQueue: Array<{
+			type: "playing" | "stopped";
+			id: number;
+			timestamp: number;
+		}> = [];
+
+		// Define subscription-specific event handlers that actually handle events
+		const onPlayingHandler = (id: number) => {
+			logger.log(
+				"debug",
+				`Subscription ${subscriptionId}: Game ${id} started playing`,
+			);
+			eventQueue.push({
+				type: "playing" as const,
+				id,
+				timestamp: Date.now(),
+			});
 		};
 
-		const onStoppedHandler = (_id: number) => {
-			// This will be handled by the subscription loop
+		const onStoppedHandler = (id: number) => {
+			logger.log("debug", `Subscription ${subscriptionId}: Game ${id} stopped`);
+			eventQueue.push({
+				type: "stopped" as const,
+				id,
+				timestamp: Date.now(),
+			});
 		};
 
 		// Cleanup function that only removes this subscription's listeners
@@ -317,22 +341,26 @@ export const gameLauncherRouter = router({
 
 		try {
 			while (true) {
-				// Waits for either a 'game:playing' or 'game:stopped' event to be emitted.
-				// `emitOnce` is crucial here to only capture the next single event.
-				const result = await Promise.race([
-					emitOnce<number>(emitter, "game:playing").then((id) => ({
-						type: "playing" as const,
-						id,
-						timestamp: Date.now(),
-					})),
-					emitOnce<number>(emitter, "game:stopped").then((id) => ({
-						type: "stopped" as const,
-						id,
-						timestamp: Date.now(),
-					})),
-				]);
+				// Wait for events to be added to the queue
+				while (eventQueue.length === 0) {
+					// Wait for either a 'game:playing' or 'game:stopped' event to be emitted.
+					await Promise.race([
+						emitOnce<number>(emitter, "game:playing"),
+						emitOnce<number>(emitter, "game:stopped"),
+					]);
+				}
 
-				yield result; // Yield the event data to the subscriber.
+				// Yield all events in the queue
+				while (eventQueue.length > 0) {
+					const event = eventQueue.shift();
+					if (event) {
+						logger.log(
+							"debug",
+							`Subscription ${subscriptionId}: Yielding event, ${event}`,
+						);
+						yield event;
+					}
+				}
 			}
 		} catch (error) {
 			logger.log(
