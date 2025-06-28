@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import useSearch from "@/features/search/hooks/useSearch";
+import { cn } from "@/lib";
 import SearchResultItem from "./SearchResultItem";
 import SearchSpinner from "./SearchSpinner";
 
@@ -55,7 +56,9 @@ export default function SearchCommand() {
 				<Button
 					size="icon"
 					variant="ghost"
-					className="focus-states:bg-muted"
+					className={cn("focus-states:bg-muted", {
+						"bg-muted": open,
+					})}
 					aria-label="Open search"
 				>
 					<SearchIcon />
