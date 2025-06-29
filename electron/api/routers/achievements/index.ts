@@ -1,6 +1,7 @@
 import { achievementImporter } from "@backend/handlers/achievements/import";
 import { SettingsManager } from "@backend/handlers/settings/settings";
 import { getErrorMessage } from "@backend/utils/utils";
+import type { ApiResponse } from "@team-falkor/shared-types";
 import type Database from "better-sqlite3";
 import { eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
@@ -44,8 +45,9 @@ export const getAchievementsDataFromApi = async (steamId: string) => {
 			throw new Error("Failed to fetch data");
 		}
 
-		const data: IGetSchemaForGame = await res.json();
-		return data?.game?.availableGameStats?.achievements ?? [];
+		const data: ApiResponse<IGetSchemaForGame> = await res.json();
+
+		return data?.data?.game?.availableGameStats?.achievements ?? [];
 	} catch (error) {
 		throw new Error(getErrorMessage(error));
 	}

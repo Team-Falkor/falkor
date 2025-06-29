@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@team-falkor/shared-types";
 import type {
 	IGetPlayerAchievementsResponse,
 	IGetSchemaForGame,
@@ -20,9 +21,11 @@ class AchievementData {
 
 			if (!request.ok) throw new Error(request.statusText);
 
-			const data: IGetSchemaForGame = await request.json();
+			const data: ApiResponse<IGetSchemaForGame> = await request.json();
 
-			return data;
+			if (!data?.data) throw new Error("no data");
+
+			return data?.data;
 		} catch (error) {
 			console.log(error);
 			logger.log("error", `Error getting achievement data: ${error}`);
@@ -47,8 +50,12 @@ class AchievementData {
 				return null;
 			}
 
-			const data: IGetPlayerAchievementsResponse = await request.json();
-			return data;
+			const data: ApiResponse<IGetPlayerAchievementsResponse> =
+				await request.json();
+
+			if (!data?.data) throw new Error("no data");
+
+			return data?.data;
 		} catch (error) {
 			console.log(error);
 			logger.log("error", `Error getting user achievements: ${error}`);
