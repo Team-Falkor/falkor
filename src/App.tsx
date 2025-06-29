@@ -49,7 +49,7 @@ function App() {
 				{/* {!hasLoaded && <SplashScreen />} */}
 				<QueryClientProvider client={queryClient}>
 					{/* <ConfirmClose /> */}
-					<Toaster />
+					<Toaster richColors={true} position="top-center" />
 					<RouterProvider router={appRouter} />
 				</QueryClientProvider>
 			</trpc.Provider>
