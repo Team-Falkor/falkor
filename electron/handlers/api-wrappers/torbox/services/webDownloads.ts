@@ -3,27 +3,25 @@ import { TorBoxAPI } from "./api";
 import type {
 	TorBoxResponse,
 	TorBoxWebDownloadItem,
-	TorBoxAddWebDownload
+	TorBoxAddWebDownload,
 } from "@/@types/accounts/torbox";
 
 export class WebDownloads extends TorBoxAPI {
-
 	public async createWebDownload(link: string): Promise<TorBoxWebDownloadItem> {
 		const body = new FormData();
 		body.append("link", link);
 
-		const response = await this.makeRequest<TorBoxResponse<TorBoxAddWebDownload>>(
-			"webdl/createwebdownload",
-			"POST",
-			true,
-			body
-		);
+		const response = await this.makeRequest<
+			TorBoxResponse<TorBoxAddWebDownload>
+		>("webdl/createwebdownload", "POST", true, body);
 
 		if (response.data) {
-			const info = await this.makeRequest<TorBoxResponse<TorBoxWebDownloadItem>>(
+			const info = await this.makeRequest<
+				TorBoxResponse<TorBoxWebDownloadItem>
+			>(
 				`webdl/mylist?id=${response.data.webdownload_id}&bypass_cache=true`,
 				"GET",
-				true
+				true,
 			);
 
 			if (info.success && info.data) {
@@ -35,11 +33,11 @@ export class WebDownloads extends TorBoxAPI {
 	}
 
 	public async getWebDownloadDownload(id: number): Promise<string> {
-		const stringid = `webdl/requestdl?token=${this.accessToken}&web_id=${id.toString()}&zip_link=true`
+		const stringid = `webdl/requestdl?token=${this.accessToken}&web_id=${id.toString()}&zip_link=true`;
 		const response = await this.makeRequest<TorBoxResponse<string>>(
 			stringid,
 			"GET",
-			false
+			false,
 		);
 
 		if (response.success && response.data) {
@@ -48,5 +46,4 @@ export class WebDownloads extends TorBoxAPI {
 
 		throw new Error("TorBox: Failed to unrestrict web download");
 	}
-
 }

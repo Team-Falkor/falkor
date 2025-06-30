@@ -72,21 +72,6 @@ export class Torrents extends TorBoxAPI {
 		return torrents;
 	}
 
-	public async getAllTorrents(): Promise<TorBoxTorrentInfoResult[]> {
-		const torrents: TorBoxTorrentInfoResult[] = [];
-
-		const currentTorrents = await this.getCurrent();
-		if (currentTorrents?.length) {
-			torrents.push(...currentTorrents);
-		}
-
-		const queuedTorrents = await this.getQueued();
-		if (queuedTorrents?.length) {
-			torrents.push(...queuedTorrents);
-		}
-		return torrents;
-	}
-
 	public async instantAvailability(
 		torrentHashes: string[],
 	): Promise<TorBoxAvailableTorrent[] | null> {
@@ -134,24 +119,6 @@ export class Torrents extends TorBoxAPI {
 		}
 
 		return null;
-	}
-
-	public async delete(torrentHash: string): Promise<boolean> {
-		const torrent = await this.getHashInfo(torrentHash);
-		if (!torrent) {
-			return false;
-		}
-		const body = new URLSearchParams({
-			torrent_id: torrent.id.toString(),
-			operation: "delete",
-		});
-		await this.makeRequest(
-			"torrents/controltorrent",
-			"POST",
-			true,
-			body.toString(),
-		);
-		return true;
 	}
 }
 
