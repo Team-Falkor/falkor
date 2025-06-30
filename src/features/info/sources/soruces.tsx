@@ -1,8 +1,10 @@
-import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import { useMemo } from "react";
+import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import type { DownloadgameData, ItemDownload, RouterOutputs } from "@/@types";
 import { SourceCard } from "@/components/cards/sourcecard";
 import { CarouselItem } from "@/components/ui/carousel";
+import { useCacheStatuses } from "@/hooks/useCacheStatuses";
+import { trpc } from "@/lib";
 
 interface SourceShowcaseProps {
 	sources: ItemDownload[];
@@ -11,6 +13,24 @@ interface SourceShowcaseProps {
 }
 
 const SourceShowcase = ({ sources, game_data, slug }: SourceShowcaseProps) => {
+	const { data: accounts } = trpc.accounts.getAll.useQuery();
+	const torboxAccount = accounts?.find((acc) => acc.type === "torbox");
+
+	const allSources = useMemo(
+		() =>
+			sources
+				.filter((item) => item.id !== "itad")
+				.flatMap((item) => item.sources as PluginSearchResponse[]),
+		[sources],
+	);
+
+	const { cacheStatuses, hasAnyAccount, isChecking } = useCacheStatuses(
+		allSources,
+		torboxAccount?.accessToken
+			? { accessToken: torboxAccount.accessToken }
+			: undefined,
+	);
+
 	const renderedSources = useMemo(() => {
 		return sources?.flatMap((item) => {
 			if (item.id === "itad") {
@@ -40,11 +60,17 @@ const SourceShowcase = ({ sources, game_data, slug }: SourceShowcaseProps) => {
 						game_data={game_data}
 						multiple_choice={item?.multiple_choice}
 						slug={slug}
+						cacheStatus={
+							hasAnyAccount
+								? (cacheStatuses[source.return] ?? "checking")
+								: undefined
+						}
+						isChecking={isChecking}
 					/>
 				</CarouselItem>
 			));
 		});
-	}, [sources, game_data, slug]);
+	}, [sources, game_data, slug, cacheStatuses, hasAnyAccount, isChecking]);
 
 	return renderedSources;
 };

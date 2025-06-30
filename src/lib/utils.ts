@@ -136,3 +136,8 @@ export function formatPlaytime(totalMilliseconds: number): string {
 
 	return parts.length > 0 ? parts.join(" ") : "0s";
 }
+
+export function getInfoHashFromMagnet(magnetUrl: string): string | null {
+	const match = magnetUrl.match(/xt=urn:btih:([a-fA-F0-9]{40,})/);
+	return match ? match[1] : null;
+}
