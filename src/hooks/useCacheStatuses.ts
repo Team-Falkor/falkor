@@ -1,7 +1,7 @@
+import type { PluginSearchResponse } from "@team-falkor/shared-types";
 import { useCallback, useEffect, useState } from "react";
 import { trpc } from "@/lib";
 import { getInfoHashFromMagnet } from "@/lib/utils";
-import type { PluginSearchResponse } from "@team-falkor/shared-types";
 
 export type CacheStatus = "checking" | "cached" | "not_cached" | "unsupported";
 
@@ -30,20 +30,20 @@ export function useCacheStatuses(
 					apiKey,
 					hashes,
 				});
-				const newStatuses: Record<string, "cached" | "not_cached"> = {};
-				magnetUrls.forEach((url) => {
-					const hash = getInfoHashFromMagnet(url);
-					const isCached =
-						!!hash &&
-						result.some((t) => t.hash.toLowerCase() === hash.toLowerCase());
-					newStatuses[url] = isCached ? "cached" : "not_cached";
-				});
+				const newStatuses = Object.fromEntries(
+					magnetUrls.map((url) => {
+						const hash = getInfoHashFromMagnet(url);
+						const isCached =
+							!!hash &&
+							result.some((t) => t.hash.toLowerCase() === hash.toLowerCase());
+						return [url, isCached ? "cached" : "not_cached"];
+					}),
+				) as Record<string, "cached" | "not_cached">;
 				setCacheStatuses((prev) => ({ ...prev, ...newStatuses }));
 			} catch {
-				const errorStatuses: Record<string, "unsupported"> = {};
-				magnetUrls.forEach((url) => {
-					errorStatuses[url] = "unsupported";
-				});
+				const errorStatuses = Object.fromEntries(
+					magnetUrls.map((url) => [url, "unsupported"]),
+				) as Record<string, "unsupported">;
 				setCacheStatuses((prev) => ({ ...prev, ...errorStatuses }));
 			}
 		},
@@ -55,30 +55,28 @@ export function useCacheStatuses(
 
 		const allUrls = sources.map((s) => s.return).filter(Boolean) as string[];
 		if (!torboxAccount) {
-			const unsupported: Record<string, "unsupported"> = {};
-			allUrls.forEach((url) => {
-				unsupported[url] = "unsupported";
-			});
-			setCacheStatuses(unsupported);
+			const unsupported = Object.fromEntries(
+				allUrls.map((url) => [url, "unsupported"]),
+			) as Record<string, "unsupported">;
+			setCacheStatuses((prev) => ({ ...prev, ...unsupported }));
 			return;
 		}
 
 		const magnetUrls = allUrls.filter((u) => u.startsWith("magnet:"));
 		const nonMagnet = allUrls.filter((u) => !u.startsWith("magnet:"));
+
 		if (nonMagnet.length) {
-			const unsupported: Record<string, "unsupported"> = {};
-			nonMagnet.forEach((url) => {
-				unsupported[url] = "unsupported";
-			});
+			const unsupported = Object.fromEntries(
+				nonMagnet.map((url) => [url, "unsupported"]),
+			) as Record<string, "unsupported">;
 			setCacheStatuses((prev) => ({ ...prev, ...unsupported }));
 		}
 
 		if (magnetUrls.length && torboxAccount.accessToken) {
-			const initial: Record<string, "checking"> = {};
-			magnetUrls.forEach((url) => {
-				initial[url] = "checking";
-			});
-			setCacheStatuses(initial);
+			const initial = Object.fromEntries(
+				magnetUrls.map((url) => [url, "checking"]),
+			) as Record<string, "checking">;
+			setCacheStatuses((prev) => ({ ...prev, ...initial }));
 			const hashes = magnetUrls
 				.map((u) => getInfoHashFromMagnet(u))
 				.filter(Boolean) as string[];
