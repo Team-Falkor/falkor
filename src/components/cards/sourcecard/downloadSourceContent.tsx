@@ -104,7 +104,7 @@ export const DownloadSourceContent = ({
 								<StatPill
 									key={statKey}
 									icon={getIconForStat(statKey)}
-									value={stats[statKey] ?? ""}
+									value={stats[statKey]?.toString()}
 								/>
 							);
 						})}
