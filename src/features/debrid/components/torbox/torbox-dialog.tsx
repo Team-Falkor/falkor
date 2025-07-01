@@ -70,6 +70,21 @@ export default function TorBoxDialogContent({
 					onChange={(e) => setApiKey(e.currentTarget.value)}
 					placeholder="API Key"
 				/>
+
+				<Button
+					asChild
+					disabled={validateKey.status === "pending"}
+					variant={"functional"}
+				>
+					<a
+						href={"https://www.torbox.com/settings"}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Get api key
+					</a>
+				</Button>
+
 				<div className="mt-3 flex justify-end gap-3">
 					<Button variant="destructive" onClick={() => setOpen(false)}>
 						Cancel
