@@ -150,7 +150,8 @@ export const gameLauncherRouter = router({
 				if (error instanceof LaunchOperationError) {
 					switch (error.errorType) {
 						case LaunchError.EXECUTABLE_NOT_FOUND:
-							errorMessage = "Game executable not found. Please check the path.";
+							errorMessage =
+								"Game executable not found. Please check the path.";
 							break;
 						case LaunchError.INVALID_PATH:
 							errorMessage =

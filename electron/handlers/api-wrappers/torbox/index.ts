@@ -1,5 +1,5 @@
-import type { TorBoxTorrentInfoResult } from "@/@types/accounts";
 import { getInfoHashFromMagnet } from "@backend/utils/utils";
+import type { TorBoxTorrentInfoResult } from "@/@types/accounts";
 import { Torrents } from "./services/torrents";
 import { User } from "./services/user";
 import { WebDownloads } from "./services/webDownloads";

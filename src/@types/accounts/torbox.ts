@@ -159,40 +159,40 @@ export interface TorBoxAddWebDownload {
 }
 
 export interface TorBoxWebDownloadItem {
-	id: number
-	created_at: string
-	updated_at: string
-	auth_id: string
-	name: string
-	hash: string
-	download_state: string
-	download_speed: number
-	original_url: string
-	eta: number
-	progress: number
-	size: number
-	download_id?: number
-	files: TorBoxWebDownloadFile[]
-	active: boolean
-	cached: boolean
-	download_present: boolean
-	download_finished: boolean
-	expires_at?: string
-	error?: string
-	cached_at?: string
-	server?: number
-  }
-  
-  export interface TorBoxWebDownloadFile {
-	id: number
-	md5?: string
-	hash: string
-	name: string
-	size: number
-	zipped: boolean
-	s3_path: string
-	infected: boolean
-	mimetype: string
-	short_name: string
-	absolute_path: string
-  }
+	id: number;
+	created_at: string;
+	updated_at: string;
+	auth_id: string;
+	name: string;
+	hash: string;
+	download_state: string;
+	download_speed: number;
+	original_url: string;
+	eta: number;
+	progress: number;
+	size: number;
+	download_id?: number;
+	files: TorBoxWebDownloadFile[];
+	active: boolean;
+	cached: boolean;
+	download_present: boolean;
+	download_finished: boolean;
+	expires_at?: string;
+	error?: string;
+	cached_at?: string;
+	server?: number;
+}
+
+export interface TorBoxWebDownloadFile {
+	id: number;
+	md5?: string;
+	hash: string;
+	name: string;
+	size: number;
+	zipped: boolean;
+	s3_path: string;
+	infected: boolean;
+	mimetype: string;
+	short_name: string;
+	absolute_path: string;
+}
