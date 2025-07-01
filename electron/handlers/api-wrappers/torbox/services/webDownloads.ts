@@ -1,10 +1,10 @@
 import "@/@types/accounts/torbox";
-import { TorBoxAPI } from "./api";
 import type {
+	TorBoxAddWebDownload,
 	TorBoxResponse,
 	TorBoxWebDownloadItem,
-	TorBoxAddWebDownload,
 } from "@/@types/accounts/torbox";
+import { TorBoxAPI } from "./api";
 
 export class WebDownloads extends TorBoxAPI {
 	public async createWebDownload(link: string): Promise<TorBoxWebDownloadItem> {

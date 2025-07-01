@@ -1,8 +1,8 @@
+import type { TorBoxTorrentInfoResult } from "@/@types/accounts";
 import { getInfoHashFromMagnet } from "@backend/utils/utils";
 import { Torrents } from "./services/torrents";
 import { User } from "./services/user";
 import { WebDownloads } from "./services/webDownloads";
-import type { TorBoxTorrentInfoResult } from "@/@types/accounts";
 
 class TorBoxClient {
 	private static instance: TorBoxClient | null = null;

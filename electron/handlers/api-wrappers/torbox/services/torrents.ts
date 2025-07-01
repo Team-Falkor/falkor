@@ -1,5 +1,4 @@
 import "@/@types/accounts/torbox";
-import { TorBoxAPI } from "./api";
 import {
 	type TorBoxAddTorrent,
 	type TorBoxAvailableTorrent,
@@ -8,6 +7,7 @@ import {
 	type TorBoxResponse,
 	type TorBoxTorrentInfoResult,
 } from "@/@types/accounts/torbox";
+import { TorBoxAPI } from "./api";
 
 export class Torrents extends TorBoxAPI {
 	public async getHashInfo(
