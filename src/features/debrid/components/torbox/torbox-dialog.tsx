@@ -19,9 +19,14 @@ export default function TorBoxDialogContent({
 	const addAccount = trpc.accounts.create.useMutation();
 	const validateKey = trpc.torbox.auth.validateKey.useMutation();
 
+	const utils = trpc.useUtils();
+
 	const handleSave = async () => {
 		const key = apiKey.trim();
-		if (!key) return toast.error("API key cannot be empty");
+		if (!key) {
+			toast.error("API key cannot be empty");
+			return;
+		}
 
 		const result = await validateKey.mutateAsync({ apiKey: key });
 
@@ -30,7 +35,6 @@ export default function TorBoxDialogContent({
 			return;
 		}
 		const user = result.user;
-
 		const email = user?.email;
 
 		const ok = await addAccount.mutateAsync({
@@ -43,10 +47,16 @@ export default function TorBoxDialogContent({
 			expiresIn: -1,
 			type: "torbox",
 		});
-		ok
-			? toast.success("TorBox account added")
-			: toast.error("Failed to add TorBox account");
-		ok && setOpen(false);
+
+		if (ok) {
+			toast.success("TorBox account added");
+
+			// Invalidate the accounts list
+			await utils.accounts.invalidate();
+			setOpen(false);
+		} else {
+			toast.error("Failed to add TorBox account");
+		}
 	};
 
 	if (!open) return null;
