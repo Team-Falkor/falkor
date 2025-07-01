@@ -16,11 +16,11 @@ type SourceCardProps = {
 	game_data?: DownloadgameData;
 	multiple_choice?: boolean;
 	slug?: string;
+	cacheStatus?: "checking" | "cached" | "not_cached" | "unsupported";
+	isChecking?: boolean;
 };
 
 export const SourceCard = ({ source, ...props }: SourceCardProps) => {
-	// const { settings } = useSettings();
-
 	const isDeal = (item: SourceCardProps["source"]): item is Deal =>
 		"price" in item && "shop" in item;
 
@@ -54,6 +54,8 @@ export const SourceCard = ({ source, ...props }: SourceCardProps) => {
 						pluginId={props.pluginId}
 						game_data={props.game_data}
 						multiple_choice={props.multiple_choice}
+						cacheStatus={props.cacheStatus}
+						isChecking={props.isChecking}
 					/>
 				)}
 			</div>

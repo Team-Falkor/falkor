@@ -1,158 +1,132 @@
 import "@/@types/accounts/torbox";
-import { TorBoxAPI } from "./api";
 import {
-  type TorBoxAddTorrent,
-  type TorBoxAvailableTorrent,
-  TorBoxDefaultInfo,
-  type TorBoxQueuedDownload,
-  type TorBoxResponse,
-  type TorBoxTorrentInfoResult,
+	type TorBoxAddTorrent,
+	type TorBoxAvailableTorrent,
+	TorBoxDefaultInfo,
+	type TorBoxQueuedDownload,
+	type TorBoxResponse,
+	type TorBoxTorrentInfoResult,
 } from "@/@types/accounts/torbox";
+import { TorBoxAPI } from "./api";
 
 export class Torrents extends TorBoxAPI {
-  public async getHashInfo(
-    hash: string
-  ): Promise<TorBoxTorrentInfoResult | null> {
-    const currentTorrents = await this.getCurrent();
+	public async getHashInfo(
+		hash: string,
+	): Promise<TorBoxTorrentInfoResult | null> {
+		const currentTorrents = await this.getCurrent();
 
-    if (currentTorrents?.length) {
-      const foundInCurrent = currentTorrents.find(
-        (torrent) => torrent.hash.toLowerCase() === hash.toLowerCase()
-      );
-      if (foundInCurrent) return foundInCurrent;
-    }
+		if (currentTorrents?.length) {
+			const foundInCurrent = currentTorrents.find(
+				(torrent) => torrent.hash.toLowerCase() === hash.toLowerCase(),
+			);
+			if (foundInCurrent) return foundInCurrent;
+		}
 
-    const queuedTorrents = await this.getQueued();
+		const queuedTorrents = await this.getQueued();
 
-    if (queuedTorrents?.length) {
-      const foundInQueued = queuedTorrents.find(
-        (torrent) => torrent.hash.toLowerCase() === hash.toLowerCase()
-      );
-      if (foundInQueued) return foundInQueued;
-    }
+		if (queuedTorrents?.length) {
+			const foundInQueued = queuedTorrents.find(
+				(torrent) => torrent.hash.toLowerCase() === hash.toLowerCase(),
+			);
+			if (foundInQueued) return foundInQueued;
+		}
 
-    return null;
-  }
+		return null;
+	}
 
-  public async getCurrent(): Promise<TorBoxTorrentInfoResult[] | null> {
-    const response = await this.makeRequest<
-      TorBoxResponse<TorBoxTorrentInfoResult[]>
-    >("torrents/mylist?bypass_cache=true", "GET", true);
+	public async getCurrent(): Promise<TorBoxTorrentInfoResult[] | null> {
+		const response = await this.makeRequest<
+			TorBoxResponse<TorBoxTorrentInfoResult[]>
+		>("torrents/mylist?bypass_cache=true", "GET", true);
 
-    return response?.data || null;
-  }
+		return response?.data || null;
+	}
 
-  public async getQueued(): Promise<TorBoxTorrentInfoResult[] | null> {
-    const response = await this.makeRequest<
-      TorBoxResponse<TorBoxQueuedDownload[]>
-    >("queued/getqueued?type=torrent", "GET", true);
+	public async getQueued(): Promise<TorBoxTorrentInfoResult[] | null> {
+		const response = await this.makeRequest<
+			TorBoxResponse<TorBoxQueuedDownload[]>
+		>("queued/getqueued?type=torrent", "GET", true);
 
-    if (!response || !response.data) {
-      return null;
-    }
+		if (!response || !response.data) {
+			return null;
+		}
 
-    const torrents: TorBoxTorrentInfoResult[] = response.data.map(
-      (torrent) => ({
-        ...TorBoxDefaultInfo,
-        id: torrent.id,
-        hash: torrent.hash,
-        name: torrent.name,
-        magnet: torrent.magnet,
-        createdAt: torrent.created_at,
-        downloadState: "queued",
-        torrentFile: !!torrent.torrent_file,
-        progress: 0.0,
-        files: [],
-        downloadSpeed: 0,
-        seeds: 0,
-        updatedAt: torrent.created_at,
-      })
-    );
+		const torrents: TorBoxTorrentInfoResult[] = response.data.map(
+			(torrent) => ({
+				...TorBoxDefaultInfo,
+				id: torrent.id,
+				hash: torrent.hash,
+				name: torrent.name,
+				magnet: torrent.magnet,
+				createdAt: torrent.created_at,
+				downloadState: "queued",
+				torrentFile: !!torrent.torrent_file,
+				progress: 0.0,
+				files: [],
+				downloadSpeed: 0,
+				seeds: 0,
+				updatedAt: torrent.created_at,
+			}),
+		);
 
-    return torrents;
-  }
+		return torrents;
+	}
 
-  public async getAllTorrents(): Promise<TorBoxTorrentInfoResult[]> {
-    const torrents: TorBoxTorrentInfoResult[] = [];
+	public async instantAvailability(
+		torrentHashes: string[],
+	): Promise<TorBoxAvailableTorrent[] | null> {
+		const hashParams = torrentHashes.map((h) => `hash=${h}`).join("&");
+		const url = `torrents/checkcached?format=list&list_files=false&${hashParams}`;
+		const response = await this.makeRequest<
+			TorBoxResponse<TorBoxAvailableTorrent[] | null>
+		>(url, "GET", true);
 
-    const currentTorrents = await this.getCurrent();
-    if (currentTorrents?.length) {
-      torrents.push(...currentTorrents);
-    }
+		if (response.data && response.data.length > 0) {
+			return response.data;
+		}
 
-    const queuedTorrents = await this.getQueued();
-    if (queuedTorrents?.length) {
-      torrents.push(...queuedTorrents);
-    }
-    return torrents;
-  }
+		return null;
+	}
 
-  public async instantAvailability(
-    torrentHash: string
-  ): Promise<TorBoxAvailableTorrent | null> {
-    const response = await this.makeRequest<
-      TorBoxResponse<TorBoxAvailableTorrent[] | null>
-    >(
-      `torrents/checkcached?hash=${torrentHash}&format=list&list_files=true`,
-      "GET",
-      false
-    );
+	public async addMagnet(magnet: string): Promise<TorBoxAddTorrent | null> {
+		const body = new FormData();
+		body.append("magnet", magnet);
+		body.append("seed", "3");
+		body.append("zip", "false");
 
-    if (response.data && response.data.length > 0) {
-      return response.data[0];
-    }
+		const response = await this.makeRequest<TorBoxResponse<TorBoxAddTorrent>>(
+			"torrents/createtorrent",
+			"POST",
+			true,
+			body,
+		);
 
-    return null;
-  }
+		if (response.data) {
+			return response.data;
+		}
+		return null;
+	}
 
-  public async addMagnet(magnet: string): Promise<TorBoxAddTorrent | null> {
-    const body = new FormData();
-    body.append("magnet", magnet);
-    body.append("seed", "3");
-    body.append("zip", "false");
+	public async getZipDL(torrentId: string): Promise<string | null> {
+		const response = await this.makeRequest<TorBoxResponse<string | null>>(
+			`torrents/requestdl?token=${this.accessToken}&torrent_id=${torrentId}&zip_link=true`,
+			"GET",
+			false,
+		);
 
-    const response = await this.makeRequest<TorBoxResponse<TorBoxAddTorrent>>(
-      "torrents/createtorrent",
-      "POST",
-      true,
-      body
-    );
+		if (response.success && response.data) {
+			return response.data;
+		}
 
-    if (response.data) {
-      return response.data;
-    }
-    return null;
-  }
-
-  public async getZipDL(torrentId: string): Promise<string | null> {
-    const response = await this.makeRequest<TorBoxResponse<string | null>>(
-      `torrents/requestdl?token=${this.accessToken}&torrent_id=${torrentId}&zip_link=true`,
-      "GET",
-      false
-    );
-
-    if (response.success && response.data) {
-      return response.data;
-    }
-
-    return null;
-  }
-
-  public async delete(torrentHash: string): Promise<boolean> {
-    const torrent = await this.getHashInfo(torrentHash);
-    if (!torrent) {
-      return false;
-    }
-    const body = new URLSearchParams({
-      torrent_id: torrent.id.toString(),
-      operation: "delete",
-    });
-    await this.makeRequest(
-      "torrents/controltorrent",
-      "POST",
-      true,
-      body.toString()
-    );
-    return true;
-  }
+		return null;
+	}
 }
+
+let instance: Torrents | null = null;
+
+export const getTorBoxTorrentsInstance = (api_key: string): Torrents => {
+	if (!instance) {
+		instance = new Torrents(api_key);
+	}
+	return instance;
+};

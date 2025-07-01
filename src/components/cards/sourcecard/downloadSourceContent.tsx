@@ -1,5 +1,13 @@
 import type { PluginSearchResponse } from "@team-falkor/shared-types";
-import { Activity, CloudDownload, Save, Users } from "lucide-react";
+import {
+	Activity,
+	CheckCircle,
+	CloudDownload,
+	Loader,
+	Save,
+	Users,
+	XCircle,
+} from "lucide-react";
 import type { DownloadgameData } from "@/@types";
 import { useDownloadActions } from "@/hooks/use-download-actions";
 import { useLanguageContext } from "@/i18n/I18N";
@@ -13,6 +21,8 @@ type DownloadSourceContentProps = {
 	pluginId?: string;
 	game_data?: DownloadgameData;
 	multiple_choice?: boolean;
+	cacheStatus?: "checking" | "cached" | "not_cached" | "unsupported";
+	isChecking?: boolean;
 };
 
 export const DownloadSourceContent = ({
@@ -20,6 +30,8 @@ export const DownloadSourceContent = ({
 	pluginId,
 	game_data,
 	multiple_choice,
+	cacheStatus,
+	isChecking,
 }: DownloadSourceContentProps) => {
 	const { t } = useLanguageContext();
 	const { addDownload } = useDownloadActions();
@@ -47,6 +59,31 @@ export const DownloadSourceContent = ({
 		}
 	};
 
+	const getCacheContent = () => {
+		switch (cacheStatus) {
+			case "checking":
+				return {
+					icon: Loader,
+					text: "Checking...",
+					iconClassName: "animate-spin",
+				};
+			case "cached":
+				return {
+					icon: CheckCircle,
+					text: "Cached",
+					iconClassName: "text-success",
+				};
+			case "not_cached":
+				return {
+					icon: XCircle,
+					text: "Not Cached",
+					iconClassName: "text-destructive",
+				};
+		}
+	};
+
+	const cacheContent = getCacheContent();
+
 	return (
 		<div className="flex size-full flex-col justify-between overflow-hidden">
 			<div className="flex size-full flex-col justify-between overflow-hidden">
@@ -67,16 +104,24 @@ export const DownloadSourceContent = ({
 								<StatPill
 									key={statKey}
 									icon={getIconForStat(statKey)}
-									value={stats[statKey]}
+									value={stats[statKey]?.toString()}
 								/>
 							);
 						})}
+						{cacheStatus && cacheStatus !== "unsupported" && cacheContent && (
+							<StatPill
+								icon={cacheContent.icon}
+								value={cacheContent.text}
+								iconClassName={cacheContent.iconClassName}
+							/>
+						)}
 					</div>
 				)}
 			</div>
 			<Button
 				className="w-full items-center gap-3 rounded-full font-bold capitalize"
 				variant="success"
+				disabled={isChecking}
 				onClick={() => {
 					addDownload({
 						pluginId: pluginId,
@@ -89,7 +134,11 @@ export const DownloadSourceContent = ({
 					});
 				}}
 			>
-				<CloudDownload size={18} fill="currentColor" className="shrink-0" />
+				{cacheStatus === "checking" ? (
+					<Loader className="size-4 animate-spin" />
+				) : (
+					<CloudDownload size={18} fill="currentColor" className="shrink-0" />
+				)}
 				<P className="max-w-full truncate capitalize">
 					{source?.uploader ?? t("download")}
 				</P>
