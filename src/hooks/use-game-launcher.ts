@@ -14,6 +14,11 @@ export function useGameLauncher(game: LibraryGame) {
 			{
 				enabled: !!id, // Only fetch if ID is available
 				staleTime: Number.POSITIVE_INFINITY, // Assume running status doesn't change unexpectedly from other clients
+				refetchOnMount: true,
+				refetchOnWindowFocus: true,
+				refetchInterval: 15000, // Check every 15 seconds
+				refetchIntervalInBackground: false,
+				refetchOnReconnect: true,
 			},
 		);
 
