@@ -370,55 +370,34 @@ function spawnNonAdmin(
 	options: ExtendedSpawnOptions,
 	processName: string,
 ): SpawnResult {
-	logger.log(
-		"info",
-		`Spawning non-admin: command='${command}', args='${args.join(" ")}', cwd='${options.cwd || process.cwd()}'`,
-	);
+	const spawnOptions: SpawnOptions = {
+		detached: false,
+		stdio: ["ignore", "pipe", "pipe"],
+		cwd: options.cwd,
+		env: { ...process.env, WINEDEBUG: "fixme-all", ...options.env },
+		windowsHide: options.windowsHide ?? true,
+		shell: options.shell,
+	};
 
-	try {
-		const env = { ...process.env, WINEDEBUG: "fixme-all", ...options.env };
-		const spawnOptions: SpawnOptions = {
-			detached: options.detached ?? true,
-			stdio: options.stdio ?? "ignore",
-			cwd: options.cwd,
-			env,
-			windowsHide: options.windowsHide ?? true,
-			shell: options.shell,
-		};
+	const child = spawn(command, args, spawnOptions);
 
-		const child = spawn(command, args, spawnOptions);
-
-		logger.log(
-			"debug",
-			`Process '${processName}' spawned with PID: ${child.pid}`,
-		);
-
-		child.on("error", (err) => {
-			logger.log(
-				"error",
-				`Spawned process '${processName}' (PID: ${child.pid}) encountered error: ${err.message}`,
-			);
+	if (child.stdout) {
+		child.stdout.on("data", (data) => {
+			logger.log("debug", `Game stdout: ${data.toString().trim()}`);
 		});
-
-		child.on("exit", (code, signal) => {
-			logger.log(
-				"debug",
-				`Spawned process '${processName}' (PID: ${child.pid}) exited with code ${code} and signal ${signal}`,
-			);
-		});
-
-		return {
-			process: child,
-			processName,
-			requiresPolling: false,
-		};
-	} catch (e) {
-		logger.log(
-			"error",
-			`Failed to spawn process '${command}': ${(e as Error).message}`,
-		);
-		throw e;
 	}
+
+	if (child.stderr) {
+		child.stderr.on("data", (data) => {
+			logger.log("debug", `Game stderr: ${data.toString().trim()}`);
+		});
+	}
+
+	return {
+		process: child,
+		processName,
+		requiresPolling: false,
+	};
 }
 
 function generateProcessNamePermutations(originalName: string): string[] {

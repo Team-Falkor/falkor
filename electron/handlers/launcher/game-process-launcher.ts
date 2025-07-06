@@ -7,9 +7,9 @@ import { db } from "@backend/database";
 import { libraryGames } from "@backend/database/schemas";
 import logger from "@backend/handlers/logging";
 import {
-	findProcessByName,
-	safeSpawn,
-	waitForProcessToStart,
+  findProcessByName,
+  safeSpawn,
+  waitForProcessToStart,
 } from "@backend/utils/process-spawning";
 import { eq } from "drizzle-orm";
 import ms from "ms";
@@ -390,8 +390,14 @@ export default class GameProcessLauncher extends EventEmitter {
 	private async handleDirectProcessLaunch(): Promise<void> {
 		if (!this.process) return;
 
-		this.process.unref();
-		this.process.once("exit", (code, signal) => this.handleExit(code, signal));
+		this.process.once("exit", (code, signal) => {
+			logger.log(
+				"info",
+				`Direct process exit detected: PID ${this.process?.pid}, code=${code}, signal=${signal}`,
+			);
+			this.handleExit(code, signal);
+		});
+
 		this.process.once("error", (err) => {
 			const error = new LaunchOperationError(
 				LaunchError.SPAWN_FAILED,
@@ -404,9 +410,26 @@ export default class GameProcessLauncher extends EventEmitter {
 			this.updateStatus(LaunchStatus.ERROR, { error: error.message });
 		});
 
+		this.process.once("close", (code, signal) => {
+			logger.log(
+				"info",
+				`Process closed: PID ${this.process?.pid}, code=${code}, signal=${signal}`,
+			);
+			if (this.isActive) {
+				this.handleExit(code, signal);
+			}
+		});
+
+		this.process.once("disconnect", () => {
+			logger.log("info", `Process disconnected: PID ${this.process?.pid}`);
+			if (this.isActive) {
+				this.handleExit(0, null);
+			}
+		});
+
 		logger.log(
 			"info",
-			`Direct process launch successful (PID: ${this.trackedProcessInfo?.pid})`,
+			`Direct process launch successful (PID: ${this.process.pid})`,
 		);
 	}
 
@@ -470,13 +493,21 @@ export default class GameProcessLauncher extends EventEmitter {
 		this.updateStatus(LaunchStatus.RUNNING);
 		this.emit("game:playing", this.id);
 
-		logger.log("info", `Started tracking ${this.gameName} (ID: ${this.id})`);
+		if (this.achievementItem) {
+			try {
+				this.achievementItem.find();
+				logger.log("info", `Achievement tracking started for ${this.gameName}`);
+			} catch (error) {
+				logger.log(
+					"error",
+					`Failed to start achievement tracking: ${(error as Error).message}`,
+				);
+			}
+		}
 
 		this.intervalId = setInterval(() => this.updateSessionTime(), ms("1m"));
-		logger.log(
-			"info",
-			`Started tracking session for ${this.id} (${this.gameName}).`,
-		);
+
+		logger.log("info", `Started tracking ${this.gameName} (ID: ${this.id})`);
 	}
 
 	private updateSessionTime(): void {
@@ -497,87 +528,51 @@ export default class GameProcessLauncher extends EventEmitter {
 			this.processCheckIntervalId = null;
 		}
 
+		// For direct processes, start with longer intervals since we have exit events
+		const pollingInterval = this.process ? ms("10s") : ms("3s");
+
 		logger.log(
 			"info",
-			`Starting continuous polling for ${this.gameName} process.`,
+			`Starting process polling for ${this.gameName} (interval: ${pollingInterval}ms)`,
 		);
 
-		// Start the adaptive polling cycle
-		this.scheduleNextPoll();
+		this.scheduleNextPoll(pollingInterval);
 	}
 
 	/**
 	 * Schedules the next polling check with adaptive interval
 	 */
-	private scheduleNextPoll(): void {
-		if (!this.isActive) {
-			return;
-		}
+	private scheduleNextPoll(
+		interval: number = this.getAdaptivePollingInterval(),
+	): void {
+		if (!this.isActive) return;
 
-		const interval = this.getAdaptivePollingInterval();
 		this.processCheckIntervalId = setTimeout(async () => {
 			this.processCheckIntervalId = null;
 
-			// Early exit check to prevent race conditions
-			if (!this.isActive) {
-				logger.log(
-					"debug",
-					`Polling for ${this.gameName} stopped because game is no longer active.`,
-				);
-				return;
-			}
-
-			// Check if we've exceeded max polling failures
-			if (
-				this?.trackedProcessInfo &&
-				this?.trackedProcessInfo?.pollingFailureCount >=
-					this?.trackedProcessInfo?.maxPollingFailures
-			) {
-				logger.log(
-					"warn",
-					`Stopping polling for ${this.gameName} after ${this.trackedProcessInfo.pollingFailureCount} consecutive failures.`,
-				);
-				this.handleExit(0, null);
-				return;
-			}
-
-			const failureCount = this.trackedProcessInfo?.pollingFailureCount || 0;
-			const logLevel = failureCount > 3 ? "debug" : "debug"; // Reduce log verbosity for repeated failures
-
-			logger.log(
-				logLevel,
-				`Polling for ${this.gameName} process: checking if still running... (failures: ${failureCount})`,
-			);
+			if (!this.isActive) return;
 
 			try {
 				const isRunning = await this.isGameProcessRunning();
 
-				// Double-check if still active after async operation
-				if (!this.isActive) {
-					logger.log(
-						"debug",
-						`Polling for ${this.gameName} stopped during process check - game no longer active.`,
-					);
-					return;
-				}
+				if (!this.isActive) return; // Double-check after async operation
 
 				if (!isRunning) {
 					logger.log(
 						"info",
-						`Detected ${this.gameName} process has exited via polling.`,
+						`Detected ${this.gameName} process has exited via polling`,
 					);
 					this.handleExit(0, null);
 					return;
 				}
 
-				// Schedule next poll if process is still running
+				// Schedule next poll
 				this.scheduleNextPoll();
 			} catch (error) {
 				logger.log(
 					"warn",
-					`Error during process polling for ${this.gameName}: ${(error as Error).message}`,
+					`Error during process polling: ${(error as Error).message}`,
 				);
-				// Schedule next poll even on error
 				this.scheduleNextPoll();
 			}
 		}, interval);
@@ -618,122 +613,70 @@ export default class GameProcessLauncher extends EventEmitter {
 	}
 
 	private async isGameProcessRunning(): Promise<boolean> {
-		// Early exit if game is no longer active
 		if (!this.isActive) {
-			logger.log(
-				"debug",
-				"isGameProcessRunning: Game is no longer active. Returning false.",
-			);
 			return false;
 		}
 
 		if (!this.trackedProcessInfo) {
-			logger.log(
-				"debug",
-				"isGameProcessRunning: No tracked process information available. Returning false.",
-			);
 			return false;
 		}
 
 		if (this.process) {
-			logger.log(
-				"debug",
-				`isGameProcessRunning: Using direct ChildProcess handle for ${this.gameName} (PID: ${this.process.pid}).`,
-			);
-			// Reset failure count for direct process handles
-			if (this.trackedProcessInfo) {
-				this.trackedProcessInfo.pollingFailureCount = 0;
+			if (this.process.killed || this.process.exitCode !== null) {
+				logger.log(
+					"debug",
+					`Direct process has exited: killed=${this.process.killed}, exitCode=${this.process.exitCode}`,
+				);
+				return false;
 			}
+
+			if (this.process.pid) {
+				try {
+					process.kill(this.process.pid, 0);
+					logger.log(
+						"debug",
+						`Direct process PID ${this.process.pid} is still running`,
+					);
+					return true;
+				} catch (error) {
+					console.log(error);
+					logger.log(
+						"debug",
+						`Direct process PID ${this.process.pid} no longer exists`,
+					);
+					return false;
+				}
+			}
+
 			return true;
 		}
 
 		const processName = this.trackedProcessInfo.name;
 		const processPid = this.trackedProcessInfo.pid;
 
-		logger.log(
-			"debug",
-			`isGameProcessRunning: Using polling logic for '${processName}'${processPid ? ` (PID: ${processPid})` : ""}.`,
-		);
-
 		try {
-			if (processPid) {
-				// Reduce verbosity for repeated failures to minimize excessive logging
-				const verbose =
-					(this.trackedProcessInfo?.pollingFailureCount || 0) <= 3;
-				const pids = await findProcessByName(processName, verbose);
+			const processes = await findProcessByName(processName, false);
 
-				// Check if still active after async operation
-				if (!this.isActive) {
-					logger.log(
-						"debug",
-						"isGameProcessRunning: Game became inactive during process lookup. Returning false.",
-					);
-					return false;
-				}
-
-				if (pids.includes(processPid)) {
-					logger.log(
-						"debug",
-						`isGameProcessRunning: Process '${processName}' found with PID ${processPid}.`,
-					);
-					// Reset failure count on successful detection
-					this.trackedProcessInfo.pollingFailureCount = 0;
-					return true;
-				}
-				logger.log(
-					"debug",
-					`isGameProcessRunning: PID ${processPid} not found among running '${processName}' processes. Current PIDs: [${pids.join(", ")}]`,
-				);
-			} else {
-				// Reduce verbosity for repeated failures to minimize excessive logging
-				const verbose =
-					(this.trackedProcessInfo?.pollingFailureCount || 0) <= 3;
-				const pids = await findProcessByName(processName, verbose);
-
-				// Check if still active after async operation
-				if (!this.isActive) {
-					logger.log(
-						"debug",
-						"isGameProcessRunning: Game became inactive during process lookup. Returning false.",
-					);
-					return false;
-				}
-
-				if (pids.length > 0) {
-					this.trackedProcessInfo.pid = pids[0];
-					logger.log(
-						"debug",
-						`isGameProcessRunning: Process '${processName}' found by name. Updated tracked PID to: ${pids[0]}.`,
-					);
-					// Reset failure count on successful detection
-					this.trackedProcessInfo.pollingFailureCount = 0;
-					return true;
-				}
-
-				logger.log(
-					"debug",
-					`isGameProcessRunning: Process '${processName}' not found by name.`,
-				);
+			if (processPid && processes.includes(processPid)) {
+				this.trackedProcessInfo.pollingFailureCount = 0;
+				return true;
 			}
+
+			if (processes.length > 0) {
+				this.trackedProcessInfo.pid = processes[0];
+				this.trackedProcessInfo.pollingFailureCount = 0;
+				return true;
+			}
+
+			this.trackedProcessInfo.pollingFailureCount++;
+			return false;
 		} catch (error) {
 			logger.log(
 				"warn",
-				`isGameProcessRunning: Error checking status for '${processName}': ${(error as Error).message}`,
+				`Error checking process status: ${(error as Error).message}`,
 			);
-			// Don't increment failure count for errors, only for process not found
 			return false;
 		}
-
-		// Increment failure count when process is not found (but only if still active)
-		if (this.trackedProcessInfo && this.isActive) {
-			this.trackedProcessInfo.pollingFailureCount++;
-			logger.log(
-				"debug",
-				`isGameProcessRunning: Process not found. Failure count: ${this.trackedProcessInfo.pollingFailureCount}/${this.trackedProcessInfo.maxPollingFailures}`,
-			);
-		}
-
-		return false;
 	}
 
 	private async handleExit(
@@ -751,16 +694,20 @@ export default class GameProcessLauncher extends EventEmitter {
 			return;
 		}
 
-		// Update status and immediately set inactive to prevent race conditions
-		this.updateStatus(LaunchStatus.STOPPING, exitInfo);
 		this.isActive = false;
+		this.updateStatus(LaunchStatus.STOPPING, exitInfo);
 
-		// Clear all timeouts and intervals
 		this.clearAllTimeouts();
 
 		try {
-			// Commit playtime with retry mechanism
+			this.updateSessionTime();
+
 			await this.commitPlaytimeWithRetry();
+
+			logger.log(
+				"info",
+				`Successfully committed playtime for ${this.gameName}: ${ms(this.totalPlaytimeMs)}`,
+			);
 		} catch (error) {
 			logger.log(
 				"error",
@@ -769,6 +716,7 @@ export default class GameProcessLauncher extends EventEmitter {
 		}
 
 		this.cleanupResources();
+
 		this.updateStatus(LaunchStatus.IDLE);
 		this.emit("game:stopped", this.id);
 
