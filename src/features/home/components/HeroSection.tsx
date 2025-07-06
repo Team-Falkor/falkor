@@ -26,6 +26,22 @@ const HeroSection = () => {
 					>
 						Browse Library
 					</Link>
+					<Link
+						to="/profile"
+						className={buttonVariants({
+							variant: "default",
+						})}
+					>
+						View your Profile
+					</Link>
+					<Link
+						to="/filter"
+						className={buttonVariants({
+							variant: "default",
+						})}
+					>
+						Filter Games
+					</Link>
 				</div>
 			</div>
 		</div>
