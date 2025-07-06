@@ -1,6 +1,7 @@
 import { AlertCircle, Loader2, Play, Square } from "lucide-react";
 import type { LibraryGame } from "@/@types";
 import { useGameLauncher } from "@/hooks/use-game-launcher";
+import { useLanguageContext } from "@/i18n/I18N";
 import { Button } from "./ui/button";
 
 interface PlayStopButtonProps {
@@ -8,6 +9,7 @@ interface PlayStopButtonProps {
 }
 
 export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
+	const { t } = useLanguageContext();
 	const { gameState, isButtonDisabled, toggleGameState, error } =
 		useGameLauncher(game);
 
@@ -45,19 +47,19 @@ export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 		}
 	};
 
-	// Get button text with fallback
+	// Get button text with i18n support
 	const getButtonText = () => {
 		switch (gameState) {
 			case "launching":
-				return "Launching...";
+				return t("launcher.launching");
 			case "stopping":
-				return "Stopping...";
+				return t("launcher.stopping");
 			case "running":
-				return "Stop Game";
+				return t("launcher.stop_game");
 			case "error":
-				return "Retry";
+				return t("launcher.retry");
 			default:
-				return "Play Game";
+				return t("launcher.play_game");
 		}
 	};
 

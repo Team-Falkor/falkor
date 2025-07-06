@@ -183,5 +183,23 @@
 		"horror": "Horror",
 		"singleplayer": "Singleplayer",
 		"simulation": "Simulation"
+	},
+	"launcher": {
+		"play_game": "Play Game",
+		"stop_game": "Stop Game",
+		"launching": "Launching...",
+		"stopping": "Stopping...",
+		"retry": "Retry",
+		"game_launched": "Game launched",
+		"game_stopped": "Game stopped",
+		"launch_failed": "Launch failed",
+		"stop_failed": "Stop failed",
+		"game_detection": "Game detection",
+		"waiting_for_process": "Waiting for game process to be detected...",
+		"failed_to_launch": "Failed to launch game",
+		"failed_to_stop": "Failed to stop game",
+		"real_time_updates_failed": "Real-time updates failed",
+		"game_status_delayed": "Game status updates may be delayed",
+		"game_id_missing": "Game ID is missing"
 	}
 }

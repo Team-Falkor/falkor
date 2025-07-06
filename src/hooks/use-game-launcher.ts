@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { LibraryGame } from "@/@types";
+import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
 
 type GameState = "idle" | "launching" | "running" | "stopping" | "error";
@@ -8,6 +9,7 @@ type GameState = "idle" | "launching" | "running" | "stopping" | "error";
 export function useGameLauncher(game: LibraryGame) {
 	const id = game.id;
 	const utils = trpc.useUtils();
+	const { t } = useLanguageContext();
 
 	// Local state for game status
 	const [gameState, setGameState] = useState<GameState>("idle");
@@ -66,14 +68,14 @@ export function useGameLauncher(game: LibraryGame) {
 		},
 		onSuccess: (data) => {
 			// State will be updated by subscription or next query
-			toast.success("Game launched successfully", {
+			toast.success(t("launcher.game_launched"), {
 				description: game.gameName,
 			});
 
 			// If polling is required, show additional info
 			if ("requiresPolling" in data && data.requiresPolling) {
-				toast.info("Game detection", {
-					description: "Waiting for game process to be detected...",
+				toast.info(t("launcher.game_detection"), {
+					description: t("launcher.waiting_for_process"),
 				});
 			}
 		},
@@ -83,7 +85,7 @@ export function useGameLauncher(game: LibraryGame) {
 
 			// Extract clean error message
 			const cleanMessage = err.message.replace(/^TRPCClientError: /, "");
-			toast.error("Failed to launch game", {
+			toast.error(t("launcher.failed_to_launch"), {
 				description: cleanMessage,
 			});
 		},
@@ -103,7 +105,7 @@ export function useGameLauncher(game: LibraryGame) {
 		},
 		onSuccess: () => {
 			// State will be updated by subscription or next query
-			toast.success("Game stopped", {
+			toast.success(t("launcher.game_stopped"), {
 				description: game.gameName,
 			});
 		},
@@ -113,7 +115,7 @@ export function useGameLauncher(game: LibraryGame) {
 
 			// Extract clean error message
 			const cleanMessage = err.message.replace(/^TRPCClientError: /, "");
-			toast.error("Failed to stop game", {
+			toast.error(t("launcher.failed_to_stop"), {
 				description: cleanMessage,
 			});
 		},
@@ -147,8 +149,8 @@ export function useGameLauncher(game: LibraryGame) {
 			setGameState("error");
 			setError(err.message);
 
-			toast.error("Real-time updates failed", {
-				description: "Game status updates may be delayed.",
+			toast.error(t("launcher.real_time_updates_failed"), {
+				description: t("launcher.game_status_delayed"),
 			});
 		},
 	});
@@ -156,7 +158,7 @@ export function useGameLauncher(game: LibraryGame) {
 	// Launch game function
 	const launchGame = useCallback(async () => {
 		if (!id) {
-			toast.error("Game ID is missing");
+			toast.error(t("launcher.game_id_missing"));
 			return;
 		}
 
@@ -170,12 +172,12 @@ export function useGameLauncher(game: LibraryGame) {
 			// Error is handled by mutation's onError
 			console.error("Launch error:", error);
 		}
-	}, [id, gameState, launchMutation]);
+	}, [id, gameState, launchMutation, t]);
 
 	// Stop game function
 	const stopGame = useCallback(async () => {
 		if (!id) {
-			toast.error("Game ID is missing");
+			toast.error(t("launcher.game_id_missing"));
 			return;
 		}
 
@@ -189,7 +191,7 @@ export function useGameLauncher(game: LibraryGame) {
 			// Error is handled by mutation's onError
 			console.error("Stop error:", error);
 		}
-	}, [id, gameState, stopMutation]);
+	}, [id, gameState, stopMutation, t]);
 
 	// Toggle game state function
 	const toggleGameState = useCallback(async () => {
@@ -207,25 +209,6 @@ export function useGameLauncher(game: LibraryGame) {
 	const isMutating = launchMutation.isPending || stopMutation.isPending;
 	const hasError = gameState === "error";
 
-	// Button text based on state
-	const getButtonText = () => {
-		switch (gameState) {
-			case "launching":
-				return "Launching...";
-			case "stopping":
-				return "Stopping...";
-			case "running":
-				return "Stop Game";
-			case "error":
-				return "Retry";
-			default:
-				return "Launch Game";
-		}
-	};
-
-	// Button disabled state
-	const isButtonDisabled = isInitializing || isMutating;
-
 	return {
 		// State
 		isRunning,
@@ -241,8 +224,7 @@ export function useGameLauncher(game: LibraryGame) {
 		hasError,
 
 		// UI helpers
-		buttonText: getButtonText(),
-		isButtonDisabled,
+		isButtonDisabled: isInitializing || isMutating,
 
 		// Actions
 		launchGame,
