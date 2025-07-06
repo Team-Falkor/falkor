@@ -105,16 +105,16 @@ const GameCategories = () => {
 					return (
 						<Card
 							key={category.titleKey}
-							className="group relative h-24 overflow-hidden bg-card transition-all duration-200 focus-states:scale-[1.02] focus-states:shadow-lg"
+							className="group relative h-20 overflow-hidden rounded-full p-0 transition-all duration-200 focus-states:scale-[1.02] focus-states:shadow-lg"
 						>
 							<CardContent className="h-full p-0">
 								<Link
 									to="/filter"
 									search={searchParams}
-									className="flex h-full w-full items-center justify-center p-4 focus:outline-none"
+									className="flex h-full w-full items-center justify-center focus:outline-none"
 								>
-									<div className="flex flex-col items-center space-y-2 text-center">
-										<div className="flex h-8 w-8 items-center justify-center text-lg transition-transform group-focus-states:scale-110">
+									<div className="flex flex-col items-center gap-1.5 text-center">
+										<div className="flex size-8 items-center justify-center text-lg transition-transform group-focus-states:scale-110">
 											{typeof category.icon === "string"
 												? category.icon
 												: category.icon}
@@ -123,8 +123,8 @@ const GameCategories = () => {
 											{t(category.titleKey)}
 										</span>
 									</div>
-									<div className="absolute top-2 right-2 opacity-0 transition-opacity duration-200 group-focus-states:opacity-100">
-										<ArrowRightIcon className="h-3 w-3 text-muted-foreground" />
+									<div className="absolute top-2 right-5 opacity-0 transition-opacity duration-200 group-focus-states:opacity-100">
+										<ArrowRightIcon className="size-3 text-muted-foreground" />
 									</div>
 								</Link>
 							</CardContent>
