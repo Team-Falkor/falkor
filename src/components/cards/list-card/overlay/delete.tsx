@@ -23,7 +23,7 @@ const DeleteDialog = ({ gameId }: DeleteDialogProps) => {
 	return (
 		<Confirmation onConfirm={() => deleteGame({ gameId })}>
 			<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-				{t("remove")}
+				{t("delete")}
 			</DropdownMenuItem>
 		</Confirmation>
 	);
