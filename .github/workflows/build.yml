@@ -3,7 +3,10 @@ name: build
 on:
   push:
     branches:
-      - testing
+      - master
+  workflow_dispatch: 
+  
+
 
 env:
   VITE_TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
