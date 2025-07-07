@@ -1,7 +1,7 @@
 import os from "node:os";
 import { app, BrowserWindow } from "electron";
 import { handleDeepLink } from "./deep-link";
-import { cleanup, createWindow, showWindow } from "./window";
+import { createWindow, destroyApp, showWindow } from "./window";
 
 let initialDeepLink: string | undefined;
 
@@ -74,8 +74,8 @@ export function setupAppLifecycle(): void {
 		}
 	});
 
-	app.on("before-quit", () => {
-		cleanup();
+	app.on("before-quit", async () => {
+		await destroyApp();
 	});
 
 	app.on("activate", () => {

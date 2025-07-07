@@ -11,6 +11,7 @@ export enum DownloadStatus {
 	FAILED = "failed",
 	CANCELLED = "canceled",
 	NONE = "none",
+	REMOVED = "removed",
 	UNZIPPING = "unzipping",
 	UNRARRING = "unraring",
 	CACHING_DEBRID = "caching_debrid",

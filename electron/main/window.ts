@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { db } from "@backend/database";
 import { libraryGames } from "@backend/database/schemas";
+import { downloadQueue } from "@backend/handlers/downloads/queue";
 import GameProcessLauncher from "@backend/handlers/launcher/game-process-launcher";
 import { gamesLaunched } from "@backend/handlers/launcher/games-launched";
 import logging from "@backend/handlers/logging";
@@ -445,6 +446,14 @@ export function cleanup(): void {
 		console.log("cleanup: Tray destroyed and reference cleared.");
 	}
 	console.log("cleanup: Cleanup complete.");
+}
+
+export async function destroyApp() {
+	cleanup();
+	await downloadQueue.destroy();
+
+	win?.destroy();
+	app.quit();
 }
 
 export const emitToFrontend = <TData>(

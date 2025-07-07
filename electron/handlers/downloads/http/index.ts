@@ -519,6 +519,23 @@ export class HttpDownloadHandler extends EventEmitter {
 			this.downloads.delete(id);
 		}
 	}
+
+	/**
+	 * Gracefully shuts down the handler, stopping all active downloads and timers.
+	 */
+	public destroy(): void {
+		console.log("Destroying HttpDownloadHandler...");
+
+		for (const [id, downloadInfo] of this.downloads.entries()) {
+			downloadInfo.request?.destroy();
+			downloadInfo.fileStream?.close();
+			console.log(`Stopped active HTTP download: ${id}`);
+		}
+
+		this.downloads.clear();
+		this.removeAllListeners();
+		console.log("HttpDownloadHandler destroyed successfully.");
+	}
 }
 
 export const httpDownloadHandler = new HttpDownloadHandler();

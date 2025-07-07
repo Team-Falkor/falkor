@@ -345,17 +345,24 @@ export class TorrentDownloadHandler extends EventEmitter {
 		}));
 	}
 
-	/**
-	 * Destroy the client and clean up
-	 */
-	public destroy(): void {
-		// Stop all progress tracking
-		for (const id of this.progressIntervals.keys()) {
-			this.stopProgressTracking(id);
-		}
+	public destroy(): Promise<void> {
+		return new Promise((resolve, reject) => {
+			if (this.progressIntervals) {
+				for (const id of this.progressIntervals.keys()) {
+					this.stopProgressTracking(id);
+				}
+			}
 
-		// Destroy client
-		this.client.destroy();
+			this.client.destroy((err) => {
+				if (err) {
+					console.error("Error destroying WebTorrent client:", err);
+					return reject(err instanceof Error ? err : new Error(String(err)));
+				}
+				this.torrents.clear();
+				this.removeAllListeners();
+				resolve();
+			});
+		});
 	}
 }
 

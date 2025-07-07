@@ -263,6 +263,12 @@ class DownloadQueue extends EventEmitter {
 		return result;
 	}
 
+	public removeAllDownloads(): void {
+		for (const id of this.queue.keys()) {
+			this.removeDownload(id);
+		}
+	}
+
 	public clearCompletedDownloads(): number {
 		let count = 0;
 		for (const [id, download] of this.queue.entries()) {
@@ -369,6 +375,26 @@ class DownloadQueue extends EventEmitter {
 		this.config = { ...this.config, ...config };
 		this.saveConfig();
 		this.processQueue();
+	}
+
+	public async destroy(): Promise<void> {
+		this.removeAllDownloads();
+
+		const handlerDestroyPromises: Promise<void>[] = [];
+		for (const handler of this.handlers.values()) {
+			const promise = handler.destroy();
+			if (promise instanceof Promise) {
+				handlerDestroyPromises.push(promise);
+			}
+		}
+		await Promise.all(handlerDestroyPromises);
+
+		this.queue.clear();
+		this.activeDownloads.clear();
+		this.priorityQueue.clear();
+		this.handlers.clear();
+
+		this.removeAllListeners();
 	}
 }
 

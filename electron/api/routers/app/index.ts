@@ -1,12 +1,11 @@
 import { existsSync } from "node:fs";
+import { destroyApp } from "@backend/main/window";
 import { constants } from "@backend/utils/constants";
 import { playSound } from "@backend/utils/playsound";
 import AutoLaunch from "auto-launch";
 import { app, BrowserWindow, dialog } from "electron";
 import { z } from "zod";
 import { Sound } from "@/@types";
-import { downloadQueue } from "../../../handlers/downloads/queue";
-import { gamesLaunched } from "../../../handlers/launcher/games-launched";
 import { SettingsManager } from "../../../handlers/settings/settings";
 import { publicProcedure, router } from "../../trpc";
 
@@ -96,7 +95,7 @@ export const appFunctionsRouter = router({
 				})
 				.optional(),
 		)
-		.mutation(({ input }) => {
+		.mutation(async ({ input }) => {
 			const win = getMainWindow();
 			const closeToTray = settings.get("closeToTray");
 
@@ -106,19 +105,19 @@ export const appFunctionsRouter = router({
 				return success("App hidden to tray.");
 			}
 
-			if (gamesLaunched.size > 0) {
-				console.warn("[App] Games running, close blocked.");
-				return failure("Games are running. Confirm before quitting.");
-			}
+			// if (gamesLaunched.size > 0) {
+			// 	console.warn("[App] Games running, close blocked.");
+			// 	return failure("Games are running. Confirm before quitting.");
+			// }
 
-			const isDownloading = downloadQueue.getDownloads()?.length > 0;
-			if (isDownloading && !input?.confirmed) {
-				console.warn("[App] Downloads active, close blocked.");
-				return failure("Downloads are active. Confirm before quitting.");
-			}
+			// const isDownloading = downloadQueue.getDownloads()?.length > 0;
+			// if (isDownloading && !input?.confirmed) {
+			// 	console.warn("[App] Downloads active, close blocked.");
+			// 	return failure("Downloads are active. Confirm before quitting.");
+			// }
 
-			win?.destroy();
 			console.log("[App] Quitting application.");
+			await destroyApp();
 			return success();
 		}),
 
