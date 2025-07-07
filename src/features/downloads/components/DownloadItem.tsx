@@ -17,7 +17,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { trpc } from "@/lib/trpc";
+import { useDownloadActions } from "@/hooks";
 import { formatBytes, formatTimeRemaining } from "@/lib/utils";
 
 type Item = RouterOutputs["downloads"]["getAll"][number];
@@ -27,48 +27,36 @@ interface DownloadItemData extends Item {
 }
 
 export function DownloadItem(data: DownloadItemData) {
-	const utils = trpc.useUtils();
-	const pauseMutation = trpc.downloads.pause.useMutation({
-		onSuccess: async () => await utils.downloads.invalidate(),
-	});
-	const resumeMutation = trpc.downloads.resume.useMutation({
-		onSuccess: async () => await utils.downloads.invalidate(),
-	});
-	const cancelMutation = trpc.downloads.cancel.useMutation({
-		onSuccess: async () => await utils.downloads.invalidate(),
-	});
-	const removeMutation = trpc.downloads.remove.useMutation({
-		onSuccess: async () => await utils.downloads.invalidate(),
-	});
+	const {
+		pauseDownload,
+		isPausingDownload,
+		resumeDownload,
+		isResumingDownload,
+		cancelDownload,
+		isCancellingDownload,
+		removeDownload,
+		isRemovingDownload,
+	} = useDownloadActions();
 
-	const handlePause = () =>
-		pauseMutation.mutate(
-			{ id: data.id },
-			{
-				onSuccess: async () => await utils.downloads.invalidate(),
-			},
-		);
-	const handleResume = () =>
-		resumeMutation.mutate(
-			{ id: data.id },
-			{
-				onSuccess: async () => await utils.downloads.invalidate(),
-			},
-		);
-	const handleCancel = () =>
-		cancelMutation.mutate(
-			{ id: data.id },
-			{
-				onSuccess: async () => await utils.downloads.invalidate(),
-			},
-		);
-	const handleRemove = () =>
-		removeMutation.mutate(
-			{ id: data.id },
-			{
-				onSuccess: async () => await utils.downloads.invalidate(),
-			},
-		);
+	const handlePause = () => {
+		if (isPausingDownload) return;
+		pauseDownload({ id: data.id });
+	};
+
+	const handleResume = () => {
+		if (isResumingDownload) return;
+		resumeDownload({ id: data.id });
+	};
+
+	const handleCancel = () => {
+		if (isCancellingDownload) return;
+		cancelDownload({ id: data.id });
+	};
+
+	const handleRemove = () => {
+		if (isRemovingDownload) return;
+		removeDownload({ id: data.id });
+	};
 
 	const download = data;
 	const status = download.status;
@@ -92,8 +80,10 @@ export function DownloadItem(data: DownloadItemData) {
 							<Button
 								variant="ghost"
 								size="icon"
-								onClick={() => handlePause()}
+								onClick={handlePause}
 								aria-label="Pause download"
+								disabled={isPausingDownload}
+								className={isPausingDownload ? "opacity-50" : ""}
 							>
 								<PauseIcon />
 							</Button>
@@ -103,8 +93,10 @@ export function DownloadItem(data: DownloadItemData) {
 							<Button
 								variant="ghost"
 								size="icon"
-								onClick={() => handleResume()}
+								onClick={handleResume}
 								aria-label="Resume download"
+								disabled={isResumingDownload}
+								className={isResumingDownload ? "opacity-50" : ""}
 							>
 								<PlayIcon />
 							</Button>
@@ -116,8 +108,10 @@ export function DownloadItem(data: DownloadItemData) {
 							<Button
 								variant="ghost"
 								size="icon"
-								onClick={() => handleCancel()}
+								onClick={handleCancel}
 								aria-label="Cancel download"
+								disabled={isCancellingDownload}
+								className={isCancellingDownload ? "opacity-50" : ""}
 							>
 								<XIcon />
 							</Button>
@@ -127,9 +121,10 @@ export function DownloadItem(data: DownloadItemData) {
 							<Button
 								variant="ghost"
 								size="icon"
-								onClick={() => handleRemove()}
+								onClick={handleRemove}
 								aria-label="Remove download from list"
 								className="text-destructive focus-states:text-destructive"
+								disabled={isRemovingDownload}
 							>
 								<TrashIcon />
 							</Button>
@@ -154,9 +149,21 @@ export function DownloadItem(data: DownloadItemData) {
 					)}
 
 					{isFailed && (
-						<p className="text-red-600 text-sm">
-							Failed: {download.error || "Unknown error"}
-						</p>
+						<div className="space-y-2">
+							<p className="text-red-600 text-sm">
+								Failed: {download.error || "Unknown error"}
+							</p>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleResume}
+								disabled={isResumingDownload}
+								className={isResumingDownload ? "opacity-50" : ""}
+							>
+								<PlayIcon className="mr-1 h-3 w-3" />
+								Retry
+							</Button>
+						</div>
 					)}
 
 					{isCancelled && (

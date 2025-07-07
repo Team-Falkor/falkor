@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { DownloadStatus, type RouterOutputs } from "@/@types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
@@ -6,27 +5,34 @@ import { CachingDownloadItem } from "./CachingDownloadItem";
 import { DownloadItem } from "./DownloadItem";
 
 export function DownloadList() {
-	const { data: downloads } = trpc.downloads.getAll.useQuery(undefined, {
-		refetchInterval: 2500, // 2.5 seconds
-		// refetchIntervalInBackground: false,
-		staleTime: 2500,
-		// refetchOnWindowFocus: true,
-		// refetchOnMount: true,
+	// Fallback query for initial data when subscription hasn't connected yet
+	const { data: queryData } = trpc.downloads.getAll.useQuery(undefined, {
+		refetchOnWindowFocus: true,
+		refetchOnMount: true,
+		refetchInterval: (data) => {
+			if (!data) return 5000;
+
+			const hasActiveItems = data?.state?.data?.some(
+				(item) =>
+					item.status === DownloadStatus.DOWNLOADING ||
+					item.status === DownloadStatus.QUEUED,
+			);
+			return hasActiveItems ? 2500 : 5000;
+		},
 	});
+
+	const downloads = queryData ?? [];
+
 	const { data: cachingItems } = trpc.downloads.getCachingItems.useQuery(
 		undefined,
 		{
-			refetchInterval: 60_000, // 1 minute
-			// refetchIntervalInBackground: false,
-			// staleTime: 2500,
-			// refetchOnWindowFocus: true,
-			// refetchOnMount: true,
+			refetchInterval: 30_000, // 30 seconds for caching items
+			refetchIntervalInBackground: false,
+			staleTime: 25_000, // Consider stale after 25 seconds
+			refetchOnWindowFocus: true,
+			refetchOnMount: true,
 		},
 	);
-
-	useEffect(() => {
-		console.log("cachingItems", cachingItems);
-	}, [cachingItems]);
 
 	// Set all to its own const for contanuity
 	const all = downloads ?? [];

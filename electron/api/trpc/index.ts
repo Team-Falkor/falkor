@@ -1,4 +1,5 @@
 import { initTRPC } from "@trpc/server";
+import { observable } from "@trpc/server/observable";
 import { ZodError } from "zod";
 import { db } from "../../database";
 
@@ -32,3 +33,4 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
  */
 export const router = t.router;
 export const publicProcedure = t.procedure;
+export { observable };

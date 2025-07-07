@@ -82,29 +82,82 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 */
 	public async startDownload(item: DownloadItem): Promise<void> {
 		try {
+			// Check if torrent already exists
+			if (this.torrents.has(item.id)) {
+				console.warn(`Torrent ${item.id} already exists, skipping`);
+				return;
+			}
+
+			// Check if this URL is already being downloaded by another torrent
+			const existingTorrent = this.client.torrents.find(
+				(t) => t.magnetURI === item.url || t.infoHash === item.url,
+			);
+			if (existingTorrent) {
+				console.log(
+					`Torrent with URL ${item.url} already exists, reusing existing torrent`,
+				);
+				this.torrents.set(item.id, existingTorrent);
+				this.setupTorrentEventListeners(existingTorrent, item.id);
+				this.startProgressTracking(item.id);
+				return;
+			}
+
 			// Create directory if it doesn't exist
 			await fs.promises.mkdir(item.path, { recursive: true, mode: 0o755 });
 
-			// console.log("Starting download:", item);
+			// Send initial progress update to prevent UI stuck state
+			downloadQueue.updateProgress({
+				id: item.id,
+				progress: 0,
+				speed: 0,
+				timeRemaining: 0,
+				status: DownloadStatus.DOWNLOADING,
+			});
 
-			// Add torrent to client
-			this.client.add(item.url, { path: item.path }, (torrent) => {
-				// Store torrent reference
-				this.torrents.set(item.id, torrent);
+			// Add torrent to client with error handling
+			const torrent = this.client.add(item.url, { path: item.path });
+
+			// Store torrent reference immediately
+			this.torrents.set(item.id, torrent);
+
+			// Setup torrent event listeners first
+			this.setupTorrentEventListeners(torrent, item.id);
+
+			// Handle torrent ready event
+			torrent.on("ready", () => {
+				console.log(
+					`Torrent ${item.id} is ready:`,
+					torrent.name,
+					torrent.length,
+				);
 
 				// Update item with torrent info
 				item.name = torrent.name;
 				item.size = torrent.length;
 
-				// Setup torrent event listeners
-				this.setupTorrentEventListeners(item.id, torrent);
+				// Update download queue with torrent metadata
+				const download = downloadQueue.getDownload(item.id);
+				if (download) {
+					download.name = torrent.name;
+					download.size = torrent.length;
+				}
+
+				// Send immediate metadata update
+				const metadataUpdate: DownloadProgress = {
+					id: item.id,
+					progress: 0,
+					speed: 0,
+					timeRemaining: 0,
+					status: DownloadStatus.DOWNLOADING,
+				};
+				downloadQueue.updateProgress(metadataUpdate);
 
 				// Start progress tracking
 				this.startProgressTracking(item.id);
-
-				// Force an initial progress update to fix stuck at 0% bug
-				this.updateProgress(item.id);
 			});
+
+			// Start progress tracking immediately for UI responsiveness
+			this.startProgressTracking(item.id);
 		} catch (error) {
 			this.handleError(
 				item.id,
@@ -117,26 +170,70 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 * Setup event listeners for a specific torrent
 	 */
 	private setupTorrentEventListeners(
-		id: string,
 		torrent: WebTorrent.Torrent,
+		id: string,
 	): void {
 		// Handle torrent errors
 		torrent.on("error", (error) => {
+			console.error(`Torrent ${id} error:`, error);
 			this.handleError(id, typeof error === "string" ? error : error.message);
 		});
 
 		// Handle torrent completion
 		torrent.on("done", () => {
+			console.log(`Torrent ${id} completed`);
 			this.completeDownload(id);
 		});
 
 		// Handle metadata received
 		torrent.on("metadata", () => {
+			console.log(
+				`Torrent ${id} metadata received:`,
+				torrent.name,
+				torrent.length,
+			);
 			const item = downloadQueue.getDownload(id);
 			if (item) {
 				item.name = torrent.name;
 				item.size = torrent.length;
+
+				// Send progress update with metadata
+				const metadataUpdate: DownloadProgress = {
+					id,
+					progress: 0,
+					speed: 0,
+					timeRemaining: 0,
+					status: DownloadStatus.DOWNLOADING,
+				};
+				downloadQueue.updateProgress(metadataUpdate);
 			}
+		});
+
+		// Throttled download event to prevent spam
+		let lastDownloadLog = 0;
+		torrent.on("download", () => {
+			// Throttle progress updates to avoid overwhelming the UI
+			if (!this.progressIntervals.has(id)) {
+				this.updateProgress(id);
+			}
+
+			// Log progress occasionally for debugging
+			const now = Date.now();
+			if (now - lastDownloadLog > 5000) {
+				// Log every 5 seconds max
+				console.log(`Torrent ${id} downloading:`, {
+					progress: `${(torrent.progress * 100).toFixed(2)}%`,
+					speed: torrent.downloadSpeed,
+					downloaded: torrent.downloaded,
+					length: torrent.length,
+				});
+				lastDownloadLog = now;
+			}
+		});
+
+		// Handle wire connections
+		torrent.on("wire", (wire) => {
+			console.log(`Torrent ${id} connected to peer:`, wire.remoteAddress);
 		});
 	}
 
@@ -147,10 +244,13 @@ export class TorrentDownloadHandler extends EventEmitter {
 		// Clear any existing interval
 		this.stopProgressTracking(id);
 
-		// Create new interval
+		// Send immediate update to prevent stuck state
+		this.updateProgress(id);
+
+		// Start new interval - 2000ms for better performance
 		const interval = setInterval(() => {
 			this.updateProgress(id);
-		}, 1000); // Update every second
+		}, 2000);
 
 		// Store interval reference
 		this.progressIntervals.set(id, interval);
@@ -172,29 +272,66 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 */
 	private updateProgress(id: string): void {
 		const torrent = this.torrents.get(id);
-		if (!torrent) return;
+		const download = downloadQueue.getDownload(id);
 
-		// Calculate progress percentage
-		const progress = Math.min(100, torrent.progress * 100);
-
-		// Calculate time remaining
-		let timeRemaining = 0;
-		if (torrent.downloadSpeed > 0) {
-			const bytesRemaining = torrent.length - torrent.downloaded;
-			timeRemaining = bytesRemaining / torrent.downloadSpeed;
+		// Check if torrent and download exist
+		if (!torrent || !download) {
+			console.warn(`Torrent or download ${id} not found for progress update`);
+			return;
 		}
 
-		// Create progress update
-		const progressUpdate: DownloadProgress = {
-			id,
-			progress,
-			speed: torrent.downloadSpeed,
-			timeRemaining,
-			status: DownloadStatus.DOWNLOADING,
-		};
+		// Don't update progress for paused or cancelled downloads
+		if (
+			download.status === DownloadStatus.PAUSED ||
+			download.status === DownloadStatus.CANCELLED
+		) {
+			return;
+		}
 
-		// Update download queue
-		downloadQueue.updateProgress(progressUpdate);
+		// Always send updates for torrents that are not ready yet to prevent stuck state
+		if (!torrent.ready || torrent.length === 0) {
+			// Send a basic update to show the download is active
+			const basicUpdate: DownloadProgress = {
+				id,
+				progress: 0,
+				speed: 0,
+				timeRemaining: 0,
+				status: DownloadStatus.DOWNLOADING,
+			};
+			downloadQueue.updateProgress(basicUpdate);
+			return;
+		}
+
+		// Calculate progress with validation
+		const progress = Math.min((torrent.downloaded / torrent.length) * 100, 100);
+		const speed = torrent.downloadSpeed || 0;
+
+		// Calculate time remaining with validation
+		let timeRemaining = 0;
+		if (speed > 0 && torrent.length > 0) {
+			const remainingBytes = torrent.length - torrent.downloaded;
+			timeRemaining = Math.max(remainingBytes / speed, 0);
+		}
+
+		// Only send updates if there's meaningful change or it's the first update
+		const lastProgress = download.progress || 0;
+		const lastSpeed = download.speed || 0;
+		const progressDiff = Math.abs(progress - lastProgress);
+		const speedDiff = Math.abs(speed - lastSpeed);
+
+		// Send update if progress changed by at least 0.1%, speed changed significantly, or it's the first real update
+		if (progressDiff >= 0.1 || speedDiff > 1024 || lastProgress === 0) {
+			const progressUpdate: DownloadProgress = {
+				id,
+				progress: Math.round(progress * 100) / 100, // Round to 2 decimal places
+				speed,
+				timeRemaining: Math.round(timeRemaining),
+				status: DownloadStatus.DOWNLOADING,
+			};
+
+			// Update download queue
+			downloadQueue.updateProgress(progressUpdate);
+		}
 	}
 
 	/**
@@ -249,7 +386,12 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 */
 	public pauseDownload(id: string): boolean {
 		const torrent = this.torrents.get(id);
-		if (!torrent) return false;
+		if (!torrent) {
+			console.warn(`Torrent ${id} not found for pause`);
+			return false;
+		}
+
+		console.log(`Pausing torrent ${id}`);
 
 		// Pause the torrent
 		torrent.pause();
@@ -277,10 +419,27 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 */
 	public resumeDownload(id: string): boolean {
 		const torrent = this.torrents.get(id);
-		if (!torrent) return false;
+		if (!torrent) {
+			console.warn(`Torrent ${id} not found for resume`);
+			return false;
+		}
+
+		console.log(`Resuming torrent ${id}`);
 
 		// Resume the torrent
 		torrent.resume();
+
+		// Send immediate status update
+		const progressUpdate: DownloadProgress = {
+			id,
+			progress:
+				torrent.length > 0 ? (torrent.downloaded / torrent.length) * 100 : 0,
+			speed: torrent.downloadSpeed || 0,
+			timeRemaining: 0,
+			status: DownloadStatus.DOWNLOADING,
+		};
+
+		downloadQueue.updateProgress(progressUpdate);
 
 		// Start progress tracking
 		this.startProgressTracking(id);
@@ -292,6 +451,23 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 * Cancel a download
 	 */
 	public cancelDownload(id: string): boolean {
+		const torrent = this.torrents.get(id);
+		if (torrent) {
+			console.log(`Cancelling torrent ${id}`);
+
+			// Send immediate status update
+			const progressUpdate: DownloadProgress = {
+				id,
+				progress:
+					torrent.length > 0 ? (torrent.downloaded / torrent.length) * 100 : 0,
+				speed: 0,
+				timeRemaining: 0,
+				status: DownloadStatus.CANCELLED,
+			};
+
+			downloadQueue.updateProgress(progressUpdate);
+		}
+
 		return this.removeTorrent(id);
 	}
 
