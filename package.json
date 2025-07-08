@@ -103,7 +103,7 @@
     "babel-plugin-react-compiler": "^19.1.0-rc.2",
     "drizzle-kit": "^0.31.4",
     "electron": "^35",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.0.12",
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "postcss": "^8.4.49",
     "postcss-import": "^16.1.0",
