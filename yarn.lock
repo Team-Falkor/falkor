@@ -269,10 +269,18 @@
     debug "^4.3.1"
     globals "^11.1.0"
 
-"@babel/types@^7.0.0", "@babel/types@^7.20.7", "@babel/types@^7.23.6", "@babel/types@^7.26.0", "@babel/types@^7.26.8", "@babel/types@^7.27.1", "@babel/types@^7.27.3", "@babel/types@^7.27.6":
+"@babel/types@^7.0.0", "@babel/types@^7.20.7", "@babel/types@^7.23.6", "@babel/types@^7.26.8", "@babel/types@^7.27.1", "@babel/types@^7.27.3", "@babel/types@^7.27.6":
   version "7.27.6"
   resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.27.6.tgz#a434ca7add514d4e646c80f7375c0aa2befc5535"
   integrity sha512-ETyHEk2VHHvl9b9jZP5IHPavHYk57EhanlRRuae9XCpb/j5bDCbPPMOBfCWhnl/7EDJz0jEMCi/RhccCE8r1+Q==
+  dependencies:
+    "@babel/helper-string-parser" "^7.27.1"
+    "@babel/helper-validator-identifier" "^7.27.1"
+
+"@babel/types@^7.26.0":
+  version "7.28.0"
+  resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.28.0.tgz#2fd0159a6dc7353933920c43136335a9b264d950"
+  integrity sha512-jYnje+JyZG5YThjHiF28oT4SIZLnYOcSBb6+SDaFIyzDVSkXQmQQYclJ2R+YxcdmK0AX6x1E5OQNtuh3jHDrUg==
   dependencies:
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.27.1"
@@ -2167,10 +2175,10 @@
   dependencies:
     undici-types "~7.8.0"
 
-"@types/node@^20.9.0":
-  version "20.19.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.19.1.tgz#cef8bc04aaae86824b5bbe2570769358592bcc59"
-  integrity sha512-jJD50LtlD2dodAEO653i3YF04NWak6jN3ky+Ri3Em3mGR39/glWiboM/IePaRbgwSfqM1TpGXfAg8ohn/4dTgA==
+"@types/node@^22.7.7":
+  version "22.16.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.16.0.tgz#352bc4951fd089df32f2b6412a61d339b67ded8b"
+  integrity sha512-B2egV9wALML1JCpv3VQoQ+yesQKAmNMBIAY7OteVrikcOcAkWm+dGL6qpeCktPjAv6N1JLnhbNiqS35UpFyBsQ==
   dependencies:
     undici-types "~6.21.0"
 
@@ -3492,13 +3500,13 @@ electron-updater@^6.3.9:
     semver "^7.6.3"
     tiny-typed-emitter "^2.1.0"
 
-electron@^33.2.0:
-  version "33.4.11"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-33.4.11.tgz#225d7f106ed3edf788ced318c63858d8b8a446dc"
-  integrity sha512-xmdAs5QWRkInC7TpXGNvzo/7exojubk+72jn1oJL7keNeIlw7xNglf8TGtJtkR4rWC5FJq0oXiIXPS9BcK2Irg==
+electron@^35:
+  version "35.7.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-35.7.0.tgz#b362b0303ae1522790bb5ef37c9611a7e6b974f8"
+  integrity sha512-ZnbVqFK40pr83Jzw6IQ9pQT+obCG0DepSMKtOEe8WP2TgZbjvCOO4GzrR+a7Ze62JMRmtNOHsS4hFss6qjtSrQ==
   dependencies:
     "@electron/get" "^2.0.0"
-    "@types/node" "^20.9.0"
+    "@types/node" "^22.7.7"
     extract-zip "^2.0.1"
 
 embla-carousel-autoplay@^8.6.0:

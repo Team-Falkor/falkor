@@ -24,11 +24,17 @@ export class TorrentDownloadHandler extends EventEmitter {
 		this.torrents = new Map();
 		this.progressIntervals = new Map();
 
-		// Initialize WebTorrent client
 		this.client = new WebTorrent({
 			utp: true,
 			dht: true,
-			webSeeds: true,
+			webSeeds: false,
+			tracker: {
+				announce: [],
+				rtcConfig: null,
+			},
+			maxConns: 80,
+			blocklist:
+				"https://github.com/Naunter/BT_BlockLists/raw/master/bt_blocklists.gz",
 		});
 
 		// Apply throttling settings
