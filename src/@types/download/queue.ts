@@ -45,6 +45,12 @@ export interface DownloadItem {
 	timeRemaining: number;
 	/** Indicates whether the download is currently paused. */
 	paused: boolean;
+	/** Optional: Current upload speed in bytes/sec for seeding torrents. */
+	uploadSpeed?: number;
+	/** Optional: Total bytes uploaded while seeding. */
+	uploaded?: number;
+	/** Optional: Current number of peers connected for torrents. */
+	peers?: number;
 	/** Optional: Error message if the download failed. */
 	error?: string;
 	/** Optional: Game metadata if the download is related to a game. */

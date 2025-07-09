@@ -407,6 +407,17 @@ class DownloadQueue extends EventEmitter {
 		download.speed = progress.speed;
 		download.timeRemaining = progress.timeRemaining;
 
+		// Update torrent-specific properties if available
+		if (progress?.uploadSpeed !== undefined) {
+			download.uploadSpeed = progress.uploadSpeed;
+		}
+		if (progress?.uploaded !== undefined) {
+			download.uploaded = progress.uploaded;
+		}
+		if (progress?.peers !== undefined) {
+			download.peers = progress.peers;
+		}
+
 		// Handle status changes
 		if (progress.status !== download.status) {
 			download.status = progress.status;
@@ -447,7 +458,12 @@ class DownloadQueue extends EventEmitter {
 			(progress.progress || 0) - (previousProgress || 0),
 		);
 		if (progressDiff >= 0.1 || progress.status !== previousStatus) {
-			console.log('Emitting progress event for download:', progress.id, 'progress:', progress.progress);
+			console.log(
+				"Emitting progress event for download:",
+				progress.id,
+				"progress:",
+				progress.progress,
+			);
 			this.emit("progress", download);
 		}
 	}
@@ -495,7 +511,14 @@ class DownloadQueue extends EventEmitter {
 	): void {
 		const download = this.queue.get(id);
 		if (download) {
-			console.log('Emitting state change event for download:', id, 'from:', previousStatus, 'to:', currentStatus);
+			console.log(
+				"Emitting state change event for download:",
+				id,
+				"from:",
+				previousStatus,
+				"to:",
+				currentStatus,
+			);
 			this.emit("stateChange", download);
 		}
 	}

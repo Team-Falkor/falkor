@@ -1,5 +1,6 @@
 import {
 	ArrowDownToLine,
+	ArrowUpFromLine,
 	ClockIcon,
 	PauseIcon,
 	PlayIcon,
@@ -24,9 +25,6 @@ type Item = RouterOutputs["downloads"]["getAll"][number];
 
 interface DownloadItemData extends Item {
 	typeOf: "download";
-	uploadSpeed?: number;
-	uploaded?: number;
-	peers?: number;
 }
 
 export function DownloadItem(data: DownloadItemData) {
@@ -63,6 +61,8 @@ export function DownloadItem(data: DownloadItemData) {
 
 	const download = data;
 	const status = download.status;
+
+	console.log({ download });
 
 	const isActive = status === DownloadStatus.DOWNLOADING;
 	const isPaused = status === DownloadStatus.PAUSED;
@@ -187,23 +187,31 @@ export function DownloadItem(data: DownloadItemData) {
 					)}
 
 					{isSeeding && (
-						<div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-muted-foreground text-xs">
-							<div className="flex items-center gap-1">
-								<ArrowDownToLine className="h-3 w-3 text-green-500" />
-								<span>Seeding</span>
-								{download?.uploadSpeed && download.uploadSpeed > 0 && (
-									<span className="ml-1">
-										{formatBytes(download.uploadSpeed)}/s
-									</span>
-								)}
-							</div>
-							{download?.peers && download.peers > 0 && (
-								<div className="flex items-center gap-1">
-									<span>{download.peers} peers</span>
-								</div>
+				<div className="space-y-1">
+					<div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-muted-foreground text-xs">
+						<div className="flex items-center gap-1">
+							<ArrowDownToLine className="h-3 w-3 text-green-500" />
+							<span>Seeding</span>
+							{download?.uploadSpeed && download.uploadSpeed > 0 && (
+								<span className="ml-1">
+									{formatBytes(download.uploadSpeed)}/s
+								</span>
 							)}
 						</div>
+						{download?.peers && download.peers > 0 && (
+							<div className="flex items-center gap-1">
+								<span>{download.peers} peers</span>
+							</div>
+						)}
+					</div>
+					{download?.uploaded && download.uploaded > 0 && (
+						<div className="flex items-center gap-1 text-muted-foreground text-xs">
+							<ArrowUpFromLine className="h-3 w-3 text-green-500" />
+							<span>Uploaded: {formatBytes(download.uploaded)}</span>
+						</div>
 					)}
+				</div>
+			)}
 
 					{isNone && <p className="text-muted-foreground text-sm">No Status</p>}
 

@@ -243,6 +243,22 @@ export class TorrentDownloadHandler extends EventEmitter {
 		});
 
 		torrent.on("upload", () => {
+			// Update progress with upload statistics for seeding torrents
+			const download = downloadQueue.getDownload(id);
+			if (download && download.status === DownloadStatus.SEEDING) {
+				const progressUpdate: DownloadProgress = {
+					id,
+					progress: 100,
+					speed: 0,
+					timeRemaining: 0,
+					status: DownloadStatus.SEEDING,
+					uploadSpeed: torrent.uploadSpeed,
+					uploaded: torrent.uploaded,
+					peers: torrent.numPeers,
+				};
+				downloadQueue.updateProgress(progressUpdate);
+			}
+
 			// Only log upload progress occasionally
 			const now = Date.now();
 			if (now - lastDownloadLog > 5000) {
