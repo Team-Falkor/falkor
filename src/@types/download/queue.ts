@@ -8,6 +8,7 @@ export enum DownloadStatus {
 	DOWNLOADING = "downloading",
 	PAUSED = "paused",
 	COMPLETED = "completed",
+	SEEDING = "seeding",
 	FAILED = "failed",
 	CANCELLED = "canceled",
 	NONE = "none",
@@ -109,6 +110,12 @@ export interface DownloadProgress {
 	progress: number;
 	/** Current download speed in bytes/sec. */
 	speed: number;
+	/** Current upload speed in bytes/sec for seeding. */
+	uploadSpeed?: number;
+	/** Total bytes uploaded while seeding. */
+	uploaded?: number;
+	/** Current number of peers connected. */
+	peers?: number;
 	/** Estimated time remaining for the download in seconds. */
 	timeRemaining: number;
 	/** Current status of the download. */

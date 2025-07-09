@@ -7,7 +7,7 @@ import pluginProviderHandler from "@backend/handlers/plugins/providers/handler";
 import { getErrorMessage } from "@backend/utils/utils";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router, observable } from "../../../api/trpc";
+import { observable, publicProcedure, router } from "../../../api/trpc";
 import { downloadQueue } from "../../../handlers/downloads/queue";
 import { pluginIdSchema } from "../plugins/providers";
 
@@ -202,35 +202,35 @@ export const downloadQueueRouter = router({
 
 	subscribeToProgress: publicProcedure.subscription(() => {
 		return observable<{ downloads: any[] }>((emit) => {
-			console.log('tRPC subscription started');
+			console.log("tRPC subscription started");
 			// Emit initial state
 			const initialDownloads = downloadQueue.getDownloads();
-			console.log('Emitting initial downloads:', initialDownloads.length);
+			console.log("Emitting initial downloads:", initialDownloads.length);
 			emit.next({ downloads: initialDownloads });
 
 			// Listen for progress updates
 			const onProgress = (download: any) => {
-				console.log('Progress event received for download:', download.id);
+				console.log("Progress event received for download:", download.id);
 				const allDownloads = downloadQueue.getDownloads();
-				console.log('Emitting updated downloads:', allDownloads.length);
+				console.log("Emitting updated downloads:", allDownloads.length);
 				emit.next({ downloads: allDownloads });
 			};
 
 			// Listen for state changes
 			const onStateChange = (download: any) => {
-				console.log('State change event received for download:', download.id);
+				console.log("State change event received for download:", download.id);
 				const allDownloads = downloadQueue.getDownloads();
-				console.log('Emitting updated downloads:', allDownloads.length);
+				console.log("Emitting updated downloads:", allDownloads.length);
 				emit.next({ downloads: allDownloads });
 			};
 
-			downloadQueue.on('progress', onProgress);
-			downloadQueue.on('stateChange', onStateChange);
+			downloadQueue.on("progress", onProgress);
+			downloadQueue.on("stateChange", onStateChange);
 
 			return () => {
-				console.log('tRPC subscription cleanup');
-				downloadQueue.off('progress', onProgress);
-				downloadQueue.off('stateChange', onStateChange);
+				console.log("tRPC subscription cleanup");
+				downloadQueue.off("progress", onProgress);
+				downloadQueue.off("stateChange", onStateChange);
 			};
 		});
 	}),

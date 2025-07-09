@@ -241,6 +241,19 @@ export class TorrentDownloadHandler extends EventEmitter {
 		torrent.on("wire", (wire) => {
 			console.log(`Torrent ${id} connected to peer:`, wire.remoteAddress);
 		});
+
+		torrent.on("upload", () => {
+			// Only log upload progress occasionally
+			const now = Date.now();
+			if (now - lastDownloadLog > 5000) {
+				console.log(`Torrent ${id} uploading:`, {
+					uploadSpeed: torrent.uploadSpeed,
+					uploaded: torrent.uploaded,
+					peers: torrent.numPeers,
+				});
+				lastDownloadLog = now;
+			}
+		});
 	}
 
 	/**
@@ -255,6 +268,19 @@ export class TorrentDownloadHandler extends EventEmitter {
 
 		// Start new interval - 2000ms for better performance
 		const interval = setInterval(() => {
+			const torrent = this.torrents.get(id);
+			if (!torrent) return;
+
+			// Check if torrent is seeding
+			const download = downloadQueue.getDownload(id);
+			if (download?.status === DownloadStatus.SEEDING) {
+				// Update one last time before stopping
+				this.updateProgress(id);
+				// Stop progress tracking for seeding torrents
+				this.stopProgressTracking(id);
+				return;
+			}
+
 			this.updateProgress(id);
 		}, 2000);
 
@@ -319,6 +345,10 @@ export class TorrentDownloadHandler extends EventEmitter {
 			timeRemaining = Math.max(remainingBytes / speed, 0);
 		}
 
+		// Determine if the torrent is completed and should be seeding
+		const isSeeding =
+			torrent.progress === 1 || download.status === DownloadStatus.SEEDING;
+
 		// Only send updates if there's meaningful change or it's the first update
 		const lastProgress = download.progress || 0;
 		const lastSpeed = download.speed || 0;
@@ -326,13 +356,21 @@ export class TorrentDownloadHandler extends EventEmitter {
 		const speedDiff = Math.abs(speed - lastSpeed);
 
 		// Send update if progress changed by at least 0.1%, speed changed significantly, or it's the first real update
-		if (progressDiff >= 0.1 || speedDiff > 1024 || lastProgress === 0) {
+		if (
+			progressDiff >= 0.1 ||
+			speedDiff > 1024 ||
+			lastProgress === 0 ||
+			isSeeding
+		) {
 			const progressUpdate: DownloadProgress = {
 				id,
 				progress: Math.round(progress * 100) / 100, // Round to 2 decimal places
 				speed,
 				timeRemaining: Math.round(timeRemaining),
-				status: DownloadStatus.DOWNLOADING,
+				status: isSeeding ? DownloadStatus.SEEDING : DownloadStatus.DOWNLOADING,
+				uploadSpeed: torrent.uploadSpeed,
+				uploaded: torrent.uploaded,
+				peers: torrent.numPeers,
 			};
 
 			// Update download queue
@@ -344,23 +382,36 @@ export class TorrentDownloadHandler extends EventEmitter {
 	 * Complete a download
 	 */
 	private completeDownload(id: string): void {
-		// Stop progress tracking
-		this.stopProgressTracking(id);
+		// Get the torrent instance
+		const torrent = this.torrents.get(id);
+		if (!torrent) {
+			console.warn(`Torrent ${id} not found for completion`);
+			return;
+		}
 
-		// Create progress update for completion
+		console.log(`Torrent ${id} completed`);
+
+		// Create progress update for completion and start seeding
 		const progressUpdate: DownloadProgress = {
 			id,
 			progress: 100,
 			speed: 0,
 			timeRemaining: 0,
-			status: DownloadStatus.COMPLETED,
+			status: DownloadStatus.SEEDING,
+			uploadSpeed: torrent.uploadSpeed,
+			uploaded: torrent.uploaded,
+			peers: torrent.numPeers,
 		};
 
 		// Update download queue
 		downloadQueue.updateProgress(progressUpdate);
 
-		// Keep seeding but mark as complete
-		// The torrent will continue to seed until the app is closed or the torrent is removed
+		// Log initial seeding state
+		console.log(`Torrent ${id} started seeding:`, {
+			uploadSpeed: torrent.uploadSpeed,
+			uploaded: torrent.uploaded,
+			peers: torrent.numPeers,
+		});
 	}
 
 	/**
@@ -409,6 +460,9 @@ export class TorrentDownloadHandler extends EventEmitter {
 			speed: 0,
 			timeRemaining: 0,
 			status: DownloadStatus.PAUSED,
+			uploadSpeed: 0,
+			uploaded: torrent.uploaded,
+			peers: torrent.numPeers,
 		};
 
 		// Update download queue with paused status
@@ -435,6 +489,9 @@ export class TorrentDownloadHandler extends EventEmitter {
 		// Resume the torrent
 		torrent.resume();
 
+		// Determine if the torrent is completed and should be seeding
+		const isCompleted = torrent.progress === 1;
+
 		// Send immediate status update
 		const progressUpdate: DownloadProgress = {
 			id,
@@ -442,7 +499,10 @@ export class TorrentDownloadHandler extends EventEmitter {
 				torrent.length > 0 ? (torrent.downloaded / torrent.length) * 100 : 0,
 			speed: torrent.downloadSpeed || 0,
 			timeRemaining: 0,
-			status: DownloadStatus.DOWNLOADING,
+			status: isCompleted ? DownloadStatus.SEEDING : DownloadStatus.DOWNLOADING,
+			uploadSpeed: torrent.uploadSpeed,
+			uploaded: torrent.uploaded,
+			peers: torrent.numPeers,
 		};
 
 		downloadQueue.updateProgress(progressUpdate);

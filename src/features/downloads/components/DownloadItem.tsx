@@ -24,6 +24,9 @@ type Item = RouterOutputs["downloads"]["getAll"][number];
 
 interface DownloadItemData extends Item {
 	typeOf: "download";
+	uploadSpeed?: number;
+	uploaded?: number;
+	peers?: number;
 }
 
 export function DownloadItem(data: DownloadItemData) {
@@ -66,6 +69,9 @@ export function DownloadItem(data: DownloadItemData) {
 	const isCompleted = status === DownloadStatus.COMPLETED;
 	const isFailed = status === DownloadStatus.FAILED;
 	const isCancelled = status === DownloadStatus.CANCELLED;
+	const isSeeding = status === DownloadStatus.SEEDING;
+	const isNone = status === DownloadStatus.NONE;
+	const isRemoved = status === DownloadStatus.REMOVED;
 
 	return (
 		<Card key={download.id}>
@@ -117,7 +123,12 @@ export function DownloadItem(data: DownloadItemData) {
 							</Button>
 						)}
 
-						{(isCompleted || isFailed || isCancelled) && (
+						{(isCompleted ||
+							isFailed ||
+							isCancelled ||
+							isSeeding ||
+							isNone ||
+							isRemoved) && (
 							<Button
 								variant="ghost"
 								size="icon"
@@ -144,9 +155,14 @@ export function DownloadItem(data: DownloadItemData) {
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-2">
-					{!isCompleted && !isFailed && !isCancelled && (
-						<Progress value={download.progress ?? 0} className="h-2" />
-					)}
+					{!isCompleted &&
+						!isFailed &&
+						!isCancelled &&
+						!isSeeding &&
+						!isNone &&
+						!isRemoved && (
+							<Progress value={download.progress ?? 0} className="h-2" />
+						)}
 
 					{isFailed && (
 						<div className="space-y-2">
@@ -168,6 +184,31 @@ export function DownloadItem(data: DownloadItemData) {
 
 					{isCancelled && (
 						<p className="text-muted-foreground text-sm">Cancelled</p>
+					)}
+
+					{isSeeding && (
+						<div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-muted-foreground text-xs">
+							<div className="flex items-center gap-1">
+								<ArrowDownToLine className="h-3 w-3 text-green-500" />
+								<span>Seeding</span>
+								{download?.uploadSpeed && download.uploadSpeed > 0 && (
+									<span className="ml-1">
+										{formatBytes(download.uploadSpeed)}/s
+									</span>
+								)}
+							</div>
+							{download?.peers && download.peers > 0 && (
+								<div className="flex items-center gap-1">
+									<span>{download.peers} peers</span>
+								</div>
+							)}
+						</div>
+					)}
+
+					{isNone && <p className="text-muted-foreground text-sm">No Status</p>}
+
+					{isRemoved && (
+						<p className="text-muted-foreground text-sm">Removed</p>
 					)}
 
 					{(isActive ||
