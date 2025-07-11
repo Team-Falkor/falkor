@@ -1,238 +1,188 @@
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import type { LibraryGame } from "@/@types";
 import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
 
-type GameState = "idle" | "launching" | "running" | "stopping" | "error";
-
 export function useGameLauncher(game: LibraryGame) {
 	const id = game.id;
+	const gameId = game.gameId;
 	const utils = trpc.useUtils();
 	const { t } = useLanguageContext();
 
 	// Local state for game status
-	const [gameState, setGameState] = useState<GameState>("idle");
 	const [isRunning, setIsRunning] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [shouldPoll, setShouldPoll] = useState(false);
 
-	// Query for initial running state
-	const { data: runningData, isLoading: isInitialLoading } =
-		trpc.launcher.isRunning.useQuery(
-			{ id: id },
-			{
-				enabled: !!id,
-				staleTime: 5000, // Cache for 5 seconds
-				refetchOnMount: true,
-				refetchOnWindowFocus: true,
-				refetchInterval: 15000, // Check every 15 seconds
-				refetchIntervalInBackground: false,
-				refetchOnReconnect: true,
-			},
-		);
+	// Smart polling: only poll when game is running or we need to check status
+	const {
+		data: gameRunningData,
+		refetch: refetchRunningStatus,
+		isFetching: isCheckingStatus,
+		isError: isRunningQueryError,
+		error: runningQueryError,
+	} = trpc.launcher.isGameRunning.useQuery(gameId, {
+		// Only enable polling when game is running or we explicitly want to check
+		refetchInterval: shouldPoll ? 2000 : false,
+		refetchIntervalInBackground: shouldPoll,
+		staleTime: 1000, // Consider data stale after 1 second
+		retry: 3,
+		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+		// Disable query when not needed to save resources
+		enabled: shouldPoll || isRunning,
+	});
 
-	// Query for session info to get more detailed status
-	const { data: sessionInfo } = trpc.launcher.getSessionInfo.useQuery(
-		{ id: id },
-		{
-			enabled: !!id && isRunning,
-			refetchInterval: 10000, // Check every 10 seconds when running
-			refetchIntervalInBackground: false,
+	const { data: gameInfoData, isLoading: isLoadingGameInfo } =
+		trpc.launcher.getGameInfo.useQuery(gameId, {
+			staleTime: 5 * 60 * 1000,
+		});
+
+	// tRPC mutations with modern patterns
+	const launchGameMutation = trpc.launcher.launchGame.useMutation({
+		onSuccess: () => {
+			setError(null);
+			// Enable polling after successful launch to monitor game status
+			setShouldPoll(true);
+			// Invalidate and refetch related queries
+			utils.launcher.isGameRunning.invalidate();
+			utils.launcher.getRunningGames.invalidate();
+			utils.launcher.getGameInfo.invalidate();
 		},
-	);
+		onError: (error) => {
+			setError(error.message || t("Failed to launch game"));
+			// Disable polling if launch failed
+			setShouldPoll(false);
+		},
+		onMutate: () => {
+			// Clear any previous errors when starting mutation
+			setError(null);
+			// Enable polling during launch attempt
+			setShouldPoll(true);
+		},
+	});
+
+	const closeGameMutation = trpc.launcher.closeGame.useMutation({
+		onSuccess: () => {
+			setError(null);
+			// Disable polling after successful close since game is no longer running
+			setShouldPoll(false);
+			// Invalidate and refetch related queries
+			utils.launcher.isGameRunning.invalidate();
+			utils.launcher.getRunningGames.invalidate();
+			utils.launcher.getGameInfo.invalidate();
+		},
+		onError: (error) => {
+			setError(error.message || t("Failed to close game"));
+		},
+		onMutate: () => {
+			// Clear any previous errors when starting mutation
+			setError(null);
+		},
+	});
 
 	// Update local state when query data changes
 	useEffect(() => {
-		if (runningData !== undefined) {
-			const running = runningData.running;
-			setIsRunning(running);
+		if (gameRunningData?.isRunning !== undefined) {
+			setIsRunning(gameRunningData.isRunning);
+		}
+	}, [gameRunningData?.isRunning]);
 
-			// Update game state based on running status
-			if (running) {
-				setGameState("running");
-			} else if (gameState === "running" || gameState === "stopping") {
-				setGameState("idle");
-			}
+	// Smart polling management: disable polling when game stops running
+	useEffect(() => {
+		if (gameRunningData?.isRunning === false && shouldPoll) {
+			// Game stopped running, disable polling after a short delay
+			// to allow for any final status checks
+			const timer = setTimeout(() => {
+				setShouldPoll(false);
+			}, 5000); // 5 second grace period
+			return () => clearTimeout(timer);
+		}
+	}, [gameRunningData?.isRunning, shouldPoll]);
 
-			// Clear error when status is successfully retrieved
+	// Handle query errors
+	useEffect(() => {
+		if (isRunningQueryError && runningQueryError) {
+			setError(runningQueryError.message || t("Failed to check game status"));
+		}
+	}, [isRunningQueryError, runningQueryError, t]);
+
+	// Clear error when game status changes successfully
+	useEffect(() => {
+		if (isRunning && !isRunningQueryError) {
 			setError(null);
 		}
-	}, [runningData, gameState]);
+	}, [isRunning, isRunningQueryError]);
 
-	// Launch mutation
-	const launchMutation = trpc.launcher.launch.useMutation({
-		onMutate: () => {
-			// Set launching state immediately
-			setGameState("launching");
-			setError(null);
-		},
-		onSuccess: (data) => {
-			// State will be updated by subscription or next query
-			toast.success(t("launcher.game_launched"), {
-				description: game.gameName,
-			});
-
-			// If polling is required, show additional info
-			if ("requiresPolling" in data && data.requiresPolling) {
-				toast.info(t("launcher.game_detection"), {
-					description: t("launcher.waiting_for_process"),
-				});
+	// Memoized action functions to prevent unnecessary re-renders
+	const launchGame = useCallback(
+		async (args?: string[]) => {
+			try {
+				await launchGameMutation.mutateAsync({ id, args });
+			} catch (error) {
+				// Error is already handled in onError callback
+				console.error("Launch game error:", error);
 			}
 		},
-		onError: (err) => {
-			setGameState("error");
-			setError(err.message);
+		[launchGameMutation, id],
+	);
 
-			// Extract clean error message
-			const cleanMessage = err.message.replace(/^TRPCClientError: /, "");
-			toast.error(t("launcher.failed_to_launch"), {
-				description: cleanMessage,
-			});
-		},
-		onSettled: () => {
-			// Invalidate related queries to refresh data
-			utils.launcher.invalidate();
-			utils.library.invalidate();
-		},
-	});
-
-	// Stop mutation
-	const stopMutation = trpc.launcher.stop.useMutation({
-		onMutate: () => {
-			// Set stopping state immediately
-			setGameState("stopping");
-			setError(null);
-		},
-		onSuccess: () => {
-			// State will be updated by subscription or next query
-			toast.success(t("launcher.game_stopped"), {
-				description: game.gameName,
-			});
-		},
-		onError: (err) => {
-			setGameState("error");
-			setError(err.message);
-
-			// Extract clean error message
-			const cleanMessage = err.message.replace(/^TRPCClientError: /, "");
-			toast.error(t("launcher.failed_to_stop"), {
-				description: cleanMessage,
-			});
-		},
-		onSettled: () => {
-			// Invalidate related queries to refresh data
-			utils.launcher.invalidate();
-			utils.library.invalidate();
-		},
-	});
-
-	// Subscribe to real-time game state changes
-	trpc.launcher.onGameStateChange.useSubscription(undefined, {
-		onData(event) {
-			if (id && event.id === id) {
-				const isPlaying = event.type === "playing";
-				setIsRunning(isPlaying);
-
-				// Update game state based on event
-				if (isPlaying) {
-					setGameState("running");
-					setError(null);
-				} else {
-					// Game stopped
-					setGameState("idle");
-					setError(null);
-				}
-			}
-		},
-		onError(err) {
-			console.error("Game state subscription error:", err);
-			setGameState("error");
-			setError(err.message);
-
-			toast.error(t("launcher.real_time_updates_failed"), {
-				description: t("launcher.game_status_delayed"),
-			});
-		},
-	});
-
-	// Launch game function
-	const launchGame = useCallback(async () => {
-		if (!id) {
-			toast.error(t("launcher.game_id_missing"));
-			return;
-		}
-
-		if (gameState === "launching" || gameState === "stopping") {
-			return; // Already in progress
-		}
-
+	const closeGame = useCallback(async () => {
 		try {
-			await launchMutation.mutateAsync({ id });
+			await closeGameMutation.mutateAsync(gameId);
 		} catch (error) {
-			// Error is handled by mutation's onError
-			console.error("Launch error:", error);
+			// Error is already handled in onError callback
+			console.error("Close game error:", error);
 		}
-	}, [id, gameState, launchMutation, t]);
+	}, [closeGameMutation, gameId]);
 
-	// Stop game function
-	const stopGame = useCallback(async () => {
-		if (!id) {
-			toast.error(t("launcher.game_id_missing"));
-			return;
-		}
+	const clearError = useCallback(() => {
+		setError(null);
+	}, []);
 
-		if (gameState === "launching" || gameState === "stopping") {
-			return; // Already in progress
-		}
+	const refreshStatus = useCallback(() => {
+		// Enable polling when manually checking status
+		setShouldPoll(true);
+		return refetchRunningStatus();
+	}, [refetchRunningStatus]);
 
-		try {
-			await stopMutation.mutateAsync({ id });
-		} catch (error) {
-			// Error is handled by mutation's onError
-			console.error("Stop error:", error);
-		}
-	}, [id, gameState, stopMutation, t]);
-
-	// Toggle game state function
-	const toggleGameState = useCallback(async () => {
-		if (isRunning) {
-			await stopGame();
-		} else {
-			await launchGame();
-		}
-	}, [isRunning, launchGame, stopGame]);
-
-	// Computed states for UI
-	const isInitializing = isInitialLoading && runningData === undefined;
-	const isLaunching = gameState === "launching";
-	const isStopping = gameState === "stopping";
-	const isMutating = launchMutation.isPending || stopMutation.isPending;
-	const hasError = gameState === "error";
+	const togglePolling = useCallback((enabled: boolean) => {
+		setShouldPoll(enabled);
+	}, []);
 
 	return {
 		// State
 		isRunning,
-		gameState,
 		error,
-		sessionInfo,
+		gameInfo: gameInfoData?.gameInfo,
+		isPolling: shouldPoll, // Expose polling state for UI feedback
 
-		// Loading states
-		isInitializing,
-		isLaunching,
-		isStopping,
-		isMutating,
-		hasError,
+		// Loading states (using modern TanStack Query properties)
+		isLaunching: launchGameMutation.isPending,
+		isClosing: closeGameMutation.isPending,
+		isCheckingStatus,
+		isLoadingGameInfo,
 
-		// UI helpers
-		isButtonDisabled: isInitializing || isMutating,
+		// Success states
+		isLaunchSuccess: launchGameMutation.isSuccess,
+		isCloseSuccess: closeGameMutation.isSuccess,
 
 		// Actions
 		launchGame,
-		stopGame,
-		toggleGameState,
+		closeGame,
+		clearError,
+		refreshStatus,
+		togglePolling, // Manual polling control
 
-		// Additional data
-		playtime: sessionInfo?.sessionPlaytime || 0,
-		pid: sessionInfo?.pid || null,
+		// Raw mutation objects for advanced usage
+		launchGameMutation,
+		closeGameMutation,
+
+		// Query utilities for advanced cache management
+		utils: {
+			invalidateGameStatus: () => utils.launcher.isGameRunning.invalidate(),
+			invalidateGameInfo: () => utils.launcher.getGameInfo.invalidate(),
+			invalidateRunningGames: () => utils.launcher.getRunningGames.invalidate(),
+			invalidateAll: () => utils.launcher.invalidate(),
+		},
 	};
 }

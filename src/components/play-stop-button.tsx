@@ -10,10 +10,29 @@ interface PlayStopButtonProps {
 
 export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 	const { t } = useLanguageContext();
-	const { gameState, isButtonDisabled, toggleGameState, error } =
-		useGameLauncher(game);
+	const {
+		isRunning,
+		isLaunching,
+		isClosing,
+		error,
+		launchGame,
+		closeGame,
+		clearError,
+	} = useGameLauncher(game);
 
 	if (!game.installed || !game.gamePath) return null;
+
+	// Determine current game state for UI logic
+	const gameState = (() => {
+		if (error) return "error";
+		if (isLaunching && !isRunning) return "launching";
+		if (isClosing) return "stopping";
+		if (isRunning) return "running";
+		return "idle";
+	})();
+
+	// Determine if button should be disabled
+	const isButtonDisabled = (isLaunching && !isRunning) || isClosing;
 
 	// Determine button variant based on game state
 	const getButtonVariant = () => {
@@ -63,13 +82,30 @@ export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 		}
 	};
 
+	// Handle button click based on current state
+	const handleClick = async () => {
+		if (error) {
+			// Clear error and try again
+			clearError();
+			return;
+		}
+
+		if (isRunning) {
+			// Stop the game
+			await closeGame();
+		} else {
+			// Launch the game
+			await launchGame();
+		}
+	};
+
 	return (
 		<Button
 			variant={getButtonVariant()}
 			onClick={(e) => {
 				e.stopPropagation();
 				e.preventDefault();
-				toggleGameState();
+				handleClick();
 			}}
 			disabled={isButtonDisabled}
 			className="w-full font-semibold uppercase"

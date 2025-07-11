@@ -3,24 +3,22 @@ import { trpc } from "@/lib";
 export function useGameLauncher() {
 	const utils = trpc.useUtils();
 
-	const { data: runningGames = [] } = trpc.launcher.getRunning.useQuery();
+	const { data: runningGames = [] } = trpc.launcher.getRunningGames.useQuery();
 
-	const isGameRunning = (id: number) => {
-		return runningGames.some((game) => game.id === id);
-	};
+	const isGameRunning = trpc.launcher.isGameRunning.useQuery;
 
-	const { mutate: launchGame } = trpc.launcher.launch.useMutation({
+	const { mutate: launchGame } = trpc.launcher.launchGame.useMutation({
 		onSuccess: () => {
-			utils.launcher.getRunning.invalidate(undefined, {
+			utils.launcher.getRunningGames.invalidate(undefined, {
 				refetchType: "all",
 				type: "all",
 			});
 		},
 	});
 
-	const { mutate: stopGame } = trpc.launcher.stop.useMutation({
+	const { mutate: stopGame } = trpc.launcher.closeGame.useMutation({
 		onSuccess: () => {
-			utils.launcher.getRunning.invalidate(undefined, {
+			utils.launcher.getRunningGames.invalidate(undefined, {
 				refetchType: "all",
 				type: "all",
 			});
@@ -28,14 +26,14 @@ export function useGameLauncher() {
 	});
 
 	// Subscribe to game state changes
-	trpc.launcher.onGameStateChange.useSubscription(undefined, {
-		onData: () => {
-			utils.launcher.getRunning.invalidate(undefined, {
-				refetchType: "all",
-				type: "all",
-			});
-		},
-	});
+	// trpc.launcher.onGameStateChange.useSubscription(undefined, {
+	// 	onData: () => {
+	// 		utils.launcher.getRunning.invalidate(undefined, {
+	// 			refetchType: "all",
+	// 			type: "all",
+	// 		});
+	// 	},
+	// });
 
 	return {
 		isGameRunning,
