@@ -325,7 +325,7 @@ async function launchGame(
 	});
 
 	try {
-		await launcher.launch(game.gameArgs?.split(" "));
+		await launcher.launchGame();
 		gamesLaunched.set(game.id, launcher);
 		logging.log(
 			"info",
