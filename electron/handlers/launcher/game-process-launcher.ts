@@ -2,7 +2,7 @@ import EventEmitter from "node:events";
 import { db } from "@backend/database";
 import { libraryGames } from "@backend/database/schemas";
 import logger from "@backend/handlers/logging";
-import type { Game } from "@team-falkor/game-launcher";
+import type { Game, GameClosedEvent } from "@team-falkor/game-launcher";
 import { eq } from "drizzle-orm";
 import { AchievementItem } from "../achievements/item";
 import { gamesLaunched } from "./games-launched";
@@ -47,7 +47,41 @@ export default class GameProcessLauncher extends EventEmitter {
 			runAsAdmin: this.opts.runAsAdmin,
 		});
 
+		// Safety timeout to detect missed close events
+		let closeEventReceived = false;
+		const safetyTimeout = setTimeout(() => {
+			if (!closeEventReceived && this.game) {
+				console.warn(
+					`Safety timeout: Game ${this.opts.gameId} may have closed without event`,
+				);
+				// Check if process is actually still running
+				if (!gameLauncher.isGameRunning(this.opts.gameId)) {
+					this.handleGameClosed({ gameId: this.opts.gameId, duration: 0 });
+				}
+			}
+		}, 30000); // 30 second safety net
+
+		gameLaunched.on("launched", (data) => {
+			console.log("Game launched", data);
+		});
+
+		gameLaunched.on("closed", async (data) => {
+			closeEventReceived = true;
+			clearTimeout(safetyTimeout);
+			console.log("Game closed", data);
+			await this.handleGameClosed(data);
+		});
+
+		gameLaunched.on("statusChange", (data) => {
+			console.log(`Game ${this.opts.gameId} status changed:`, data);
+		});
+
+		gameLaunched.on("error", (error) => {
+			console.error(`Game ${this.opts.gameId} error:`, error);
+		});
+
 		this.game = gameLaunched;
+
 		gamesLaunched.set(this.opts.id, this);
 
 		if (this.achievementItem) {
@@ -64,6 +98,12 @@ export default class GameProcessLauncher extends EventEmitter {
 				);
 			}
 		}
+	}
+
+	private async handleGameClosed(data: Partial<GameClosedEvent>) {
+		this.emit("exit", data);
+		await this.updatePlaytime(data.duration || 0);
+		await this.destroy();
 	}
 
 	async closeGame() {
@@ -88,32 +128,29 @@ export default class GameProcessLauncher extends EventEmitter {
 	async updatePlaytime(durationMs: number) {
 		const game = this.findGameById(this.opts.id);
 
-		const newPlaytime = (game.gamePlaytime ?? 0) + durationMs;
-		await db
-			.update(libraryGames)
-			.set({
-				gamePlaytime: newPlaytime,
-			})
-			.where(eq(libraryGames.id, this.opts.id));
-	}
+		try {
+			const newPlaytime = (game.gamePlaytime ?? 0) + durationMs;
+			await db
+				.update(libraryGames)
+				.set({
+					gamePlaytime: newPlaytime,
+				})
+				.where(eq(libraryGames.id, this.opts.id));
 
-	async setupEventListeners() {
-		if (!this.game) {
-			throw new Error("Game not launched");
+			console.log("Playtime updated", newPlaytime);
+		} catch (error) {
+			logger.log(
+				"error",
+				`Failed to update playtime: ${(error as Error).message}`,
+			);
 		}
-
-		this.game.on("closed", async (data) => {
-			this.emit("exit", data);
-			await this.updatePlaytime(data.duration);
-			await this.destroy();
-		});
 	}
 
 	async destroy() {
+		// Remove from games launched first
 		gamesLaunched.delete(this.opts.id);
-		this.game?.removeAllListeners();
-		this.game = null;
 
+		// Clean up achievement watcher
 		if (this.achievementItem?.watcher_instance) {
 			try {
 				this.achievementItem.watcher_instance.destroy();
@@ -127,6 +164,14 @@ export default class GameProcessLauncher extends EventEmitter {
 					`cleanupResources: Failed to destroy achievement watcher: ${(error as Error).message}`,
 				);
 			}
+		}
+
+		// Clean up game reference last, after a small delay to ensure events are processed
+		if (this.game) {
+			setTimeout(() => {
+				this.game?.removeAllListeners();
+				this.game = null;
+			}, 300);
 		}
 	}
 }
