@@ -10,6 +10,7 @@ export const libraryGamesRouter = router({
 			z.object({
 				limit: z.number().min(1).default(20),
 				offset: z.number().min(0).default(0),
+				showHidden: z.boolean().default(false),
 			}),
 		)
 		.query(async ({ input, ctx }) => {
@@ -18,8 +19,58 @@ export const libraryGamesRouter = router({
 				.from(libraryGames)
 				.limit(input.limit)
 				.offset(input.offset)
-				.where(eq(libraryGames.installed, true))
-				.orderBy(desc(libraryGames.gamePlaytime));
+				.where(
+					and(
+						eq(libraryGames.installed, true),
+						eq(libraryGames.isHidden, input.showHidden),
+					),
+				)
+				.orderBy(
+					desc(libraryGames.isFavorite),
+					desc(libraryGames.gamePlaytime),
+				);
+		}),
+
+	favoriteGame: publicProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			// Get current game to check favorite status
+			const game = ctx.db
+				.select({ isFavorite: libraryGames.isFavorite })
+				.from(libraryGames)
+				.where(eq(libraryGames.id, input.id))
+				.get();
+
+			// Toggle favorite status
+			return ctx.db
+				.update(libraryGames)
+				.set({
+					isFavorite: !game?.isFavorite,
+				})
+				.where(eq(libraryGames.id, input.id))
+				.returning()
+				.get();
+		}),
+
+	hideGame: publicProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			// Get current game to check hidden status
+			const game = ctx.db
+				.select({ isHidden: libraryGames.isHidden })
+				.from(libraryGames)
+				.where(eq(libraryGames.id, input.id))
+				.get();
+
+			// Toggle hidden status
+			return ctx.db
+				.update(libraryGames)
+				.set({
+					isHidden: !game?.isHidden,
+				})
+				.where(eq(libraryGames.id, input.id))
+				.returning()
+				.get();
 		}),
 
 	getById: publicProcedure
