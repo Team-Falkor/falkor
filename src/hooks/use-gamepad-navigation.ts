@@ -1,8 +1,11 @@
 import { useEffect, useRef } from "react";
 
-// Button mappings for different controller types
+/**
+ * Button index mappings for different gamepad types.
+ * These correspond to the standard Gamepad API button indices.
+ */
 const BUTTON_MAPPINGS = {
-	// Standard gamepad mapping (most common)
+	/** Xbox controllers, PlayStation controllers, and most generic gamepads */
 	standard: {
 		UP: 12,
 		DOWN: 13,
@@ -21,16 +24,16 @@ const BUTTON_MAPPINGS = {
 		L3: 10,
 		R3: 11,
 	},
-	// Steam Deck and similar handheld mappings
+	/** Steam Deck, Nintendo Switch Pro Controller, and similar handhelds */
 	steamdeck: {
 		UP: 12,
 		DOWN: 13,
 		LEFT: 14,
 		RIGHT: 15,
-		A: 1, // Different from standard
-		B: 0, // Different from standard
-		X: 3, // Different from standard
-		Y: 2, // Different from standard
+		A: 1, // Swapped with B compared to standard
+		B: 0, // Swapped with A compared to standard
+		X: 3, // Swapped with Y compared to standard
+		Y: 2, // Swapped with X compared to standard
 		SELECT: 8,
 		START: 9,
 		L1: 4,
@@ -42,26 +45,26 @@ const BUTTON_MAPPINGS = {
 	},
 };
 
-// Detect controller type based on gamepad ID
+/**
+ * Determines the appropriate button mapping based on the gamepad's identifier string.
+ * @param gamepad - The connected gamepad object
+ * @returns The button mapping configuration for the detected controller type
+ */
 function getControllerMapping(gamepad: Gamepad) {
 	const id = gamepad.id.toLowerCase();
 
-	// Steam Deck detection
 	if (id.includes("steam") || id.includes("deck") || id.includes("valve")) {
 		return BUTTON_MAPPINGS.steamdeck;
 	}
 
-	// Nintendo Switch Pro Controller uses non-standard mapping
 	if (id.includes("pro controller") || id.includes("nintendo")) {
-		return BUTTON_MAPPINGS.steamdeck; // Similar to Steam Deck
+		return BUTTON_MAPPINGS.steamdeck;
 	}
 
-	// Xbox controllers usually follow standard mapping
 	if (id.includes("xbox") || id.includes("xinput")) {
 		return BUTTON_MAPPINGS.standard;
 	}
 
-	// PlayStation controllers
 	if (
 		id.includes("dualshock") ||
 		id.includes("dualsense") ||
@@ -70,12 +73,15 @@ function getControllerMapping(gamepad: Gamepad) {
 		return BUTTON_MAPPINGS.standard;
 	}
 
-	// Default to standard mapping
 	return BUTTON_MAPPINGS.standard;
 }
 
 type Direction = "up" | "down" | "left" | "right";
 
+/**
+ * Finds all focusable elements currently visible on the page.
+ * @returns Array of HTML elements that can receive focus
+ */
 function getFocusableElements(): HTMLElement[] {
 	return Array.from(
 		document.querySelectorAll<HTMLElement>(
@@ -84,18 +90,28 @@ function getFocusableElements(): HTMLElement[] {
 	).filter(
 		(el) =>
 			!el.hasAttribute("disabled") &&
-			!el.getAttribute("aria-hidden") &&
-			el.offsetParent !== null &&
-			// Additional checks for better visibility detection
+			el.getAttribute("aria-hidden") !== "true" &&
+			el.offsetParent !== null && // Element is visible in DOM
 			el.offsetWidth > 0 &&
-			el.offsetHeight > 0,
+			el.offsetHeight > 0, // Element has actual dimensions
 	);
 }
 
+/**
+ * Gets the bounding rectangle for an element.
+ */
 function getRect(el: HTMLElement) {
 	return el.getBoundingClientRect();
 }
 
+/**
+ * Finds the next focusable element in the specified direction using spatial navigation.
+ * Uses a scoring algorithm that considers distance and alignment.
+ * @param current - Currently focused element (or null)
+ * @param elements - Array of all focusable elements
+ * @param direction - Direction to navigate (up, down, left, right)
+ * @returns The best candidate element or null if none found
+ */
 function getNextElement(
 	current: HTMLElement | null,
 	elements: HTMLElement[],
@@ -112,6 +128,7 @@ function getNextElement(
 		if (el === current) continue;
 		const rect = getRect(el);
 
+		// Calculate center points for both elements
 		const cx = currentRect.left + currentRect.width / 2;
 		const cy = currentRect.top + currentRect.height / 2;
 		const ex = rect.left + rect.width / 2;
@@ -119,24 +136,44 @@ function getNextElement(
 
 		let isCandidate = false;
 		let score = Number.POSITIVE_INFINITY;
-		const overlapThreshold = 5;
+		const overlapThreshold = 10; // Prevents selecting elements that are barely in the direction
 
 		switch (direction) {
 			case "up":
 				isCandidate = ey < cy - overlapThreshold;
-				if (isCandidate) score = Math.abs(cx - ex) * 2 + (cy - ey);
+				if (isCandidate) {
+					const horizontalPenalty = Math.abs(cx - ex) * 5; // Prefer vertically aligned elements
+					const verticalDistance = cy - ey;
+					const alignmentBonus = Math.abs(cx - ex) < 50 ? -20 : 0; // Bonus for good alignment
+					score = horizontalPenalty + verticalDistance + alignmentBonus;
+				}
 				break;
 			case "down":
 				isCandidate = ey > cy + overlapThreshold;
-				if (isCandidate) score = Math.abs(cx - ex) * 2 + (ey - cy);
+				if (isCandidate) {
+					const horizontalPenalty = Math.abs(cx - ex) * 5;
+					const verticalDistance = ey - cy;
+					const alignmentBonus = Math.abs(cx - ex) < 50 ? -20 : 0;
+					score = horizontalPenalty + verticalDistance + alignmentBonus;
+				}
 				break;
 			case "left":
 				isCandidate = ex < cx - overlapThreshold;
-				if (isCandidate) score = Math.abs(cy - ey) * 2 + (cx - ex);
+				if (isCandidate) {
+					const verticalPenalty = Math.abs(cy - ey) * 5; // Prefer horizontally aligned elements
+					const horizontalDistance = cx - ex;
+					const alignmentBonus = Math.abs(cy - ey) < 50 ? -20 : 0;
+					score = verticalPenalty + horizontalDistance + alignmentBonus;
+				}
 				break;
 			case "right":
 				isCandidate = ex > cx + overlapThreshold;
-				if (isCandidate) score = Math.abs(cy - ey) * 2 + (ex - cx);
+				if (isCandidate) {
+					const verticalPenalty = Math.abs(cy - ey) * 5;
+					const horizontalDistance = ex - cx;
+					const alignmentBonus = Math.abs(cy - ey) < 50 ? -20 : 0;
+					score = verticalPenalty + horizontalDistance + alignmentBonus;
+				}
 				break;
 		}
 
@@ -148,42 +185,53 @@ function getNextElement(
 	return best;
 }
 
-// Enhanced thresholds for better handheld experience
-const STICK_THRESHOLD = 0.5; // Higher threshold to prevent accidental navigation
-const STICK_COOLDOWN = 300; // Longer cooldown to prevent rapid movement
-const STICK_DEAD_ZONE = 0.15; // Larger dead zone for better control
-const STICK_MAX_THRESHOLD = 0.8; // Maximum threshold for fastest navigation
-// const TRIGGER_THRESHOLD = 0.1; // For L2/R2 trigger detection
+// Analog stick configuration for comfortable handheld gaming
+const STICK_THRESHOLD = 0.5; // Minimum stick deflection to register movement
+const STICK_COOLDOWN = 300; // Milliseconds between navigation actions
+const STICK_DEAD_ZONE = 0.15; // Dead zone to prevent drift
+const STICK_MAX_THRESHOLD = 0.8; // Full deflection threshold for faster navigation
 
 interface GamepadState {
 	gamepad: Gamepad;
 	mapping: typeof BUTTON_MAPPINGS.standard;
 	lastButtonState: boolean[];
 	lastStickTime: { [key in Direction]: number };
-	lastTriggerState: { L2: boolean; R2: boolean };
 }
 
-export function useGamepadNavigation() {
-	const gamepadStateRef = useRef<GamepadState | null>(null);
-	const forceRefreshRef = useRef<boolean>(false);
+/**
+	 * React hook that provides gamepad navigation for web interfaces.
+	 * Supports both D-pad and analog stick navigation, with fallback keyboard support.
+	 * Optimized for handheld gaming devices like Steam Deck.
+	 * 
+	 * @returns Object containing connection status and gamepad information
+	 */
+	export function useGamepadNavigation() {
+		const gamepadStateRef = useRef<GamepadState | null>(null);
+		const forceRefreshRef = useRef<boolean>(false);
+		const focusableCacheRef = useRef<{ elements: HTMLElement[]; timestamp: number } | null>(null);
 
 	useEffect(() => {
-		let animationFrame: number | undefined;
+			let animationFrame: number | undefined;
 
-		function pollGamepads() {
-			const now = Date.now();
-			const rawGamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-			let currentFrameGamepad: Gamepad | null = null;
+			/**
+			 * Main polling function that continuously checks gamepad state and handles navigation.
+			 * Runs at 60fps using requestAnimationFrame for optimal performance.
+			 */
+			function pollGamepads() {
+			try {
+				const now = Date.now();
+				const rawGamepads = navigator.getGamepads?.() ?? [];
+				let currentFrameGamepad: Gamepad | null = null;
 
-			// Find the first connected, non-null gamepad for this frame
-			for (const pad of rawGamepads) {
-				if (pad?.connected) {
-					currentFrameGamepad = pad;
-					break;
+				// Find the first connected, non-null gamepad for this frame
+				for (const pad of rawGamepads) {
+					if (pad?.connected) {
+						currentFrameGamepad = pad;
+						break;
+					}
 				}
-			}
 
-			if (currentFrameGamepad) {
+				if (currentFrameGamepad) {
 				// Initialize or update gamepad state
 				if (
 					!gamepadStateRef.current ||
@@ -199,12 +247,11 @@ export function useGamepadNavigation() {
 					);
 
 					gamepadStateRef.current = {
-						gamepad: currentFrameGamepad,
-						mapping,
-						lastButtonState: [],
-						lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
-						lastTriggerState: { L2: false, R2: false },
-					};
+					gamepad: currentFrameGamepad,
+					mapping,
+					lastButtonState: new Array(currentFrameGamepad.buttons.length).fill(false),
+					lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
+				};
 				}
 
 				const state = gamepadStateRef.current;
@@ -212,14 +259,33 @@ export function useGamepadNavigation() {
 				const { mapping } = state;
 
 				// Enhanced button press detection
-				function isPressed(btnIndex: number): boolean {
-					const wasPressed = state.lastButtonState[btnIndex];
-					const isCurrentlyPressed = buttons[btnIndex]?.pressed;
-					return Boolean(isCurrentlyPressed && !wasPressed);
+			function isPressed(btnIndex: number): boolean {
+				if (btnIndex >= buttons.length) return false;
+				const wasPressed = state.lastButtonState[btnIndex] ?? false;
+				const isCurrentlyPressed = buttons[btnIndex]?.pressed ?? false;
+				return isCurrentlyPressed && !wasPressed;
+			}
+
+			/**
+				 * Returns cached focusable elements if still valid, otherwise fetches fresh ones.
+				 * Cache expires after 100ms to balance performance with accuracy.
+				 */
+				function getCachedFocusableElements(): HTMLElement[] {
+					const cacheTimeout = 100; // Cache for 100ms to improve performance
+					if (
+						!focusableCacheRef.current ||
+						now - focusableCacheRef.current.timestamp > cacheTimeout
+					) {
+						focusableCacheRef.current = {
+							elements: getFocusableElements(),
+							timestamp: now,
+						};
+					}
+					return focusableCacheRef.current.elements;
 				}
 
-				const focusables = getFocusableElements();
-				const active = document.activeElement as HTMLElement | null;
+					const focusables = getCachedFocusableElements();
+					const active = document.activeElement as HTMLElement | null;
 
 				// D-pad navigation
 				if (isPressed(mapping.UP)) {
@@ -369,94 +435,122 @@ export function useGamepadNavigation() {
 					if (focusables[0]) focusables[0].focus();
 				}
 
-				// Update button state
-				state.lastButtonState = buttons.map((b) => b.pressed);
+				// Update button state efficiently
+			for (let i = 0; i < buttons.length; i++) {
+				state.lastButtonState[i] = buttons[i]?.pressed ?? false;
+			}
 
 				// Update gamepad reference
 				state.gamepad = currentFrameGamepad;
-			} else {
-				// No gamepad connected
-				if (gamepadStateRef.current) {
-					console.log("Gamepad disconnected");
-					gamepadStateRef.current = null;
+				} else {
+					// No gamepad connected
+					if (gamepadStateRef.current) {
+						console.log("Gamepad disconnected");
+						gamepadStateRef.current = null;
+					}
 				}
+			} catch (error) {
+				console.error("Error in gamepad polling:", error);
 			}
-
 			animationFrame = requestAnimationFrame(pollGamepads);
 		}
 
-		const handleGamepadConnected = (event: GamepadEvent) => {
-			console.log(
-				"Gamepad connected:",
-				event.gamepad.id,
-				"Index:",
-				event.gamepad.index,
-			);
+		/**
+			 * Handles gamepad connection events and initializes the gamepad state.
+			 */
+			const handleGamepadConnected = (event: GamepadEvent) => {
+				try {
+					console.log(
+						"Gamepad connected:",
+						event.gamepad.id,
+						"Index:",
+						event.gamepad.index,
+					);
 
-			// Immediately initialize gamepad state when connected
-			const mapping = getControllerMapping(event.gamepad);
-			gamepadStateRef.current = {
-				gamepad: event.gamepad,
-				mapping,
-				lastButtonState: [],
-				lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
-				lastTriggerState: { L2: false, R2: false },
+					// Immediately initialize gamepad state when connected
+					const mapping = getControllerMapping(event.gamepad);
+					gamepadStateRef.current = {
+						gamepad: event.gamepad,
+						mapping,
+						lastButtonState: new Array(event.gamepad.buttons.length).fill(false),
+						lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
+					};
+
+					// Force a refresh in the next polling cycle
+					forceRefreshRef.current = true;
+					// Clear focusable cache when gamepad connects
+					focusableCacheRef.current = null;
+				} catch (error) {
+					console.error("Error handling gamepad connection:", error);
+				}
 			};
 
-			// Force a refresh in the next polling cycle
-			forceRefreshRef.current = true;
-		};
+		/**
+			 * Handles gamepad disconnection events and cleans up state.
+			 */
+			const handleGamepadDisconnected = (event: GamepadEvent) => {
+				try {
+					console.log(
+						"Gamepad disconnected:",
+						event.gamepad.id,
+						"Index:",
+						event.gamepad.index,
+					);
 
-		const handleGamepadDisconnected = (event: GamepadEvent) => {
-			console.log(
-				"Gamepad disconnected:",
-				event.gamepad.id,
-				"Index:",
-				event.gamepad.index,
-			);
-
-			if (
-				gamepadStateRef.current &&
-				gamepadStateRef.current.gamepad.index === event.gamepad.index
-			) {
-				gamepadStateRef.current = null;
-			}
-		};
-
-		// Add keyboard navigation fallback for development/testing
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (gamepadStateRef.current) return; // Only handle keyboard if no gamepad
-
-			const focusables = getFocusableElements();
-			const active = document.activeElement as HTMLElement | null;
-
-			switch (event.key) {
-				case "ArrowUp": {
-					event.preventDefault();
-					const upNext = getNextElement(active, focusables, "up");
-					if (upNext) upNext.focus();
-					break;
+					if (
+						gamepadStateRef.current &&
+						gamepadStateRef.current.gamepad.index === event.gamepad.index
+					) {
+						gamepadStateRef.current = null;
+						// Clear focusable cache when gamepad disconnects
+						focusableCacheRef.current = null;
+					}
+				} catch (error) {
+					console.error("Error handling gamepad disconnection:", error);
 				}
-				case "ArrowDown": {
-					event.preventDefault();
-					const downNext = getNextElement(active, focusables, "down");
-					if (downNext) downNext.focus();
-					break;
+			};
+
+		/**
+			 * Keyboard navigation fallback for when gamepad is not available.
+			 * Provides arrow key navigation as a backup input method.
+			 */
+			const handleKeyDown = (event: KeyboardEvent) => {
+				try {
+					if (gamepadStateRef.current) return; // Only handle keyboard if no gamepad
+
+					const focusables = getFocusableElements(); // Don't use cache for keyboard as it's less frequent
+					const active = document.activeElement as HTMLElement | null;
+
+					switch (event.key) {
+						case "ArrowUp": {
+							event.preventDefault();
+							const upNext = getNextElement(active, focusables, "up");
+							if (upNext) upNext.focus();
+							break;
+						}
+						case "ArrowDown": {
+							event.preventDefault();
+							const downNext = getNextElement(active, focusables, "down");
+							if (downNext) downNext.focus();
+							break;
+						}
+						case "ArrowLeft": {
+							event.preventDefault();
+							const leftNext = getNextElement(active, focusables, "left");
+							if (leftNext) leftNext.focus();
+							break;
+						}
+						case "ArrowRight": {
+							event.preventDefault();
+							const rightNext = getNextElement(active, focusables, "right");
+							if (rightNext) rightNext.focus();
+							break;
+						}
+					}
+				} catch (error) {
+					console.error("Error in keyboard navigation:", error);
 				}
-				case "ArrowLeft": {
-					event.preventDefault();
-					const leftNext = getNextElement(active, focusables, "left");
-					if (leftNext) leftNext.focus();
-					break;
-				}
-				case "ArrowRight": {
-					event.preventDefault();
-					const rightNext = getNextElement(active, focusables, "right");
-					if (rightNext) rightNext.focus();
-					break;
-				}
-			}
-		};
+			};
 
 		window.addEventListener("gamepadconnected", handleGamepadConnected);
 		window.addEventListener("gamepaddisconnected", handleGamepadDisconnected);
@@ -464,25 +558,29 @@ export function useGamepadNavigation() {
 
 		animationFrame = requestAnimationFrame(pollGamepads);
 
-		return () => {
-			if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
-			window.removeEventListener("gamepadconnected", handleGamepadConnected);
-			window.removeEventListener(
-				"gamepaddisconnected",
-				handleGamepadDisconnected,
-			);
-			window.removeEventListener("keydown", handleKeyDown);
-			console.log("Enhanced gamepad navigation cleaned up");
-		};
+		// Cleanup function to remove all event listeners and cancel animation frames
+			return () => {
+				if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+				window.removeEventListener("gamepadconnected", handleGamepadConnected);
+				window.removeEventListener(
+					"gamepaddisconnected",
+					handleGamepadDisconnected,
+				);
+				window.removeEventListener("keydown", handleKeyDown);
+				console.log("Enhanced gamepad navigation cleaned up");
+			};
 	}, []);
 
-	// Return useful information about the current gamepad state
-	return {
-		isConnected: !!gamepadStateRef.current,
-		gamepadId: gamepadStateRef.current?.gamepad.id || null,
-		mappingType:
-			gamepadStateRef.current?.mapping === BUTTON_MAPPINGS.steamdeck
-				? "handheld"
-				: "standard",
-	};
+		/**
+		 * Return useful information about the current gamepad state for external components.
+		 * This allows other parts of the application to react to gamepad connection status.
+		 */
+		return {
+			isConnected: !!gamepadStateRef.current,
+			gamepadId: gamepadStateRef.current?.gamepad.id || null,
+			mappingType:
+				gamepadStateRef.current?.mapping === BUTTON_MAPPINGS.steamdeck
+					? "handheld"
+					: "standard",
+		};
 }
