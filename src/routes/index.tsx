@@ -12,16 +12,13 @@ const GameCategories = lazy(
 	() => import("@/features/home/components/GameCategories"),
 );
 const GameRows = lazy(() => import("@/features/home/components/GameRows"));
-const HeroSection = lazy(
-	() => import("@/features/home/components/HeroSection"),
-);
 
 export const Route = createFileRoute("/")({ component: Index });
 
 function Index() {
 	return (
 		<MainContainer id="home-screen" className="w-full overflow-hidden">
-			<HeroSection />
+			{/* <HeroSection /> */}
 			<QuickAccess />
 			<FeaturedGames />
 			<GameCategories />

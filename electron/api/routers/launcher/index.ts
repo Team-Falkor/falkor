@@ -21,6 +21,7 @@ export const gameLauncherRouter = router({
 	launchGame: publicProcedure
 		.input(launchInputSchema)
 		.mutation(async ({ input, ctx }) => {
+			console.log(input);
 			// Get game data
 			const game = ctx.db
 				.select()

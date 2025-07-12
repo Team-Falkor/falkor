@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import IGDBImage from "../IGDBImage";
 import { Badge } from "../ui/badge";
 import { H5 } from "../ui/typography";
@@ -17,10 +18,17 @@ type DefaultCardProps = {
 	id: number | null;
 	total_rating?: number;
 	aggregated_rating?: number;
+	// Whether to render as a square card instead of the default rectangular format
+	square?: boolean;
+	// Custom className for the main container to control size and styling
+	className?: string;
+	// Whether to hide the title section completely
+	hideTitle?: boolean;
 	renderBadge?: (id: number | null) => ReactNode;
 	renderTitle?: (id: number | null, name: string) => ReactNode;
 	renderActionButton?: (id: number | null) => ReactNode;
 	renderBottomOfImage?: (id: number | null) => ReactNode;
+	renderCenterOfImage?: (id: number | null) => ReactNode;
 };
 
 const DefaultCard = ({
@@ -29,10 +37,14 @@ const DefaultCard = ({
 	id,
 	total_rating,
 	aggregated_rating,
+	square = false,
+	className,
+	hideTitle = false,
 	renderActionButton,
 	renderBadge,
 	renderTitle,
 	renderBottomOfImage,
+	renderCenterOfImage,
 }: DefaultCardProps) => {
 	// Determine if the link should be active or disabled
 	const isLinkDisabled = id === null;
@@ -44,8 +56,12 @@ const DefaultCard = ({
 	// To avoid code duplication, we define the inner image content once.
 	const CardImageContent = (
 		<>
-			{/* Fixed aspect ratio container */}
-			<div className="relative h-[300px] w-full overflow-hidden">
+			{/* Dynamic aspect ratio container - square or rectangular */}
+			<div
+				className={`relative w-full overflow-hidden ${
+					square ? "aspect-square" : "h-[300px]"
+				}`}
+			>
 				{cover.type === "image_id" && cover.image ? (
 					<IGDBImage
 						alt={name}
@@ -67,14 +83,25 @@ const DefaultCard = ({
 
 				{/* Gradient Overlay */}
 				<div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/20" />
+
+				{/* Center of Image Content */}
+				{renderCenterOfImage && (
+					<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10">
+						{renderCenterOfImage(id)}
+					</div>
+				)}
 			</div>
 		</>
 	);
 
 	return (
-		<div className="group w-[230px]">
+		<div className={cn("group w-[230px]", className)}>
 			{/* Image Container - Fixed size */}
-			<div className="relative mb-3 overflow-hidden rounded-lg">
+			<div
+				className={cn("relative overflow-hidden rounded-lg", {
+					"mb-3": !hideTitle,
+				})}
+			>
 				{isLinkDisabled ? (
 					// If disabled, render a simple div with no interaction
 					<div className="block">{CardImageContent}</div>
@@ -115,23 +142,25 @@ const DefaultCard = ({
 				)}
 			</div>
 
-			<div className="flex w-full flex-col gap-2">
-				{/* Title */}
-				<div className="min-h-[1.5rem]">
-					{renderTitle ? (
-						renderTitle(id, name)
-					) : (
-						<H5 className="line-clamp-2 overflow-hidden text-center font-medium text-sm leading-tight">
-							{name}
-						</H5>
+			{!hideTitle && (
+				<div className="flex w-full flex-col gap-2">
+					{/* Title */}
+					<div className="min-h-[1.5rem]">
+						{renderTitle ? (
+							renderTitle(id, name)
+						) : (
+							<H5 className="line-clamp-2 overflow-hidden text-center font-medium text-sm leading-tight">
+								{name}
+							</H5>
+						)}
+					</div>
+
+					{/* Action Button */}
+					{renderActionButton && (
+						<div className="flex justify-center">{renderActionButton(id)}</div>
 					)}
 				</div>
-
-				{/* Action Button */}
-				{renderActionButton && (
-					<div className="flex justify-center">{renderActionButton(id)}</div>
-				)}
-			</div>
+			)}
 		</div>
 	);
 };

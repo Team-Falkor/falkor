@@ -6,9 +6,13 @@ import { Button } from "./ui/button";
 
 interface PlayStopButtonProps {
 	game: LibraryGame;
+	simpleStyle?: boolean;
 }
 
-export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
+export const PlayStopButton = ({
+	game,
+	simpleStyle = false,
+}: PlayStopButtonProps) => {
 	const { t } = useLanguageContext();
 	const {
 		isRunning,
@@ -108,11 +112,11 @@ export const PlayStopButton = ({ game }: PlayStopButtonProps) => {
 				handleClick();
 			}}
 			disabled={isButtonDisabled}
-			className="w-full font-semibold uppercase"
+			className={simpleStyle ? "w-full font-semibold uppercase" : "w-full"}
 			title={error || undefined} // Show error as tooltip if present
 		>
 			{getIcon()}
-			{getButtonText()}
+			{simpleStyle ? null : getButtonText()}
 		</Button>
 	);
 };
