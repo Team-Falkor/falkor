@@ -268,7 +268,7 @@ export async function createTray(): Promise<Tray | null> {
 	try {
 		const trayIconPath = path.join(
 			process.env.VITE_PUBLIC ?? "",
-			"icon-16x16.png",
+			"icon-32x32.png",
 		);
 
 		if (!existsSync(trayIconPath)) {
