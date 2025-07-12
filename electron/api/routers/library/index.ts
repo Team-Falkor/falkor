@@ -98,7 +98,10 @@ export const libraryGamesRouter = router({
 				.from(libraryGames)
 				.limit(input.limit)
 				.where(eq(libraryGames.installed, true))
-				.orderBy(desc(libraryGames.gameLastPlayed));
+				.orderBy(
+					desc(libraryGames.isFavorite),
+					desc(libraryGames.gameLastPlayed),
+				);
 		}),
 
 	create: publicProcedure

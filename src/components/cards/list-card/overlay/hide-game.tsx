@@ -3,16 +3,16 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
 
-interface FavoriteGameProps {
+interface HideGameProps {
 	game: Game;
 }
 
-export const FavoriteGame = ({ game }: FavoriteGameProps) => {
+export const HideGame = ({ game }: HideGameProps) => {
 	const { t } = useLanguageContext();
 	const utils = trpc.useUtils();
 
-	const { mutate: favoriteGameMutation, isPending } =
-		trpc.library.favoriteGame.useMutation({
+	const { mutate: hideGameMutation, isPending } =
+		trpc.library.hideGame.useMutation({
 			async onSuccess() {
 				await utils.library.invalidate(undefined, {
 					refetchType: "all",
@@ -21,8 +21,8 @@ export const FavoriteGame = ({ game }: FavoriteGameProps) => {
 			},
 		});
 
-	const handleFavoriteGame = async () => {
-		favoriteGameMutation({
+	const handleHideGame = async () => {
+		hideGameMutation({
 			id: game.id,
 		});
 	};
@@ -31,11 +31,11 @@ export const FavoriteGame = ({ game }: FavoriteGameProps) => {
 		<DropdownMenuItem
 			onSelect={(e) => {
 				e.preventDefault();
-				handleFavoriteGame();
+				handleHideGame();
 			}}
 			disabled={isPending}
 		>
-			{game.isFavorite ? t("unfavorite") : t("favorite")}
+			{game.isHidden ? t("show") : t("hide")}
 		</DropdownMenuItem>
 	);
 };

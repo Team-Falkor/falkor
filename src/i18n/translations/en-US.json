@@ -177,6 +177,10 @@
 	"select_lists_to_add_game": "Select lists to add this game to",
 	"browse_by_category": "Browse by Category",
 	"discover_games_by_genres_themes": "Discover games by your favorite genres and themes",
+	"favorite": "Favorite",
+	"unfavorite": "Unfavorite",
+	"hide": "Hide",
+	"show": "Show",
 	"categories": {
 		"action": "Action",
 		"adventure": "Adventure",

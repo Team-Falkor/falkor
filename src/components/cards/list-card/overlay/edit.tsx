@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { RouterOutputs } from "@/@types";
+import type { Game } from "@/@types";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -14,8 +14,6 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { GameForm } from "@/features/library/components/game-form";
 import { useLanguageContext } from "@/i18n/I18N";
 import { trpc } from "@/lib";
-
-type Game = RouterOutputs["library"]["list"][number];
 
 interface UpdateDialogProps {
 	game: Game;

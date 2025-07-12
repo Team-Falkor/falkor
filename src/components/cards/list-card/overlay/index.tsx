@@ -11,6 +11,8 @@ import {
 import { useLanguageContext } from "@/i18n/I18N";
 import DeleteDialog from "./delete";
 import UpdateDialog from "./edit";
+import { FavoriteGame } from "./favorite-game";
+import { HideGame } from "./hide-game";
 
 type LibraryGame = RouterOutputs["library"]["list"][number];
 
@@ -39,6 +41,8 @@ export const EditGameOverlay = ({ game }: ContinuePlayingCardOverlayProps) => {
 
 				<UpdateDialog game={game} />
 				<DeleteDialog gameId={game.gameId} />
+				<FavoriteGame game={game} />
+				<HideGame game={game} />
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

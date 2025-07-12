@@ -68,7 +68,7 @@ export const QuickAccess = () => {
 				</div>
 
 				<div className="flex flex-row gap-2 pt-2">
-					<Button className="size-40 flex-col gap-2">
+					<Button className="size-52 flex-col gap-2">
 						<Plus className="size-6" />
 						<TypographySmall>{t("add_game")}</TypographySmall>
 					</Button>
@@ -84,8 +84,8 @@ export const QuickAccess = () => {
 								if (isPlaceholder) {
 									// Render placeholder div
 									return (
-										<CarouselItem key={item.id} className="basis-44">
-											<div className="size-40 rounded-xl bg-muted/70">
+										<CarouselItem key={item.id} className="basis-56">
+											<div className="size-52 rounded-xl bg-muted/70">
 												{isLoading && (
 													<div className="h-full w-full animate-pulse rounded-lg bg-muted/40" />
 												)}
@@ -102,7 +102,7 @@ export const QuickAccess = () => {
 									: "";
 
 								return (
-									<CarouselItem key={game.id} className="basis-44">
+									<CarouselItem key={game.id} className="basis-56">
 										<DefaultCard
 											key={game.id}
 											id={game.igdbId}
@@ -111,7 +111,7 @@ export const QuickAccess = () => {
 												image: imageURL,
 												type: "image",
 											}}
-											className="size-40"
+											className="size-52"
 											square={true}
 											hideTitle={true}
 											renderBadge={() => {
