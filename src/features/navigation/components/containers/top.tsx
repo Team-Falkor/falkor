@@ -1,6 +1,12 @@
 import logo from "@resources/icon.png";
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, HomeIcon, LibraryIcon, User2Icon } from "lucide-react";
+import {
+	CalendarDays,
+	FilterIcon,
+	HomeIcon,
+	LibraryIcon,
+	User2Icon,
+} from "lucide-react";
 import {
 	Tooltip,
 	TooltipContent,
@@ -36,7 +42,7 @@ const NavBarTop = () => {
 
 				<NavItem href="/" title={t("home")} icon={<HomeIcon />} />
 
-				<NavItem href="/profile" title={t("profile")} icon={<User2Icon />} />
+				<NavItem href="/filter" title={t("filter")} icon={<FilterIcon />} />
 
 				<NavItem
 					href="/calendar"
@@ -45,6 +51,8 @@ const NavBarTop = () => {
 				/>
 
 				<NavItem href="/library" title={t("my_games")} icon={<LibraryIcon />} />
+
+				<NavItem href="/profile" title={t("profile")} icon={<User2Icon />} />
 			</div>
 		</>
 	);
