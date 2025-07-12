@@ -26,6 +26,8 @@ export const libraryGames = sqliteTable(
 		runAsAdmin: integer("run_as_admin", { mode: "boolean" })
 			.default(false)
 			.notNull(),
+		isFavorite: integer("is_favorite", { mode: "boolean" }).default(false),
+		isHidden: integer("is_hidden", { mode: "boolean" }).default(false),
 	},
 	(table) => [
 		uniqueIndex("library_games_game_path_unique").on(table.gamePath),

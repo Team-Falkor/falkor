@@ -35,6 +35,21 @@ export const libraryGamesRouter = router({
 			return row;
 		}),
 
+	recentGames: publicProcedure
+		.input(
+			z.object({
+				limit: z.number().min(1).default(20),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			return await ctx.db
+				.select()
+				.from(libraryGames)
+				.limit(input.limit)
+				.where(eq(libraryGames.installed, true))
+				.orderBy(desc(libraryGames.gameLastPlayed));
+		}),
+
 	create: publicProcedure
 		.input(
 			z.object({

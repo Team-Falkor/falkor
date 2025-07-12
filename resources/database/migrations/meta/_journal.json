@@ -50,6 +50,20 @@
       "when": 1750673334363,
       "tag": "0006_numerous_silver_surfer",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1752329838150,
+      "tag": "0007_known_epoch",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1752329866417,
+      "tag": "0008_goofy_hiroim",
+      "breakpoints": true
     }
   ]
 }

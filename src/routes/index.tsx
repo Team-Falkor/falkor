@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy } from "react";
+import { QuickAccess } from "@/features/quick-access/components/quickAccess";
 
 const MainContainer = lazy(
 	() => import("@/components/containers/mainContainer"),
@@ -21,6 +22,7 @@ function Index() {
 	return (
 		<MainContainer id="home-screen" className="w-full overflow-hidden">
 			<HeroSection />
+			<QuickAccess />
 			<FeaturedGames />
 			<GameCategories />
 			<GameRows />
