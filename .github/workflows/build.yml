@@ -88,9 +88,9 @@ jobs:
           sudo flatpak install -y flathub org.freedesktop.Platform/x86_64/23.08
           sudo flatpak install -y flathub org.freedesktop.Sdk/x86_64/23.08
           sudo flatpak install -y flathub org.electronjs.Electron2.BaseApp/x86_64/23.08
-          # Enable debug logging for electron-builder
-          DEBUG=electron-builder yarn run build:linux --debug
-          
+          # Enable debug logging for electron-builder by setting the environment variable
+          DEBUG=electron-builder yarn run build:linux
+
       - name: Build on Windows
         if: matrix.os == 'windows-latest'
         run: yarn run build:win
