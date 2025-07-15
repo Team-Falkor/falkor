@@ -1,7 +1,7 @@
 {
   "name": "falkor",
   "description": "Dive into Falkor, where you'll discover a vast selection of games coupled with community-driven enhancements. Experience seamless and secure gaming within a single, universal hub.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "dist-electron/main/index.js",
   "license": "BSD-3-Clause",
   "private": true,

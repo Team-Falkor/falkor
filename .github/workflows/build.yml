@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch: 
-
-
+  workflow_dispatch:
 
 env:
   VITE_TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
@@ -20,7 +18,7 @@ env:
 jobs:
   prebuild:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -85,6 +83,11 @@ jobs:
           sudo ln -s /snap/bin/snapcraft /usr/local/bin/snapcraft
           sudo snap install snapcraft --classic
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          # Install Flatpak runtimes and SDKs required by electron-builder
+          # These versions (23.08) should match what's specified in your electron-builder config
+          sudo flatpak install -y flathub org.freedesktop.Platform/x86_64/23.08
+          sudo flatpak install -y flathub org.freedesktop.Sdk/x86_64/23.08
+          sudo flatpak install -y flathub org.electronjs.Electron2.BaseApp/x86_64/23.08
           yarn run build:linux
 
       - name: Build on Windows
