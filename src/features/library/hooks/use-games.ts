@@ -53,7 +53,7 @@ export function useGames() {
 				return;
 			}
 
-			await utils.library.list.invalidate(undefined, {
+			await utils.library.invalidate(undefined, {
 				refetchType: "all",
 				type: "all",
 			});

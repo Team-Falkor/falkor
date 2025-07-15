@@ -3,7 +3,7 @@
 
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { Game } from "@/@types";
 import DefaultCard from "@/components/cards/defaultCard";
 import { EditGameOverlay } from "@/components/cards/list-card/overlay";
@@ -17,11 +17,13 @@ import {
 	CarouselItem,
 } from "@/components/ui/carousel";
 import { H2, TypographySmall } from "@/components/ui/typography";
+import { NewGameDialog } from "@/features/library/components/modals/new-game";
 import { useLanguageContext } from "@/i18n/I18N";
 import { formatPlaytime, trpc } from "@/lib";
 
 const LIMIT = 15;
 export const QuickAccess = () => {
+	const [open, setOpen] = useState(false);
 	const id = useId();
 	const { t } = useLanguageContext();
 	const { data: recentGames, isLoading } = trpc.library.recentGames.useQuery({
@@ -68,10 +70,17 @@ export const QuickAccess = () => {
 				</div>
 
 				<div className="flex flex-row gap-2 pt-2">
-					<Button className="size-52 flex-col gap-2">
-						<Plus className="size-6" />
-						<TypographySmall>{t("add_game")}</TypographySmall>
-					</Button>
+					<NewGameDialog setOpen={setOpen} open={open}>
+						<Button
+							className="size-48 flex-col gap-2"
+							onClick={() => {
+								setOpen(true);
+							}}
+						>
+							<Plus className="size-6" />
+							<TypographySmall>{t("add_game")}</TypographySmall>
+						</Button>
+					</NewGameDialog>
 
 					<div className="w-full flex-1 overflow-hidden">
 						<CarouselContent className="w-full flex-1">
@@ -84,8 +93,8 @@ export const QuickAccess = () => {
 								if (isPlaceholder) {
 									// Render placeholder div
 									return (
-										<CarouselItem key={item.id} className="basis-56">
-											<div className="size-52 rounded-xl bg-muted/70">
+										<CarouselItem key={item.id} className="basis-52">
+											<div className="size-48 rounded-xl bg-muted/70">
 												{isLoading && (
 													<div className="h-full w-full animate-pulse rounded-lg bg-muted/40" />
 												)}
@@ -102,7 +111,7 @@ export const QuickAccess = () => {
 									: "";
 
 								return (
-									<CarouselItem key={game.id} className="basis-56">
+									<CarouselItem key={game.id} className="basis-52">
 										<DefaultCard
 											key={game.id}
 											id={game.igdbId}
@@ -111,7 +120,7 @@ export const QuickAccess = () => {
 												image: imageURL,
 												type: "image",
 											}}
-											className="size-52"
+											className="size-48"
 											square={true}
 											hideTitle={true}
 											renderBadge={() => {

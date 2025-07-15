@@ -5,6 +5,7 @@ import { H5 } from "@/components/ui/typography";
 
 interface Props extends HTMLAttributes<HTMLButtonElement> {
 	disabled?: boolean;
+	simpleStyle?: boolean;
 }
 
 export const NewGameButton = ({ onClick, disabled, ...props }: Props) => {

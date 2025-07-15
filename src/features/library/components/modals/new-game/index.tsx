@@ -1,5 +1,6 @@
 import {
 	type Dispatch,
+	type ReactNode,
 	type SetStateAction,
 	useCallback,
 	useEffect,
@@ -18,9 +19,10 @@ import { DisplayResultsStop } from "./steps/display-results";
 type Props = {
 	open: boolean;
 	setOpen: Dispatch<SetStateAction<boolean>>;
+	children?: ReactNode;
 };
 
-export const NewGameDialog = ({ setOpen, open }: Props) => {
+export const NewGameDialog = ({ setOpen, open, children }: Props) => {
 	const [start, setStart] = useState(false);
 	const { createGame } = useGames();
 
@@ -105,7 +107,8 @@ export const NewGameDialog = ({ setOpen, open }: Props) => {
 
 	return (
 		<>
-			<NewGameButton onClick={() => setOpen(true)} />
+			{/* <NewGameButton onClick={() => setOpen(true)} /> */}
+			{children ? children : <NewGameButton onClick={() => setOpen(true)} />}
 			<MultiStepDialog
 				isOpen={start} // Dialog opens when 'start' is true
 				resetOnCancel={true} // Keeps this behavior

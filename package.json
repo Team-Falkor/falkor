@@ -49,7 +49,7 @@
     "@tanstack/react-router-devtools": "^1.121.34",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/zod-adapter": "^1.121.34",
-    "@team-falkor/game-launcher": "^0.5.4",
+    "@team-falkor/game-launcher": "^0.6.0",
     "@team-falkor/shared-types": "^1.0.6",
     "@trpc/client": "^11.4.2",
     "@trpc/react-query": "^11.4.2",
