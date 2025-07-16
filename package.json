@@ -89,7 +89,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.5",
+    "@biomejs/biome": "https://pkg.pr.new/biomejs/biome/@biomejs/biome@6d68074",
     "@playwright/test": "^1.48.2",
     "@tailwindcss/vite": "^4.1.5",
     "@tanstack/router-plugin": "^1.121.37",

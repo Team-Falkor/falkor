@@ -21,6 +21,11 @@ export interface ScanStats {
 	skippedPaths: number;
 	errors: number;
 	gamesFound: number;
+	// Progress estimation fields
+	estimatedTotalFiles?: number;
+	estimatedTimeRemaining?: number; // in milliseconds
+	progressPercentage?: number; // 0-100
+	scanStartTime?: number; // timestamp
 }
 
 export interface ScanResult {

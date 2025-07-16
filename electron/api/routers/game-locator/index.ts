@@ -14,6 +14,7 @@ const scanOptionsSchema = z.object({
 	maxDepth: z.number().int().positive().optional(),
 	timeout: z.number().int().positive().optional(),
 	concurrency: z.number().int().positive().optional(),
+	eventBatchInterval: z.number().int().positive().optional(),
 });
 
 const scanInputSchema = z.object({

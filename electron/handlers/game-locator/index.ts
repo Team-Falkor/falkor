@@ -8,9 +8,135 @@ import { validateScanOptions } from "./utils/validation";
 export class GameLocator extends EventEmitter {
 	private isScanning = false;
 	private abortController: AbortController | null = null;
+	private eventBatchInterval = 1000; // 1 second batching interval
+	private batchedStats: ScanStats | null = null;
+	private batchedGames: FileInfo[] = [];
+	private batchedFiles: FileInfo[] = [];
+	private batchTimer: NodeJS.Timeout | null = null;
+	private lastStatsEmit = 0;
+	// Progress estimation fields
+	private scanStartTime = 0;
+	private estimatedTotalFiles = 0;
+	private lastProgressUpdate = 0;
 
-	constructor(private options: ScanOptions) {
+	constructor(
+		private options: ScanOptions & { eventBatchInterval?: number } = {},
+	) {
 		super();
+		this.eventBatchInterval = options.eventBatchInterval ?? 1000;
+	}
+
+	/**
+	 * Start the batch timer for event emission
+	 */
+	private startBatchTimer(): void {
+		if (this.batchTimer) return;
+
+		this.batchTimer = setInterval(() => {
+			this.flushBatchedEvents();
+		}, this.eventBatchInterval);
+	}
+
+	/**
+	 * Stop the batch timer
+	 */
+	private stopBatchTimer(): void {
+		if (this.batchTimer) {
+			clearInterval(this.batchTimer);
+			this.batchTimer = null;
+		}
+	}
+
+	/**
+	 * Flush all batched events immediately
+	 */
+	private flushBatchedEvents(): void {
+		// Emit batched stats if available
+		if (this.batchedStats) {
+			this.emit("statsUpdate", this.batchedStats);
+			this.lastStatsEmit = Date.now();
+		}
+
+		// Emit batched games
+		for (const game of this.batchedGames) {
+			this.emit("gameFound", game);
+		}
+
+		// Emit batched files (only emit a subset to avoid overwhelming the UI)
+		const maxFilesToEmit = 50; // Limit file events to prevent UI overload
+		const filesToEmit = this.batchedFiles.slice(-maxFilesToEmit); // Get the most recent files
+		for (const file of filesToEmit) {
+			this.emit("fileProcessed", file);
+		}
+
+		// Clear batched arrays
+		this.batchedGames.length = 0;
+		this.batchedFiles.length = 0;
+	}
+
+	/**
+	 * Add stats to batch with progress estimation
+	 */
+	private batchStats(stats: ScanStats): void {
+		const now = Date.now();
+		const elapsedTime = now - this.scanStartTime;
+
+		// Calculate progress estimation
+		let estimatedTimeRemaining: number | undefined;
+		let progressPercentage: number | undefined;
+
+		if (this.estimatedTotalFiles > 0 && stats.processedFiles > 0) {
+			progressPercentage = Math.min(
+				(stats.processedFiles / this.estimatedTotalFiles) * 100,
+				100,
+			);
+
+			// Calculate estimated time remaining based on current processing rate
+			const processingRate = stats.processedFiles / (elapsedTime / 1000); // files per second
+			if (processingRate > 0) {
+				const remainingFiles = this.estimatedTotalFiles - stats.processedFiles;
+				estimatedTimeRemaining = (remainingFiles / processingRate) * 1000; // in milliseconds
+			}
+		} else if (stats.processedFiles > 0 && elapsedTime > 5000) {
+			// Fallback: estimate based on processing rate without total file count
+			const processingRate = stats.processedFiles / (elapsedTime / 1000);
+			if (processingRate > 0) {
+				// Rough estimate: assume we're 10% done if we don't know total
+				progressPercentage = Math.min(10, 100);
+				estimatedTimeRemaining =
+					((stats.processedFiles * 9) / processingRate) * 1000;
+			}
+		}
+
+		this.batchedStats = {
+			...stats,
+			scanStartTime: this.scanStartTime,
+			estimatedTotalFiles: this.estimatedTotalFiles || undefined,
+			estimatedTimeRemaining,
+			progressPercentage,
+		};
+
+		// For very frequent updates, emit immediately if it's been too long
+		if (now - this.lastStatsEmit > this.eventBatchInterval * 2) {
+			this.emit("statsUpdate", this.batchedStats);
+			this.lastStatsEmit = now;
+		}
+	}
+
+	/**
+	 * Add game to batch
+	 */
+	private batchGame(game: FileInfo): void {
+		this.batchedGames.push(game);
+		// Games will be emitted when the batch timer fires or when flushed
+	}
+
+	/**
+	 * Add file to batch (optional detailed monitoring)
+	 */
+	private batchFile(file: FileInfo): void {
+		this.batchedFiles.push(file);
+		// Files will be emitted when the batch timer fires or when flushed
 	}
 
 	/**
@@ -33,6 +159,10 @@ export class GameLocator extends EventEmitter {
 		this.abortController = new AbortController();
 
 		const startTime = Date.now();
+		this.scanStartTime = startTime;
+		this.estimatedTotalFiles = 0; // Will be updated as we discover files
+		this.lastProgressUpdate = startTime;
+
 		const games: FileInfo[] = [];
 		let finalStats: ScanStats = {
 			processedDirs: 0,
@@ -40,6 +170,7 @@ export class GameLocator extends EventEmitter {
 			skippedPaths: 0,
 			errors: 0,
 			gamesFound: 0,
+			scanStartTime: this.scanStartTime,
 		};
 
 		try {
@@ -47,6 +178,7 @@ export class GameLocator extends EventEmitter {
 			const scanPaths = paths.length > 0 ? paths : getCommonGameDirectories();
 
 			this.emit("scanStarted", { paths: scanPaths, options: this.options });
+			this.startBatchTimer();
 
 			// Scan each path
 			for (const scanPath of scanPaths) {
@@ -63,7 +195,7 @@ export class GameLocator extends EventEmitter {
 						// Stats update callback
 						(stats: ScanStats) => {
 							finalStats = stats;
-							this.emit("statsUpdate", stats);
+							this.batchStats(stats);
 						},
 						// File found callback
 						(fileInfo: FileInfo) => {
@@ -73,10 +205,10 @@ export class GameLocator extends EventEmitter {
 							if (isGame(fileInfo, this.options)) {
 								games.push(fileInfo);
 								finalStats.gamesFound++;
-								this.emit("gameFound", fileInfo);
+								this.batchGame(fileInfo);
 							}
 
-							this.emit("fileProcessed", fileInfo);
+							this.batchFile(fileInfo);
 						},
 					);
 
@@ -86,6 +218,9 @@ export class GameLocator extends EventEmitter {
 					this.emit("pathError", { path: scanPath, error });
 				}
 			}
+
+			// Flush any remaining batched events
+			this.flushBatchedEvents();
 
 			const duration = Date.now() - startTime;
 			const result: ScanResult = {
@@ -109,6 +244,8 @@ export class GameLocator extends EventEmitter {
 			this.emit("scanError", { error, result });
 			throw error;
 		} finally {
+			this.stopBatchTimer();
+			this.flushBatchedEvents(); // Final flush
 			this.isScanning = false;
 			this.abortController = null;
 		}
@@ -120,6 +257,8 @@ export class GameLocator extends EventEmitter {
 	stop(): void {
 		if (this.isScanning && this.abortController) {
 			this.abortController.abort();
+			this.stopBatchTimer();
+			this.flushBatchedEvents(); // Flush any pending events
 			this.emit("scanStopped");
 		}
 	}
@@ -134,9 +273,22 @@ export class GameLocator extends EventEmitter {
 	/**
 	 * Update scan options
 	 */
-	updateOptions(newOptions: Partial<ScanOptions>): void {
+	updateOptions(
+		newOptions: Partial<ScanOptions & { eventBatchInterval?: number }>,
+	): void {
 		if (this.isScanning) {
 			throw new Error("Cannot update options while scanning");
+		}
+		if (
+			"eventBatchInterval" in newOptions &&
+			newOptions.eventBatchInterval !== undefined
+		) {
+			this.eventBatchInterval = newOptions.eventBatchInterval;
+			// Restart batch timer with new interval if scanning
+			if (this.isScanning) {
+				this.stopBatchTimer();
+				this.startBatchTimer();
+			}
 		}
 		this.options = { ...this.options, ...newOptions };
 		this.emit("optionsUpdated", this.options);
