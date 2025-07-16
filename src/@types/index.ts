@@ -1,6 +1,7 @@
 export * from "./accounts";
 export * from "./achievements";
 export * from "./download";
+export * from "./game-locator";
 export * from "./igdb";
 export * from "./itad";
 export * from "./logs";
