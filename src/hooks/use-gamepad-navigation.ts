@@ -199,25 +199,28 @@ interface GamepadState {
 }
 
 /**
-	 * React hook that provides gamepad navigation for web interfaces.
-	 * Supports both D-pad and analog stick navigation, with fallback keyboard support.
-	 * Optimized for handheld gaming devices like Steam Deck.
-	 * 
-	 * @returns Object containing connection status and gamepad information
-	 */
-	export function useGamepadNavigation() {
-		const gamepadStateRef = useRef<GamepadState | null>(null);
-		const forceRefreshRef = useRef<boolean>(false);
-		const focusableCacheRef = useRef<{ elements: HTMLElement[]; timestamp: number } | null>(null);
+ * React hook that provides gamepad navigation for web interfaces.
+ * Supports both D-pad and analog stick navigation, with fallback keyboard support.
+ * Optimized for handheld gaming devices like Steam Deck.
+ *
+ * @returns Object containing connection status and gamepad information
+ */
+export function useGamepadNavigation() {
+	const gamepadStateRef = useRef<GamepadState | null>(null);
+	const forceRefreshRef = useRef<boolean>(false);
+	const focusableCacheRef = useRef<{
+		elements: HTMLElement[];
+		timestamp: number;
+	} | null>(null);
 
 	useEffect(() => {
-			let animationFrame: number | undefined;
+		let animationFrame: number | undefined;
 
-			/**
-			 * Main polling function that continuously checks gamepad state and handles navigation.
-			 * Runs at 60fps using requestAnimationFrame for optimal performance.
-			 */
-			function pollGamepads() {
+		/**
+		 * Main polling function that continuously checks gamepad state and handles navigation.
+		 * Runs at 60fps using requestAnimationFrame for optimal performance.
+		 */
+		function pollGamepads() {
 			try {
 				const now = Date.now();
 				const rawGamepads = navigator.getGamepads?.() ?? [];
@@ -232,216 +235,221 @@ interface GamepadState {
 				}
 
 				if (currentFrameGamepad) {
-				// Initialize or update gamepad state
-				if (
-					!gamepadStateRef.current ||
-					gamepadStateRef.current.gamepad.index !== currentFrameGamepad.index ||
-					gamepadStateRef.current.gamepad.id !== currentFrameGamepad.id ||
-					forceRefreshRef.current
-				) {
-					forceRefreshRef.current = false; // Reset the force refresh flag
-					const mapping = getControllerMapping(currentFrameGamepad);
-					console.log(
-						`Gamepad detected in polling: ${currentFrameGamepad.id}`,
-						`Mapping: ${mapping === BUTTON_MAPPINGS.steamdeck ? "Steam Deck/Nintendo" : "Standard"}`,
-					);
-
-					gamepadStateRef.current = {
-					gamepad: currentFrameGamepad,
-					mapping,
-					lastButtonState: new Array(currentFrameGamepad.buttons.length).fill(false),
-					lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
-				};
-				}
-
-				const state = gamepadStateRef.current;
-				const { buttons, axes } = currentFrameGamepad;
-				const { mapping } = state;
-
-				// Enhanced button press detection
-			function isPressed(btnIndex: number): boolean {
-				if (btnIndex >= buttons.length) return false;
-				const wasPressed = state.lastButtonState[btnIndex] ?? false;
-				const isCurrentlyPressed = buttons[btnIndex]?.pressed ?? false;
-				return isCurrentlyPressed && !wasPressed;
-			}
-
-			/**
-				 * Returns cached focusable elements if still valid, otherwise fetches fresh ones.
-				 * Cache expires after 100ms to balance performance with accuracy.
-				 */
-				function getCachedFocusableElements(): HTMLElement[] {
-					const cacheTimeout = 100; // Cache for 100ms to improve performance
+					// Initialize or update gamepad state
 					if (
-						!focusableCacheRef.current ||
-						now - focusableCacheRef.current.timestamp > cacheTimeout
+						!gamepadStateRef.current ||
+						gamepadStateRef.current.gamepad.index !==
+							currentFrameGamepad.index ||
+						gamepadStateRef.current.gamepad.id !== currentFrameGamepad.id ||
+						forceRefreshRef.current
 					) {
-						focusableCacheRef.current = {
-							elements: getFocusableElements(),
-							timestamp: now,
+						forceRefreshRef.current = false; // Reset the force refresh flag
+						const mapping = getControllerMapping(currentFrameGamepad);
+						console.log(
+							`Gamepad detected in polling: ${currentFrameGamepad.id}`,
+							`Mapping: ${mapping === BUTTON_MAPPINGS.steamdeck ? "Steam Deck/Nintendo" : "Standard"}`,
+						);
+
+						gamepadStateRef.current = {
+							gamepad: currentFrameGamepad,
+							mapping,
+							lastButtonState: new Array(
+								currentFrameGamepad.buttons.length,
+							).fill(false),
+							lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
 						};
 					}
-					return focusableCacheRef.current.elements;
-				}
+
+					const state = gamepadStateRef.current;
+					const { buttons, axes } = currentFrameGamepad;
+					const { mapping } = state;
+
+					// Enhanced button press detection
+					function isPressed(btnIndex: number): boolean {
+						if (btnIndex >= buttons.length) return false;
+						const wasPressed = state.lastButtonState[btnIndex] ?? false;
+						const isCurrentlyPressed = buttons[btnIndex]?.pressed ?? false;
+						return isCurrentlyPressed && !wasPressed;
+					}
+
+					/**
+					 * Returns cached focusable elements if still valid, otherwise fetches fresh ones.
+					 * Cache expires after 100ms to balance performance with accuracy.
+					 */
+					function getCachedFocusableElements(): HTMLElement[] {
+						const cacheTimeout = 100; // Cache for 100ms to improve performance
+						if (
+							!focusableCacheRef.current ||
+							now - focusableCacheRef.current.timestamp > cacheTimeout
+						) {
+							focusableCacheRef.current = {
+								elements: getFocusableElements(),
+								timestamp: now,
+							};
+						}
+						return focusableCacheRef.current.elements;
+					}
 
 					const focusables = getCachedFocusableElements();
 					const active = document.activeElement as HTMLElement | null;
 
-				// D-pad navigation
-				if (isPressed(mapping.UP)) {
-					const next = getNextElement(active, focusables, "up");
-					if (next) next.focus();
-				}
-				if (isPressed(mapping.DOWN)) {
-					const next = getNextElement(active, focusables, "down");
-					if (next) next.focus();
-				}
-				if (isPressed(mapping.LEFT)) {
-					const next = getNextElement(active, focusables, "left");
-					if (next) next.focus();
-				}
-				if (isPressed(mapping.RIGHT)) {
-					const next = getNextElement(active, focusables, "right");
-					if (next) next.focus();
-				}
+					// D-pad navigation
+					if (isPressed(mapping.UP)) {
+						const next = getNextElement(active, focusables, "up");
+						if (next) next.focus();
+					}
+					if (isPressed(mapping.DOWN)) {
+						const next = getNextElement(active, focusables, "down");
+						if (next) next.focus();
+					}
+					if (isPressed(mapping.LEFT)) {
+						const next = getNextElement(active, focusables, "left");
+						if (next) next.focus();
+					}
+					if (isPressed(mapping.RIGHT)) {
+						const next = getNextElement(active, focusables, "right");
+						if (next) next.focus();
+					}
 
-				// Enhanced analog stick navigation with improved dead zone and velocity handling
-				if (axes && axes.length >= 2) {
-					const rawStickX = axes[0] || 0;
-					const rawStickY = axes[1] || 0;
+					// Enhanced analog stick navigation with improved dead zone and velocity handling
+					if (axes && axes.length >= 2) {
+						const rawStickX = axes[0] || 0;
+						const rawStickY = axes[1] || 0;
 
-					// Apply dead zone - only register movement outside dead zone
-					const stickX = Math.abs(rawStickX) > STICK_DEAD_ZONE ? rawStickX : 0;
-					const stickY = Math.abs(rawStickY) > STICK_DEAD_ZONE ? rawStickY : 0;
+						// Apply dead zone - only register movement outside dead zone
+						const stickX =
+							Math.abs(rawStickX) > STICK_DEAD_ZONE ? rawStickX : 0;
+						const stickY =
+							Math.abs(rawStickY) > STICK_DEAD_ZONE ? rawStickY : 0;
 
-					// Calculate dynamic cooldown based on stick intensity
-					const getStickCooldown = (intensity: number): number => {
-						const normalizedIntensity = Math.min(Math.abs(intensity), 1);
-						if (normalizedIntensity > STICK_MAX_THRESHOLD) {
-							return STICK_COOLDOWN * 0.6; // Faster for full stick deflection
-						}
-						if (normalizedIntensity > STICK_THRESHOLD) {
-							return STICK_COOLDOWN; // Normal speed
-						}
-						return STICK_COOLDOWN * 1.5; // Slower for light touches
-					};
+						// Calculate dynamic cooldown based on stick intensity
+						const getStickCooldown = (intensity: number): number => {
+							const normalizedIntensity = Math.min(Math.abs(intensity), 1);
+							if (normalizedIntensity > STICK_MAX_THRESHOLD) {
+								return STICK_COOLDOWN * 0.6; // Faster for full stick deflection
+							}
+							if (normalizedIntensity > STICK_THRESHOLD) {
+								return STICK_COOLDOWN; // Normal speed
+							}
+							return STICK_COOLDOWN * 1.5; // Slower for light touches
+						};
 
-					// Vertical stick movement with improved threshold handling
-					if (stickY < -STICK_THRESHOLD) {
-						const cooldown = getStickCooldown(stickY);
-						if (now - state.lastStickTime.up > cooldown) {
-							const next = getNextElement(active, focusables, "up");
-							if (next) {
-								next.focus();
-								state.lastStickTime.up = now;
+						// Vertical stick movement with improved threshold handling
+						if (stickY < -STICK_THRESHOLD) {
+							const cooldown = getStickCooldown(stickY);
+							if (now - state.lastStickTime.up > cooldown) {
+								const next = getNextElement(active, focusables, "up");
+								if (next) {
+									next.focus();
+									state.lastStickTime.up = now;
+								}
+							}
+						} else if (stickY > STICK_THRESHOLD) {
+							const cooldown = getStickCooldown(stickY);
+							if (now - state.lastStickTime.down > cooldown) {
+								const next = getNextElement(active, focusables, "down");
+								if (next) {
+									next.focus();
+									state.lastStickTime.down = now;
+								}
 							}
 						}
-					} else if (stickY > STICK_THRESHOLD) {
-						const cooldown = getStickCooldown(stickY);
-						if (now - state.lastStickTime.down > cooldown) {
-							const next = getNextElement(active, focusables, "down");
-							if (next) {
-								next.focus();
-								state.lastStickTime.down = now;
+
+						// Horizontal stick movement with improved threshold handling
+						if (stickX < -STICK_THRESHOLD) {
+							const cooldown = getStickCooldown(stickX);
+							if (now - state.lastStickTime.left > cooldown) {
+								const next = getNextElement(active, focusables, "left");
+								if (next) {
+									next.focus();
+									state.lastStickTime.left = now;
+								}
 							}
+						} else if (stickX > STICK_THRESHOLD) {
+							const cooldown = getStickCooldown(stickX);
+							if (now - state.lastStickTime.right > cooldown) {
+								const next = getNextElement(active, focusables, "right");
+								if (next) {
+									next.focus();
+									state.lastStickTime.right = now;
+								}
+							}
+						}
+
+						// Reset stick timers when stick returns to dead zone
+						if (Math.abs(stickX) <= STICK_DEAD_ZONE) {
+							state.lastStickTime.left = 0;
+							state.lastStickTime.right = 0;
+						}
+						if (Math.abs(stickY) <= STICK_DEAD_ZONE) {
+							state.lastStickTime.up = 0;
+							state.lastStickTime.down = 0;
 						}
 					}
 
-					// Horizontal stick movement with improved threshold handling
-					if (stickX < -STICK_THRESHOLD) {
-						const cooldown = getStickCooldown(stickX);
-						if (now - state.lastStickTime.left > cooldown) {
-							const next = getNextElement(active, focusables, "left");
-							if (next) {
-								next.focus();
-								state.lastStickTime.left = now;
-							}
-						}
-					} else if (stickX > STICK_THRESHOLD) {
-						const cooldown = getStickCooldown(stickX);
-						if (now - state.lastStickTime.right > cooldown) {
-							const next = getNextElement(active, focusables, "right");
-							if (next) {
-								next.focus();
-								state.lastStickTime.right = now;
-							}
+					// Enhanced button actions
+					if (isPressed(mapping.A)) {
+						if (active && typeof active.click === "function") {
+							active.click();
 						}
 					}
 
-					// Reset stick timers when stick returns to dead zone
-					if (Math.abs(stickX) <= STICK_DEAD_ZONE) {
-						state.lastStickTime.left = 0;
-						state.lastStickTime.right = 0;
-					}
-					if (Math.abs(stickY) <= STICK_DEAD_ZONE) {
-						state.lastStickTime.up = 0;
-						state.lastStickTime.down = 0;
-					}
-				}
-
-				// Enhanced button actions
-				if (isPressed(mapping.A)) {
-					if (active && typeof active.click === "function") {
-						active.click();
-					}
-				}
-
-				// B button for back/cancel (common on handhelds)
-				if (isPressed(mapping.B)) {
-					// Try to find and click a close/cancel/back button
-					const cancelButton = focusables.find(
-						(el) =>
-							el.textContent?.toLowerCase().includes("cancel") ||
-							el.textContent?.toLowerCase().includes("close") ||
-							el.textContent?.toLowerCase().includes("back") ||
-							el.getAttribute("aria-label")?.toLowerCase().includes("close"),
-					);
-
-					if (cancelButton) {
-						cancelButton.click();
-					} else {
-						// Fallback: simulate escape key
-						document.dispatchEvent(
-							new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+					// B button for back/cancel (common on handhelds)
+					if (isPressed(mapping.B)) {
+						// Try to find and click a close/cancel/back button
+						const cancelButton = focusables.find(
+							(el) =>
+								el.textContent?.toLowerCase().includes("cancel") ||
+								el.textContent?.toLowerCase().includes("close") ||
+								el.textContent?.toLowerCase().includes("back") ||
+								el.getAttribute("aria-label")?.toLowerCase().includes("close"),
 						);
+
+						if (cancelButton) {
+							cancelButton.click();
+						} else {
+							// Fallback: simulate escape key
+							document.dispatchEvent(
+								new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+							);
+						}
 					}
-				}
 
-				// Shoulder buttons for page navigation
-				if (isPressed(mapping.L1)) {
-					// Previous page/section
-					window.scrollBy(0, -window.innerHeight * 0.8);
-				}
+					// Shoulder buttons for page navigation
+					if (isPressed(mapping.L1)) {
+						// Previous page/section
+						window.scrollBy(0, -window.innerHeight * 0.8);
+					}
 
-				if (isPressed(mapping.R1)) {
-					// Next page/section
-					window.scrollBy(0, window.innerHeight * 0.8);
-				}
+					if (isPressed(mapping.R1)) {
+						// Next page/section
+						window.scrollBy(0, window.innerHeight * 0.8);
+					}
 
-				// Start/Select buttons
-				if (isPressed(mapping.START)) {
-					// Try to find and focus main menu or settings
-					const menuButton = focusables.find(
-						(el) =>
-							el.textContent?.toLowerCase().includes("menu") ||
-							el.textContent?.toLowerCase().includes("settings") ||
-							el.getAttribute("aria-label")?.toLowerCase().includes("menu"),
-					);
-					if (menuButton) menuButton.focus();
-				}
+					// Start/Select buttons
+					if (isPressed(mapping.START)) {
+						// Try to find and focus main menu or settings
+						const menuButton = focusables.find(
+							(el) =>
+								el.textContent?.toLowerCase().includes("menu") ||
+								el.textContent?.toLowerCase().includes("settings") ||
+								el.getAttribute("aria-label")?.toLowerCase().includes("menu"),
+						);
+						if (menuButton) menuButton.focus();
+					}
 
-				if (isPressed(mapping.SELECT)) {
-					// Focus first focusable element (useful for navigation reset)
-					if (focusables[0]) focusables[0].focus();
-				}
+					if (isPressed(mapping.SELECT)) {
+						// Focus first focusable element (useful for navigation reset)
+						if (focusables[0]) focusables[0].focus();
+					}
 
-				// Update button state efficiently
-			for (let i = 0; i < buttons.length; i++) {
-				state.lastButtonState[i] = buttons[i]?.pressed ?? false;
-			}
+					// Update button state efficiently
+					for (let i = 0; i < buttons.length; i++) {
+						state.lastButtonState[i] = buttons[i]?.pressed ?? false;
+					}
 
-				// Update gamepad reference
-				state.gamepad = currentFrameGamepad;
+					// Update gamepad reference
+					state.gamepad = currentFrameGamepad;
 				} else {
 					// No gamepad connected
 					if (gamepadStateRef.current) {
@@ -456,101 +464,101 @@ interface GamepadState {
 		}
 
 		/**
-			 * Handles gamepad connection events and initializes the gamepad state.
-			 */
-			const handleGamepadConnected = (event: GamepadEvent) => {
-				try {
-					console.log(
-						"Gamepad connected:",
-						event.gamepad.id,
-						"Index:",
-						event.gamepad.index,
-					);
+		 * Handles gamepad connection events and initializes the gamepad state.
+		 */
+		const handleGamepadConnected = (event: GamepadEvent) => {
+			try {
+				console.log(
+					"Gamepad connected:",
+					event.gamepad.id,
+					"Index:",
+					event.gamepad.index,
+				);
 
-					// Immediately initialize gamepad state when connected
-					const mapping = getControllerMapping(event.gamepad);
-					gamepadStateRef.current = {
-						gamepad: event.gamepad,
-						mapping,
-						lastButtonState: new Array(event.gamepad.buttons.length).fill(false),
-						lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
-					};
+				// Immediately initialize gamepad state when connected
+				const mapping = getControllerMapping(event.gamepad);
+				gamepadStateRef.current = {
+					gamepad: event.gamepad,
+					mapping,
+					lastButtonState: new Array(event.gamepad.buttons.length).fill(false),
+					lastStickTime: { up: 0, down: 0, left: 0, right: 0 },
+				};
 
-					// Force a refresh in the next polling cycle
-					forceRefreshRef.current = true;
-					// Clear focusable cache when gamepad connects
+				// Force a refresh in the next polling cycle
+				forceRefreshRef.current = true;
+				// Clear focusable cache when gamepad connects
+				focusableCacheRef.current = null;
+			} catch (error) {
+				console.error("Error handling gamepad connection:", error);
+			}
+		};
+
+		/**
+		 * Handles gamepad disconnection events and cleans up state.
+		 */
+		const handleGamepadDisconnected = (event: GamepadEvent) => {
+			try {
+				console.log(
+					"Gamepad disconnected:",
+					event.gamepad.id,
+					"Index:",
+					event.gamepad.index,
+				);
+
+				if (
+					gamepadStateRef.current &&
+					gamepadStateRef.current.gamepad.index === event.gamepad.index
+				) {
+					gamepadStateRef.current = null;
+					// Clear focusable cache when gamepad disconnects
 					focusableCacheRef.current = null;
-				} catch (error) {
-					console.error("Error handling gamepad connection:", error);
 				}
-			};
+			} catch (error) {
+				console.error("Error handling gamepad disconnection:", error);
+			}
+		};
 
 		/**
-			 * Handles gamepad disconnection events and cleans up state.
-			 */
-			const handleGamepadDisconnected = (event: GamepadEvent) => {
-				try {
-					console.log(
-						"Gamepad disconnected:",
-						event.gamepad.id,
-						"Index:",
-						event.gamepad.index,
-					);
+		 * Keyboard navigation fallback for when gamepad is not available.
+		 * Provides arrow key navigation as a backup input method.
+		 */
+		const handleKeyDown = (event: KeyboardEvent) => {
+			try {
+				if (gamepadStateRef.current) return; // Only handle keyboard if no gamepad
 
-					if (
-						gamepadStateRef.current &&
-						gamepadStateRef.current.gamepad.index === event.gamepad.index
-					) {
-						gamepadStateRef.current = null;
-						// Clear focusable cache when gamepad disconnects
-						focusableCacheRef.current = null;
+				const focusables = getFocusableElements(); // Don't use cache for keyboard as it's less frequent
+				const active = document.activeElement as HTMLElement | null;
+
+				switch (event.key) {
+					case "ArrowUp": {
+						event.preventDefault();
+						const upNext = getNextElement(active, focusables, "up");
+						if (upNext) upNext.focus();
+						break;
 					}
-				} catch (error) {
-					console.error("Error handling gamepad disconnection:", error);
-				}
-			};
-
-		/**
-			 * Keyboard navigation fallback for when gamepad is not available.
-			 * Provides arrow key navigation as a backup input method.
-			 */
-			const handleKeyDown = (event: KeyboardEvent) => {
-				try {
-					if (gamepadStateRef.current) return; // Only handle keyboard if no gamepad
-
-					const focusables = getFocusableElements(); // Don't use cache for keyboard as it's less frequent
-					const active = document.activeElement as HTMLElement | null;
-
-					switch (event.key) {
-						case "ArrowUp": {
-							event.preventDefault();
-							const upNext = getNextElement(active, focusables, "up");
-							if (upNext) upNext.focus();
-							break;
-						}
-						case "ArrowDown": {
-							event.preventDefault();
-							const downNext = getNextElement(active, focusables, "down");
-							if (downNext) downNext.focus();
-							break;
-						}
-						case "ArrowLeft": {
-							event.preventDefault();
-							const leftNext = getNextElement(active, focusables, "left");
-							if (leftNext) leftNext.focus();
-							break;
-						}
-						case "ArrowRight": {
-							event.preventDefault();
-							const rightNext = getNextElement(active, focusables, "right");
-							if (rightNext) rightNext.focus();
-							break;
-						}
+					case "ArrowDown": {
+						event.preventDefault();
+						const downNext = getNextElement(active, focusables, "down");
+						if (downNext) downNext.focus();
+						break;
 					}
-				} catch (error) {
-					console.error("Error in keyboard navigation:", error);
+					case "ArrowLeft": {
+						event.preventDefault();
+						const leftNext = getNextElement(active, focusables, "left");
+						if (leftNext) leftNext.focus();
+						break;
+					}
+					case "ArrowRight": {
+						event.preventDefault();
+						const rightNext = getNextElement(active, focusables, "right");
+						if (rightNext) rightNext.focus();
+						break;
+					}
 				}
-			};
+			} catch (error) {
+				console.error("Error in keyboard navigation:", error);
+			}
+		};
 
 		window.addEventListener("gamepadconnected", handleGamepadConnected);
 		window.addEventListener("gamepaddisconnected", handleGamepadDisconnected);
@@ -559,28 +567,28 @@ interface GamepadState {
 		animationFrame = requestAnimationFrame(pollGamepads);
 
 		// Cleanup function to remove all event listeners and cancel animation frames
-			return () => {
-				if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
-				window.removeEventListener("gamepadconnected", handleGamepadConnected);
-				window.removeEventListener(
-					"gamepaddisconnected",
-					handleGamepadDisconnected,
-				);
-				window.removeEventListener("keydown", handleKeyDown);
-				console.log("Enhanced gamepad navigation cleaned up");
-			};
+		return () => {
+			if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+			window.removeEventListener("gamepadconnected", handleGamepadConnected);
+			window.removeEventListener(
+				"gamepaddisconnected",
+				handleGamepadDisconnected,
+			);
+			window.removeEventListener("keydown", handleKeyDown);
+			console.log("Enhanced gamepad navigation cleaned up");
+		};
 	}, []);
 
-		/**
-		 * Return useful information about the current gamepad state for external components.
-		 * This allows other parts of the application to react to gamepad connection status.
-		 */
-		return {
-			isConnected: !!gamepadStateRef.current,
-			gamepadId: gamepadStateRef.current?.gamepad.id || null,
-			mappingType:
-				gamepadStateRef.current?.mapping === BUTTON_MAPPINGS.steamdeck
-					? "handheld"
-					: "standard",
-		};
+	/**
+	 * Return useful information about the current gamepad state for external components.
+	 * This allows other parts of the application to react to gamepad connection status.
+	 */
+	return {
+		isConnected: !!gamepadStateRef.current,
+		gamepadId: gamepadStateRef.current?.gamepad.id || null,
+		mappingType:
+			gamepadStateRef.current?.mapping === BUTTON_MAPPINGS.steamdeck
+				? "handheld"
+				: "standard",
+	};
 }
