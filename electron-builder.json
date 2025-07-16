@@ -62,8 +62,7 @@
       "deb",
       "pacman",
       "rpm",
-      "tar.gz",
-      "flatpak"
+      "tar.gz"
     ],
     "artifactName": "${productName}.${ext}",
     "category": "Game",
@@ -74,27 +73,6 @@
     "publish": [
       "github"
     ]
-  },
-  "flatpak": {
-    "runtime": "org.freedesktop.Platform",
-    "runtimeVersion": "23.08",
-    "sdk": "org.freedesktop.Sdk",
-    "base": "org.electronjs.Electron2.BaseApp",
-    "baseVersion": "23.08",
-    "finishArgs": [
-      "--socket=wayland",
-      "--socket=x11",
-      "--share=ipc",
-      "--device=dri",
-      "--socket=pulseaudio",
-      "--filesystem=home",
-      "--share=network",
-      "--talk-name=org.freedesktop.Notifications",
-      "--env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons"
-    ],
-    "files": [],
-    "symlinks": [],
-    "useWaylandFlags": false
   },
   "publish": {
     "provider": "github",
