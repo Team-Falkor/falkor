@@ -1,20 +1,16 @@
 import { useState } from "react";
-import type {
-	InfoItadProps,
-	InfoProps,
-	ReleaseDate,
-	RouterOutputs,
-} from "@/@types";
+import type { InfoItadProps, InfoProps, RouterOutputs } from "@/@types";
 import IGDBImage from "@/components/IGDBImage";
 import ProtonDbBadge from "@/components/protonDbBadge";
 import InfoTopSkeleton from "@/components/skeletons/info/top.skeleton";
 import { Button } from "@/components/ui/button";
+import type { GameDateResult } from "@/lib";
 import SelectedInfoTab from "./tabs/selected";
 
 type InfoTopProps = InfoProps & {
 	data: RouterOutputs["igdb"]["info"];
 	isReleased: boolean;
-	releaseDate: ReleaseDate | null | undefined;
+	releaseDate: GameDateResult | null | undefined;
 	steamID: string | null | undefined;
 	// playingData: LibraryGame | null | undefined;
 	// playingPending: boolean;

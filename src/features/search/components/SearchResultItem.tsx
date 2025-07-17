@@ -4,6 +4,7 @@ import IGDBImage from "@/components/IGDBImage";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CommandItem } from "@/components/ui/command";
 import { P, TypographyMuted } from "@/components/ui/typography";
+import { formatGameDate } from "@/lib";
 
 interface SearchResultItemProps {
 	game: IGDBReturnDataType;
@@ -14,7 +15,8 @@ export default function SearchResultItem({
 	game,
 	onSelect,
 }: SearchResultItemProps) {
-	const year = game.release_dates?.[0]?.human;
+	const dateResult = formatGameDate(game);
+	const date = dateResult?.human;
 
 	return (
 		<CommandItem
@@ -41,8 +43,8 @@ export default function SearchResultItem({
 					<P className="truncate font-medium text-sm group-aria-selected:text-accent-foreground">
 						{game.name}
 					</P>
-					{year && (
-						<TypographyMuted className="text-xs">{year}</TypographyMuted>
+					{date && (
+						<TypographyMuted className="text-xs">{date}</TypographyMuted>
 					)}
 				</div>
 			</div>

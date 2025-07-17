@@ -2,22 +2,17 @@ import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Lightbulb } from "lucide-react";
 import { useMemo } from "react";
-import type {
-	IGDBReturnDataType,
-	InfoItadProps,
-	InfoProps,
-	ReleaseDate,
-} from "@/@types";
+import type { IGDBReturnDataType, InfoItadProps, InfoProps } from "@/@types";
 import Stars from "@/components/starts";
 import { TypographyMuted, TypographySmall } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { cn } from "@/lib";
+import { cn, type GameDateResult } from "@/lib";
 import Sources from "../sources";
 
 interface InfoAboutTabProps extends InfoProps {
 	data: IGDBReturnDataType | undefined;
 	isReleased: boolean;
-	releaseDate: ReleaseDate | null | undefined;
+	releaseDate: GameDateResult | null | undefined;
 }
 
 type Props = InfoAboutTabProps & InfoItadProps;
@@ -80,9 +75,9 @@ const InfoAboutTab = ({
 						<TypographySmall className="flex items-center gap-2 rounded-full bg-muted-foreground/10 px-2.5 py-1 font-semibold">
 							{!isReleased
 								? t("not_released")
-								: !releaseDate?.date
+								: !releaseDate?.human
 									? "N/A"
-									: format(releaseDate.date * 1000, "MMM d, yyyy")}
+									: format(releaseDate.epoch * 1000, "MMM d, yyyy")}
 						</TypographySmall>
 					</div>
 				</div>

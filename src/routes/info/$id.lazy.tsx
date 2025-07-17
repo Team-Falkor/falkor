@@ -1,13 +1,12 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import type { ReleaseDate } from "@/@types";
 import AchievementContainer from "@/features/achievements/components/container";
 // TODO: Port over components from old codebase
 // import AchievementContainer from "@/features/achievements/components/container";
 import { InfoBar } from "@/features/info/info-bar";
 import SimilarGames from "@/features/info/similar";
 import InfoTop from "@/features/info/top";
-import { getSteamIdFromWebsites, trpc } from "@/lib";
+import { formatGameDate, getSteamIdFromWebsites, trpc } from "@/lib";
 import { goBack } from "@/lib/history";
 
 export const Route = createLazyFileRoute("/info/$id")({ component: Info });
@@ -19,21 +18,13 @@ function Info() {
 		id: id,
 	});
 
-	const releaseDate = useMemo(
-		() =>
-			data
-				? (data.release_dates?.find(
-						(item: ReleaseDate) => item.platform === 6,
-					) ?? data.release_dates?.[0])
-				: null,
-		[data],
-	);
+	const releaseDate = useMemo(() => formatGameDate(data), [data]);
 
 	const isReleased = useMemo(
 		() =>
 			!releaseDate
 				? false
-				: !releaseDate?.date || releaseDate.date < Date.now() / 1000,
+				: !!releaseDate?.epoch && releaseDate.epoch <= Date.now() / 1000,
 		[releaseDate],
 	);
 
