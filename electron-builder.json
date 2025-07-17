@@ -62,8 +62,7 @@
       "deb",
       "pacman",
       "rpm",
-      "tar.gz",
-      "flatpak"
+      "tar.gz"
     ],
     "artifactName": "${productName}.${ext}",
     "category": "Game",
