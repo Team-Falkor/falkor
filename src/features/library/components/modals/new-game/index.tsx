@@ -107,7 +107,6 @@ export const NewGameDialog = ({ setOpen, open, children }: Props) => {
 
 	return (
 		<>
-			{/* <NewGameButton onClick={() => setOpen(true)} /> */}
 			{children ? children : <NewGameButton onClick={() => setOpen(true)} />}
 			<MultiStepDialog
 				isOpen={start} // Dialog opens when 'start' is true

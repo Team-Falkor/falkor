@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { GameLocatorDialog } from "@/features/game-locator/components/dialog";
 
 export const Route = createFileRoute("/test")({
 	component: RouteComponent,
@@ -8,10 +7,8 @@ export const Route = createFileRoute("/test")({
 
 function RouteComponent() {
 	return (
-		<Dialog>
-			<DialogTrigger asChild>
-				<Button>scan folder for games</Button>
-			</DialogTrigger>
-		</Dialog>
+		<div>
+			<GameLocatorDialog />
+		</div>
 	);
 }
