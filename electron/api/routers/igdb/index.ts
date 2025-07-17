@@ -1,7 +1,9 @@
 import { z } from "zod";
+import type { IGDBReturnDataType, InfoReturn } from "@/@types";
 import { publicProcedure, router } from "../../../api/trpc";
 import {
 	type GameFilters,
+	type IGDBOption,
 	IGDBWrapper,
 } from "../../../handlers/api-wrappers/igdb";
 import { cache } from "../../../handlers/cache";
@@ -34,7 +36,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:search:${input.query}:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.search(input.query, input.limit, input.offset);
@@ -48,7 +50,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:info:${input.id}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<InfoReturn>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.info(input.id);
@@ -67,7 +69,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:top_rated:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.topRated(input.limit, input.offset);
@@ -86,7 +88,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:new_releases:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.newReleases(input.limit, input.offset);
@@ -105,7 +107,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:most_anticipated:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.mostAnticipated(input.limit, input.offset);
@@ -125,7 +127,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:by_genre:${input.genre}:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.byGenre(input.genre, input.limit, input.offset);
@@ -145,7 +147,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:by_multiple_genres:${input.genreIds.sort().join(",")}:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.byMultipleGenres(
@@ -169,7 +171,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:similar_games:${input.gameId}:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.similarGames(
@@ -192,7 +194,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:genres:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBOption[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.getGenres(input.limit, input.offset);
@@ -210,7 +212,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:companies:${input.ids.sort().join(",")}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBOption[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.getCompanies(input.ids);
@@ -229,7 +231,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:themes:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBOption[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.getThemes(input.limit, input.offset);
@@ -248,7 +250,7 @@ export const igdbRouter = router({
 		.query(async ({ input }) => {
 			const cacheKey = `igdb:game_modes:${input.limit}:${input.offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBOption[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.getGameModes(input.limit, input.offset);
@@ -294,7 +296,7 @@ export const igdbRouter = router({
 			});
 			const cacheKey = `igdb:filter:${Buffer.from(filterKey).toString("base64")}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const result = await igdb.filter(filters, sort, limit, offset);
@@ -316,7 +318,7 @@ export const igdbRouter = router({
 			const { year, month, limit, offset } = input;
 			const cacheKey = `igdb:calendar:${year}:${month}:${limit}:${offset}`;
 
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<IGDBReturnDataType[]>(cacheKey);
 			if (cached) return cached;
 
 			const startDate = new Date(year, month, 1).getTime();

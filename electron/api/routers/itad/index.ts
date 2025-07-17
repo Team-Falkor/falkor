@@ -4,6 +4,12 @@ import { cache } from "@backend/handlers/cache";
 import { Mapping } from "@backend/utils/mapping";
 import { getUserCountry } from "@backend/utils/utils";
 import { z } from "zod";
+import type {
+	ITADGameInfo,
+	ITADGameLookup,
+	ITADGameSearch,
+	ITADPrice,
+} from "@/@types";
 
 const CACHE_TTL = {
 	STATIC: 24 * 60 * 60 * 1000,
@@ -36,7 +42,7 @@ const gamePricesByNameInput = z.object({
 export const itadRouter = router({
 	search: publicProcedure.input(gameSearchInput).query(async ({ input }) => {
 		const cacheKey = `itad:search:${input.query}`;
-		const cached = await cache.get(cacheKey);
+		const cached = await cache.get<ITADGameSearch[]>(cacheKey);
 		if (cached) return cached;
 
 		const itad = ITAD.getInstance();
@@ -47,7 +53,7 @@ export const itadRouter = router({
 
 	lookup: publicProcedure.input(gameLookupInput).query(async ({ input }) => {
 		const cacheKey = `itad:lookup:${input.id}`;
-		const cached = await cache.get(cacheKey);
+		const cached = await cache.get<ITADGameLookup>(cacheKey);
 		if (cached) return cached;
 
 		const itad = ITAD.getInstance();
@@ -58,7 +64,7 @@ export const itadRouter = router({
 
 	info: publicProcedure.input(gameInfoInput).query(async ({ input }) => {
 		const cacheKey = `itad:info:${input.id}`;
-		const cached = await cache.get(cacheKey);
+		const cached = await cache.get<ITADGameInfo>(cacheKey);
 		if (cached) return cached;
 
 		const itad = ITAD.getInstance();
@@ -69,7 +75,7 @@ export const itadRouter = router({
 
 	prices: publicProcedure.input(gamePricesInput).query(async ({ input }) => {
 		const cacheKey = `itad:prices:${input.ids.join(",")}:${input.country ?? "auto"}`;
-		const cached = await cache.get(cacheKey);
+		const cached = await cache.get<ITADPrice[]>(cacheKey);
 		if (cached) return cached;
 
 		const itad = ITAD.getInstance();
@@ -82,7 +88,11 @@ export const itadRouter = router({
 		.input(gamePricesByNameInput)
 		.query(async ({ input }) => {
 			const cacheKey = `itad:pricesByName:${input.name}:${input.country ?? "auto"}`;
-			const cached = await cache.get(cacheKey);
+			const cached = await cache.get<{
+				id: string | null;
+				prices: ITADPrice[];
+				message?: string;
+			}>(cacheKey);
 			if (cached) return cached;
 
 			const { name, country } = input;
