@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { FileInfo, ScanOptions, ScanStats } from "@/@types";
+import type { FileInfo, ScanStats } from "@/@types";
 import { useGameLocator } from "@/features/game-locator/hooks/useGameLocator";
 import { useGameLocatorStore } from "@/features/game-locator/stores/gameLocator";
 import { trpc } from "@/lib";
 import { DiscoveredGames } from "./discovered-games";
 import { FolderSelection } from "./folder-selection";
-import { ScanOptions as ScanOptionsComponent } from "./scan-options";
 import { ScanProgress } from "./scan-progress";
 
 const INITIAL_STATS: ScanStats = {
@@ -30,7 +29,6 @@ export const GameLocatorScanFoldersStep = () => {
 		scanStatsEvents,
 		error,
 		lastScanResult,
-		updateOptions,
 	} = useGameLocator({
 		autoCreate: true,
 		enableProgressUpdates: true,
@@ -41,14 +39,6 @@ export const GameLocatorScanFoldersStep = () => {
 	const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
 	const [discoveredGames, setDiscoveredGames] = useState<FileInfo[]>([]);
 	const [currentStats, setCurrentStats] = useState<ScanStats>(INITIAL_STATS);
-	const [scanOptions, setScanOptions] = useState<ScanOptions>({
-		extraSkipFolders: [],
-		minFileSize: 1024 * 1024, // 1MB
-		maxFileSize: 10 * 1024 * 1024 * 1024, // 10GB
-		maxDepth: 5,
-		timeout: 30000, // 30 seconds
-		concurrency: 4,
-	});
 
 	const openDialog = trpc.app.openDialog.useMutation();
 
@@ -134,7 +124,7 @@ export const GameLocatorScanFoldersStep = () => {
 		try {
 			setDiscoveredGames([]);
 			setCurrentStats(INITIAL_STATS);
-			await scan({ paths: selectedPaths, ...scanOptions });
+			await scan({ paths: selectedPaths });
 		} catch (scanError) {
 			toast.error(
 				scanError instanceof Error ? scanError.message : "Scan failed",
@@ -152,54 +142,21 @@ export const GameLocatorScanFoldersStep = () => {
 	}, [stop]);
 
 	return (
-		<div className="flex-1 space-y-8">
-			{/* Configuration Section */}
-			<div className="space-y-6">
-				<div className="border-border border-b pb-4">
-					<h3 className="mb-2 font-semibold text-foreground text-lg">
-						Scan Configuration
-					</h3>
-					<p className="text-muted-foreground text-sm">
-						Select folders to scan and configure scan options
-					</p>
-				</div>
+		<div className="flex-1 space-y-6 overflow-y-auto">
+			<FolderSelection
+				selectedPaths={selectedPaths}
+				isScanning={isScanning}
+				error={error}
+				onAddFolder={handleAddFolder}
+				onRemoveFolder={handleRemoveFolder}
+				onStartScan={handleStartScan}
+				onStopScan={handleStopScan}
+			/>
 
-				<FolderSelection
-					selectedPaths={selectedPaths}
-					isScanning={isScanning}
-					error={error}
-					onAddFolder={handleAddFolder}
-					onRemoveFolder={handleRemoveFolder}
-					onStartScan={handleStartScan}
-					onStopScan={handleStopScan}
-				/>
-
-				<ScanOptionsComponent
-					options={scanOptions}
-					onOptionsChange={setScanOptions}
-					onUpdateOptions={updateOptions}
-					isScanning={isScanning}
-				/>
-			</div>
-
-			{/* Results Section */}
 			{(isScanning || lastScanResult) && (
-				<div className="space-y-6">
-					<div className="border-border border-b pb-4">
-						<h3 className="mb-2 font-semibold text-foreground text-lg">
-							Scan Results
-						</h3>
-						<p className="text-muted-foreground text-sm">
-							{isScanning
-								? "Scanning in progress..."
-								: `Found ${discoveredGames.length} games`}
-						</p>
-					</div>
-
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-						<ScanProgress stats={currentStats} isScanning={isScanning} />
-						<DiscoveredGames games={discoveredGames} isScanning={isScanning} />
-					</div>
+				<div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-2">
+					<ScanProgress stats={currentStats} isScanning={isScanning} />
+					<DiscoveredGames games={discoveredGames} isScanning={isScanning} />
 				</div>
 			)}
 		</div>
