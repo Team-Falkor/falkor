@@ -4,8 +4,23 @@ import {
 	type GameFilters,
 	IGDBWrapper,
 } from "../../../handlers/api-wrappers/igdb";
+import { cache } from "../../../handlers/cache";
 
 const igdb = IGDBWrapper.getInstance();
+
+// Cache TTL constants (in milliseconds)
+const CACHE_TTL = {
+	// Static data - cache for longer periods
+	STATIC: 24 * 60 * 60 * 1000, // 24 hours for genres, themes, game modes
+	// Semi-static data - cache for moderate periods
+	SEMI_STATIC: 6 * 60 * 60 * 1000, // 6 hours for top rated, new releases
+	// Dynamic data - cache for shorter periods
+	DYNAMIC: 30 * 60 * 1000, // 30 minutes for search results, filters
+	// Game info - cache for moderate periods
+	GAME_INFO: 2 * 60 * 60 * 1000, // 2 hours for individual game info
+	// Calendar data - cache for shorter periods due to time sensitivity
+	CALENDAR: 15 * 60 * 1000, // 15 minutes for calendar releases
+};
 
 export const igdbRouter = router({
 	search: publicProcedure
@@ -16,11 +31,31 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.search(input.query, input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:search:${input.query}:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.search(input.query, input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.DYNAMIC });
+
+			return result;
+		}),
 
 	info: publicProcedure
 		.input(z.object({ id: z.string() }))
-		.query(({ input }) => igdb.info(input.id)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:info:${input.id}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.info(input.id);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.GAME_INFO });
+
+			return result;
+		}),
 
 	top_rated: publicProcedure
 		.input(
@@ -29,7 +64,17 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.topRated(input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:top_rated:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.topRated(input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.SEMI_STATIC });
+
+			return result;
+		}),
 
 	new_releases: publicProcedure
 		.input(
@@ -38,7 +83,17 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.newReleases(input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:new_releases:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.newReleases(input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.SEMI_STATIC });
+
+			return result;
+		}),
 
 	most_anticipated: publicProcedure
 		.input(
@@ -47,7 +102,17 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.mostAnticipated(input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:most_anticipated:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.mostAnticipated(input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.SEMI_STATIC });
+
+			return result;
+		}),
 
 	by_genre: publicProcedure
 		.input(
@@ -57,7 +122,17 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.byGenre(input.genre, input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:by_genre:${input.genre}:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.byGenre(input.genre, input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.DYNAMIC });
+
+			return result;
+		}),
 
 	by_multiple_genres: publicProcedure
 		.input(
@@ -67,9 +142,21 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) =>
-			igdb.byMultipleGenres(input.genreIds, input.limit, input.offset),
-		),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:by_multiple_genres:${input.genreIds.sort().join(",")}:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.byMultipleGenres(
+				input.genreIds,
+				input.limit,
+				input.offset,
+			);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.DYNAMIC });
+
+			return result;
+		}),
 
 	similar_games: publicProcedure
 		.input(
@@ -79,9 +166,21 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) =>
-			igdb.similarGames(input.gameId, input.limit, input.offset),
-		),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:similar_games:${input.gameId}:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.similarGames(
+				input.gameId,
+				input.limit,
+				input.offset,
+			);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.GAME_INFO });
+
+			return result;
+		}),
 
 	genres: publicProcedure
 		.input(
@@ -90,7 +189,17 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.getGenres(input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:genres:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.getGenres(input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.STATIC });
+
+			return result;
+		}),
 
 	companies: publicProcedure
 		.input(
@@ -98,8 +207,16 @@ export const igdbRouter = router({
 				ids: z.array(z.number().int().positive()),
 			}),
 		)
-		.query(({ input }) => {
-			return igdb.getCompanies(input.ids);
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:companies:${input.ids.sort().join(",")}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.getCompanies(input.ids);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.STATIC });
+
+			return result;
 		}),
 
 	themes: publicProcedure
@@ -109,7 +226,17 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.getThemes(input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:themes:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.getThemes(input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.STATIC });
+
+			return result;
+		}),
 
 	game_modes: publicProcedure
 		.input(
@@ -118,7 +245,17 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => igdb.getGameModes(input.limit, input.offset)),
+		.query(async ({ input }) => {
+			const cacheKey = `igdb:game_modes:${input.limit}:${input.offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.getGameModes(input.limit, input.offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.STATIC });
+
+			return result;
+		}),
 
 	filter: publicProcedure
 		.input(
@@ -143,9 +280,27 @@ export const igdbRouter = router({
 				publisherIds: z.array(z.number().int().positive()).optional(),
 			}),
 		)
-		.query(({ input }) => {
+		.query(async ({ input }) => {
 			const { limit, offset, sort, ...filters } = input;
-			return igdb.filter(filters, sort, limit, offset);
+
+			// Create a stable cache key from the filter parameters
+			const filterKey = JSON.stringify({
+				filters: Object.fromEntries(
+					Object.entries(filters).sort(([a], [b]) => a.localeCompare(b)),
+				),
+				sort,
+				limit,
+				offset,
+			});
+			const cacheKey = `igdb:filter:${Buffer.from(filterKey).toString("base64")}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
+			const result = await igdb.filter(filters, sort, limit, offset);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.DYNAMIC });
+
+			return result;
 		}),
 
 	calendarReleases: publicProcedure
@@ -157,8 +312,13 @@ export const igdbRouter = router({
 				offset: z.number().int().min(0).optional().default(0),
 			}),
 		)
-		.query(({ input }) => {
+		.query(async ({ input }) => {
 			const { year, month, limit, offset } = input;
+			const cacheKey = `igdb:calendar:${year}:${month}:${limit}:${offset}`;
+
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
 			const startDate = new Date(year, month, 1).getTime();
 			const endDate = new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
 
@@ -170,6 +330,14 @@ export const igdbRouter = router({
 				minHypes: 1,
 			};
 
-			return igdb.filter(filters, "first_release_date asc", limit, offset);
+			const result = await igdb.filter(
+				filters,
+				"first_release_date asc",
+				limit,
+				offset,
+			);
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.CALENDAR });
+
+			return result;
 		}),
 });

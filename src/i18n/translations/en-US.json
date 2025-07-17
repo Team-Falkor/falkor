@@ -44,7 +44,17 @@
 			"language": "Change the language of the application",
 			"change-api-url": "Change the api url",
 			"change-api-url-description": "Do not change this unless you know what you are doing",
-			"test_sounds": "Test Sounds"
+			"test_sounds": "Test Sounds",
+			"cache-management": "Cache Management",
+			"cache-management-description": "Manage application cache to free up storage space and improve performance",
+			"clear-all-cache": "Clear All Cache",
+			"clear-all-cache-description": "Remove all cached data and images",
+			"clear-data-cache": "Clear Data Cache",
+			"clear-data-cache-description": "Remove cached application data only",
+			"clear-image-cache": "Clear Image Cache",
+			"clear-image-cache-description": "Remove cached images only",
+			"cache-cleared-successfully": "Cache cleared successfully",
+			"cache-clear-failed": "Failed to clear cache"
 		}
 	},
 	"view_more": "View More",

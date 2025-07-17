@@ -6,6 +6,11 @@ import AutoLaunch from "auto-launch";
 import { app, BrowserWindow, dialog } from "electron";
 import { z } from "zod";
 import { Sound } from "@/@types";
+import {
+	clearCache,
+	clearImageCache,
+	getCacheStats,
+} from "../../../handlers/cache";
 import { SettingsManager } from "../../../handlers/settings/settings";
 import { publicProcedure, router } from "../../trpc";
 
@@ -95,7 +100,7 @@ export const appFunctionsRouter = router({
 				})
 				.optional(),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async () => {
 			const win = getMainWindow();
 			const closeToTray = settings.get("closeToTray");
 
@@ -235,5 +240,90 @@ export const appFunctionsRouter = router({
 			appVersion: app.getVersion(),
 			isPackaged: app.isPackaged,
 		};
+	}),
+
+	cleanupCache: publicProcedure
+		.input(
+			z
+				.object({
+					type: z.enum(["all", "data", "images"]).default("all"),
+				})
+				.optional(),
+		)
+		.mutation(async ({ input }) => {
+			try {
+				const cleanupType = input?.type ?? "all";
+				const statsBeforeCleanup = await getCacheStats();
+
+				console.log(`[Cache] Starting cleanup of type: ${cleanupType}`);
+				console.log(
+					`[Cache] Before cleanup - Entries: ${statsBeforeCleanup.totalEntries}, Images: ${statsBeforeCleanup.imageStats.totalImages}, Image Size: ${statsBeforeCleanup.imageStats.totalSize} bytes`,
+				);
+
+				switch (cleanupType) {
+					case "all":
+						await clearCache(); // This clears both data and images
+						break;
+					case "data":
+						await clearCache();
+						break;
+					case "images":
+						await clearImageCache();
+						break;
+				}
+
+				const statsAfterCleanup = await getCacheStats();
+				const freedSpace =
+					statsBeforeCleanup.imageStats.totalSize -
+					statsAfterCleanup.imageStats.totalSize;
+
+				console.log(
+					`[Cache] Cleanup completed - Entries: ${statsAfterCleanup.totalEntries}, Images: ${statsAfterCleanup.imageStats.totalImages}, Freed: ${freedSpace} bytes`,
+				);
+
+				return {
+					success: true,
+					message: `Cache cleanup completed successfully (${cleanupType})`,
+					stats: {
+						before: {
+							entries: statsBeforeCleanup.totalEntries,
+							images: statsBeforeCleanup.imageStats.totalImages,
+							imageSize: statsBeforeCleanup.imageStats.totalSize,
+						},
+						after: {
+							entries: statsAfterCleanup.totalEntries,
+							images: statsAfterCleanup.imageStats.totalImages,
+							imageSize: statsAfterCleanup.imageStats.totalSize,
+						},
+						freedSpace,
+					},
+				};
+			} catch (error) {
+				console.error("[Cache] Error during cleanup:", error);
+				return {
+					success: false,
+					message: `Cache cleanup failed: ${
+						error instanceof Error ? error.message : String(error)
+					}`,
+				};
+			}
+		}),
+
+	cacheStats: publicProcedure.query(async () => {
+		try {
+			const stats = await getCacheStats();
+			return {
+				success: true,
+				stats,
+			};
+		} catch (error) {
+			console.error("[Cache] Error getting cache stats:", error);
+			return {
+				success: false,
+				message: `Failed to get cache stats: ${
+					error instanceof Error ? error.message : String(error)
+				}`,
+			};
+		}
 	}),
 });

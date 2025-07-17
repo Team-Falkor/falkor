@@ -1,10 +1,16 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { ITAD } from "@backend/handlers/api-wrappers/itad";
+import { cache } from "@backend/handlers/cache";
 import { Mapping } from "@backend/utils/mapping";
 import { getUserCountry } from "@backend/utils/utils";
 import { z } from "zod";
 
-// Input schemas
+const CACHE_TTL = {
+	STATIC: 24 * 60 * 60 * 1000,
+	DYNAMIC: 30 * 60 * 1000,
+	PRICES: 15 * 60 * 1000,
+};
+
 const gameSearchInput = z.object({
 	query: z.string().min(1),
 });
@@ -28,68 +34,83 @@ const gamePricesByNameInput = z.object({
 });
 
 export const itadRouter = router({
-	/**
-	 * Search for games on IsThereAnyDeal.
-	 */
 	search: publicProcedure.input(gameSearchInput).query(async ({ input }) => {
+		const cacheKey = `itad:search:${input.query}`;
+		const cached = await cache.get(cacheKey);
+		if (cached) return cached;
+
 		const itad = ITAD.getInstance();
-		return await itad.gameSearch(input.query);
+		const result = await itad.gameSearch(input.query);
+		await cache.set(cacheKey, result, { ttl: CACHE_TTL.DYNAMIC });
+		return result;
 	}),
 
-	/**
-	 * Lookup a game by title or Steam AppID.
-	 */
 	lookup: publicProcedure.input(gameLookupInput).query(async ({ input }) => {
+		const cacheKey = `itad:lookup:${input.id}`;
+		const cached = await cache.get(cacheKey);
+		if (cached) return cached;
+
 		const itad = ITAD.getInstance();
-		return await itad.gameLookup(input.id);
+		const result = await itad.gameLookup(input.id);
+		await cache.set(cacheKey, result, { ttl: CACHE_TTL.STATIC });
+		return result;
 	}),
 
-	/**
-	 * Get detailed information about a game using its ITAD plain ID.
-	 */
 	info: publicProcedure.input(gameInfoInput).query(async ({ input }) => {
+		const cacheKey = `itad:info:${input.id}`;
+		const cached = await cache.get(cacheKey);
+		if (cached) return cached;
+
 		const itad = ITAD.getInstance();
-		return await itad.gameInfo(input.id);
+		const result = await itad.gameInfo(input.id);
+		await cache.set(cacheKey, result, { ttl: CACHE_TTL.STATIC });
+		return result;
 	}),
 
-	/**
-	 * Get current prices for one or more games using their ITAD plain IDs.
-	 */
 	prices: publicProcedure.input(gamePricesInput).query(async ({ input }) => {
+		const cacheKey = `itad:prices:${input.ids.join(",")}:${input.country ?? "auto"}`;
+		const cached = await cache.get(cacheKey);
+		if (cached) return cached;
+
 		const itad = ITAD.getInstance();
-		return await itad.gamePrices(input.ids, input.country);
+		const result = await itad.gamePrices(input.ids, input.country);
+		await cache.set(cacheKey, result, { ttl: CACHE_TTL.PRICES });
+		return result;
 	}),
 
-	/**
-	 * Full price lookup by game name: search → best match → prices.
-	 */
 	pricesByName: publicProcedure
 		.input(gamePricesByNameInput)
 		.query(async ({ input }) => {
+			const cacheKey = `itad:pricesByName:${input.name}:${input.country ?? "auto"}`;
+			const cached = await cache.get(cacheKey);
+			if (cached) return cached;
+
 			const { name, country } = input;
 			const itad = ITAD.getInstance();
 
-			// 1. Search for game
 			const searchResults = await itad.gameSearch(name);
 
-			// 2. Map to best match
-			// Ensure items have a 'name' property for Mapping
 			type SearchItem = (typeof searchResults)[number] & { name: string };
 			const namedResults: SearchItem[] = searchResults.map((item) => ({
 				...item,
-				name: (item as any).plain ?? String((item as any).id),
+				name: item.title,
 			}));
 			const mapping = new Mapping<SearchItem>(name, namedResults);
 			const bestMatch = await mapping.compare();
 			if (!bestMatch) {
-				return { id: null, prices: [], message: "No matching game found" };
+				const result = {
+					id: null,
+					prices: [],
+					message: "No matching game found",
+				};
+				await cache.set(cacheKey, result, { ttl: CACHE_TTL.PRICES });
+				return result;
 			}
 
-			// 3. Determine country (fallback to detected locale)
 			const region = country ?? (await getUserCountry());
-
-			// 4. Fetch prices
 			const priceList = await itad.gamePrices([bestMatch.id], region);
-			return { id: bestMatch.id, prices: priceList };
+			const result = { id: bestMatch.id, prices: priceList };
+			await cache.set(cacheKey, result, { ttl: CACHE_TTL.PRICES });
+			return result;
 		}),
 });
