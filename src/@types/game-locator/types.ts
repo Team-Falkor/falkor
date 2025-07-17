@@ -22,7 +22,6 @@ export interface ScanStats {
 	errors: number;
 	gamesFound: number;
 	// Progress estimation fields
-	estimatedTotalFiles?: number;
 	estimatedTimeRemaining?: number; // in milliseconds
 	progressPercentage?: number; // 0-100
 	scanStartTime?: number; // timestamp

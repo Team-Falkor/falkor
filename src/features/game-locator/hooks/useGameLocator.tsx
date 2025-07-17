@@ -53,9 +53,9 @@ export interface UseGameLocatorReturn {
 	getCommonGameDirectories: () => Promise<string[]>;
 
 	// Real-time events
-	progressEvents: ScanProgressEvent[];
-	gameDiscoveryEvents: GameDiscoveryEvent[];
-	scanStatsEvents: ScanStatsEvent[];
+	lastProgressEvent: ScanProgressEvent | null;
+	lastGameDiscoveryEvent: GameDiscoveryEvent | null;
+	lastScanStatsEvent: ScanStatsEvent | null;
 
 	// Event handlers
 	onProgressEvent: (handler: (event: ScanProgressEvent) => void) => () => void;
@@ -82,11 +82,12 @@ export function useGameLocator(
 	const [isInstanceCreated, setIsInstanceCreated] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [lastScanResult, setLastScanResult] = useState<ScanResult | null>(null);
-	const [progressEvents, setProgressEvents] = useState<ScanProgressEvent[]>([]);
-	const [gameDiscoveryEvents, setGameDiscoveryEvents] = useState<
-		GameDiscoveryEvent[]
-	>([]);
-	const [scanStatsEvents, setScanStatsEvents] = useState<ScanStatsEvent[]>([]);
+	const [lastProgressEvent, setLastProgressEvent] =
+		useState<ScanProgressEvent | null>(null);
+	const [lastGameDiscoveryEvent, setLastGameDiscoveryEvent] =
+		useState<GameDiscoveryEvent | null>(null);
+	const [lastScanStatsEvent, setLastScanStatsEvent] =
+		useState<ScanStatsEvent | null>(null);
 
 	// Event handlers refs
 	const progressHandlers = useRef<Set<(event: ScanProgressEvent) => void>>(
@@ -105,15 +106,12 @@ export function useGameLocator(
 			setLastScanResult(data);
 			setError(null);
 		},
-		onError: (error) => {
-			setError(error.message);
-		},
+		onError: (error) => setError(error.message),
 	});
 
 	const stopMutation = trpc.gameLocator.stop.useMutation({
-		onError: (error) => {
-			setError(error.message);
-		},
+		onSuccess: () => setError(null),
+		onError: (error) => setError(error.message),
 	});
 
 	const createInstanceMutation = trpc.gameLocator.createInstance.useMutation({
@@ -121,29 +119,24 @@ export function useGameLocator(
 			setIsInstanceCreated(true);
 			setError(null);
 		},
-		onError: (error) => {
-			setError(error.message);
-		},
+		onError: (error) => setError(error.message),
 	});
 
 	const resetInstanceMutation = trpc.gameLocator.resetInstance.useMutation({
 		onSuccess: () => {
 			setIsInstanceCreated(false);
 			setError(null);
-			// Clear events when instance is reset
-			setProgressEvents([]);
-			setGameDiscoveryEvents([]);
-			setScanStatsEvents([]);
+			setLastScanResult(null);
+			setLastProgressEvent(null);
+			setLastGameDiscoveryEvent(null);
+			setLastScanStatsEvent(null);
 		},
-		onError: (error) => {
-			setError(error.message);
-		},
+		onError: (error) => setError(error.message),
 	});
 
 	const updateOptionsMutation = trpc.gameLocator.updateOptions.useMutation({
-		onError: (error) => {
-			setError(error.message);
-		},
+		onSuccess: () => setError(null),
+		onError: (error) => setError(error.message),
 	});
 
 	const getOptionsQuery = trpc.gameLocator.getOptions.useQuery(undefined, {
@@ -155,44 +148,35 @@ export function useGameLocator(
 
 	const isScanningQuery = trpc.gameLocator.isScanning.useQuery(undefined, {
 		enabled: isInstanceCreated,
-		refetchInterval: 1000, // Poll every second when scanning
+		refetchInterval: 1000,
 	});
 
 	// Subscriptions
 	trpc.gameLocator.scanProgress.useSubscription(undefined, {
 		enabled: enableProgressUpdates && isInstanceCreated,
 		onData: (event) => {
-			setProgressEvents((prev) => [...prev, event]);
-			// Notify handlers
+			setLastProgressEvent(event);
 			progressHandlers.current.forEach((handler) => handler(event));
 		},
-		onError: (error) => {
-			setError(error.message);
-		},
+		onError: (error) => setError(error.message),
 	});
 
 	trpc.gameLocator.gameDiscovery.useSubscription(undefined, {
 		enabled: enableGameDiscovery && isInstanceCreated,
 		onData: (event) => {
-			setGameDiscoveryEvents((prev) => [...prev, event]);
-			// Notify handlers
+			setLastGameDiscoveryEvent(event);
 			gameDiscoveryHandlers.current.forEach((handler) => handler(event));
 		},
-		onError: (error) => {
-			setError(error.message);
-		},
+		onError: (error) => setError(error.message),
 	});
 
 	trpc.gameLocator.scanStats.useSubscription(undefined, {
 		enabled: enableScanStats && isInstanceCreated,
 		onData: (event) => {
-			setScanStatsEvents((prev) => [...prev, event]);
-			// Notify handlers
+			setLastScanStatsEvent(event);
 			scanStatsHandlers.current.forEach((handler) => handler(event));
 		},
-		onError: (error) => {
-			setError(error.message);
-		},
+		onError: (error) => setError(error.message),
 	});
 
 	// Auto-create instance on mount
@@ -210,6 +194,11 @@ export function useGameLocator(
 					"GameLocator instance not created. Call createInstance() first.",
 				);
 			}
+			setLastProgressEvent(null);
+			setLastGameDiscoveryEvent(null);
+			setLastScanStatsEvent(null);
+			setLastScanResult(null);
+			setError(null);
 			return scanMutation.mutateAsync(input);
 		},
 		[isInstanceCreated, scanMutation],
@@ -311,9 +300,9 @@ export function useGameLocator(
 		getCommonGameDirectories,
 
 		// Real-time events
-		progressEvents,
-		gameDiscoveryEvents,
-		scanStatsEvents,
+		lastProgressEvent,
+		lastGameDiscoveryEvent,
+		lastScanStatsEvent,
 
 		// Event handlers
 		onProgressEvent,
@@ -333,7 +322,7 @@ export function useGameScanner() {
 		autoCreate: true,
 		enableProgressUpdates: true,
 		enableGameDiscovery: true,
-		enableScanStats: false,
+		enableScanStats: true,
 	});
 }
 

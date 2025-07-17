@@ -172,11 +172,7 @@ export const gameLocatorRouter = router({
 				| Record<string, never>;
 			timestamp: number;
 		}>((emit) => {
-			if (!gameLocatorInstance) {
-				gameLocatorInstance = new GameLocator({});
-			}
-
-			const locator = gameLocatorInstance;
+			const locator = getGameLocatorInstance();
 
 			// Event listeners for real-time updates
 			const onScanStarted = (data: {
@@ -289,11 +285,7 @@ export const gameLocatorRouter = router({
 			totalFound: number;
 			timestamp: number;
 		}>((emit) => {
-			if (!gameLocatorInstance) {
-				gameLocatorInstance = new GameLocator({});
-			}
-
-			const locator = gameLocatorInstance;
+			const locator = getGameLocatorInstance();
 			let totalFound = 0;
 
 			const onGameFound = (game: FileInfo) => {
@@ -327,11 +319,7 @@ export const gameLocatorRouter = router({
 			stats: ScanStats;
 			timestamp: number;
 		}>((emit) => {
-			if (!gameLocatorInstance) {
-				gameLocatorInstance = new GameLocator({});
-			}
-
-			const locator = gameLocatorInstance;
+			const locator = getGameLocatorInstance();
 
 			const onStatsUpdate = (stats: ScanStats) => {
 				emit.next({

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MultiStepDialog } from "@/components/MultiStepDialog";
 import { Button } from "@/components/ui/button";
 import { GameLocatorScanFoldersStep } from "./steps/scan-folders";
+import { GameLocatorSelectGamesStep } from "./steps/select-games";
 
 export const GameLocatorDialog = () => {
 	const [open, setOpen] = useState(false);
@@ -17,6 +18,10 @@ export const GameLocatorDialog = () => {
 					{
 						title: "Scan folders",
 						component: <GameLocatorScanFoldersStep />,
+					},
+					{
+						title: "Select games",
+						component: <GameLocatorSelectGamesStep />,
 					},
 				]}
 			/>

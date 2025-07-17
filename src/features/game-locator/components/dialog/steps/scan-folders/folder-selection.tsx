@@ -1,4 +1,4 @@
-import { FolderPlus, Play, Square, Trash2 } from "lucide-react";
+import { FolderPlus, Loader2, Play, Square, Trash2 } from "lucide-react";
 import type { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { P, TypographyMuted } from "@/components/ui/typography";
 interface FolderSelectionProps {
 	selectedPaths: string[];
 	isScanning: boolean;
+	isSelectingFolder: boolean;
 	error: string | null;
 	onAddFolder: () => void;
 	onRemoveFolder: (path: string) => void;
@@ -17,6 +18,7 @@ interface FolderSelectionProps {
 export const FolderSelection: FC<FolderSelectionProps> = ({
 	selectedPaths,
 	isScanning,
+	isSelectingFolder,
 	error,
 	onAddFolder,
 	onRemoveFolder,
@@ -27,21 +29,29 @@ export const FolderSelection: FC<FolderSelectionProps> = ({
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<FolderPlus className="h-5 w-5" />
-					Scan Folders
-				</CardTitle>
+				<FolderPlus className="h-5 w-5" />
+				Scan Folder
+			</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="flex flex-col gap-3 sm:flex-row">
 					<Button
 						onClick={onAddFolder}
 						variant="outline"
-						disabled={isScanning}
+						disabled={isScanning || isSelectingFolder}
 						size="sm"
 						className="flex-shrink-0"
 					>
-						<FolderPlus className="mr-2 h-4 w-4" />
-						Add Folder
+						{isSelectingFolder ? (
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						) : (
+							<FolderPlus className="mr-2 h-4 w-4" />
+						)}
+						{isSelectingFolder
+							? "Selecting..."
+							: selectedPaths.length > 0
+								? "Change Folder"
+								: "Select Folder"}
 					</Button>
 					{selectedPaths.length > 0 && (
 						<Button
@@ -67,7 +77,7 @@ export const FolderSelection: FC<FolderSelectionProps> = ({
 
 				{selectedPaths.length > 0 && (
 					<div className="space-y-2">
-						<TypographyMuted>Selected folders to scan:</TypographyMuted>
+					<TypographyMuted>Selected folder to scan:</TypographyMuted>
 						<div className="max-h-32 space-y-2 overflow-y-auto">
 							{selectedPaths.map((path) => (
 								<div
@@ -81,7 +91,7 @@ export const FolderSelection: FC<FolderSelectionProps> = ({
 										onClick={() => onRemoveFolder(path)}
 										variant="ghost"
 										size="sm"
-										disabled={isScanning}
+										disabled={isScanning || isSelectingFolder}
 										className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
 									>
 										<Trash2 className="h-3 w-3" />

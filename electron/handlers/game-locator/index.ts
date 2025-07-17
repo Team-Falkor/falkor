@@ -16,14 +16,12 @@ export class GameLocator extends EventEmitter {
 	private lastStatsEmit = 0;
 	// Progress estimation fields
 	private scanStartTime = 0;
-	private estimatedTotalFiles = 0;
-	private lastProgressUpdate = 0;
 
 	constructor(
 		private options: ScanOptions & { eventBatchInterval?: number } = {},
 	) {
 		super();
-		this.eventBatchInterval = options.eventBatchInterval ?? 1000;
+		this.eventBatchInterval = options.eventBatchInterval ?? 500; // Reduced from 1000ms to 500ms
 	}
 
 	/**
@@ -51,10 +49,12 @@ export class GameLocator extends EventEmitter {
 	 * Flush all batched events immediately
 	 */
 	private flushBatchedEvents(): void {
-		// Emit batched stats if available
+		// Always emit batched stats if available to ensure UI updates
 		if (this.batchedStats) {
 			this.emit("statsUpdate", this.batchedStats);
 			this.lastStatsEmit = Date.now();
+			// Clear batched stats after emission to prevent duplicate emissions
+			this.batchedStats = null;
 		}
 
 		// Emit batched games
@@ -81,43 +81,55 @@ export class GameLocator extends EventEmitter {
 		const now = Date.now();
 		const elapsedTime = now - this.scanStartTime;
 
-		// Calculate progress estimation
+		// Calculate progress estimation based on directory traversal
 		let estimatedTimeRemaining: number | undefined;
 		let progressPercentage: number | undefined;
 
-		if (this.estimatedTotalFiles > 0 && stats.processedFiles > 0) {
-			progressPercentage = Math.min(
-				(stats.processedFiles / this.estimatedTotalFiles) * 100,
-				100,
-			);
+		// Use a more realistic progress estimation based on directories processed
+		// and the typical file system structure
+		if (stats.processedDirs > 0 && elapsedTime > 2000) {
+			// Estimate progress based on directory processing rate
+			const dirProcessingRate = stats.processedDirs / (elapsedTime / 1000);
 
-			// Calculate estimated time remaining based on current processing rate
-			const processingRate = stats.processedFiles / (elapsedTime / 1000); // files per second
-			if (processingRate > 0) {
-				const remainingFiles = this.estimatedTotalFiles - stats.processedFiles;
-				estimatedTimeRemaining = (remainingFiles / processingRate) * 1000; // in milliseconds
-			}
-		} else if (stats.processedFiles > 0 && elapsedTime > 5000) {
-			// Fallback: estimate based on processing rate without total file count
-			const processingRate = stats.processedFiles / (elapsedTime / 1000);
-			if (processingRate > 0) {
-				// Rough estimate: assume we're 10% done if we don't know total
-				progressPercentage = Math.min(10, 100);
+			// Use a logarithmic approach for progress estimation
+			// Most file systems have exponential depth distribution
+			const logProgress =
+				Math.log10(stats.processedDirs + 1) / Math.log10(1000); // Assume ~1000 dirs max
+			progressPercentage = Math.min(logProgress * 100, 95); // Cap at 95% until completion
+
+			// Estimate time remaining based on current processing rate with diminishing returns
+			if (dirProcessingRate > 0 && progressPercentage < 90) {
+				// Use exponential decay for time estimation as we progress
+				const remainingProgress = (100 - progressPercentage) / 100;
+				const estimatedRemainingDirs = Math.max(
+					10,
+					stats.processedDirs * remainingProgress,
+				);
 				estimatedTimeRemaining =
-					((stats.processedFiles * 9) / processingRate) * 1000;
+					(estimatedRemainingDirs / dirProcessingRate) * 1000;
+
+				// Apply a smoothing factor to reduce wild fluctuations
+				if (this.batchedStats?.estimatedTimeRemaining) {
+					estimatedTimeRemaining =
+						this.batchedStats.estimatedTimeRemaining * 0.7 +
+						estimatedTimeRemaining * 0.3;
+				}
 			}
+		} else if (elapsedTime > 1000) {
+			// Early stage estimation
+			progressPercentage = Math.min((elapsedTime / 10000) * 100, 15); // Very conservative early estimate
 		}
 
 		this.batchedStats = {
 			...stats,
 			scanStartTime: this.scanStartTime,
-			estimatedTotalFiles: this.estimatedTotalFiles || undefined,
 			estimatedTimeRemaining,
 			progressPercentage,
 		};
 
-		// For very frequent updates, emit immediately if it's been too long
-		if (now - this.lastStatsEmit > this.eventBatchInterval * 2) {
+		// Emit stats updates more frequently to ensure UI responsiveness
+		// Emit immediately if it's been more than 500ms since last emit or if this is the first stats update
+		if (now - this.lastStatsEmit > 500 || this.lastStatsEmit === 0) {
 			this.emit("statsUpdate", this.batchedStats);
 			this.lastStatsEmit = now;
 		}
@@ -160,8 +172,6 @@ export class GameLocator extends EventEmitter {
 
 		const startTime = Date.now();
 		this.scanStartTime = startTime;
-		this.estimatedTotalFiles = 0; // Will be updated as we discover files
-		this.lastProgressUpdate = startTime;
 
 		const games: FileInfo[] = [];
 		let finalStats: ScanStats = {
@@ -178,10 +188,15 @@ export class GameLocator extends EventEmitter {
 			const scanPaths = paths.length > 0 ? paths : getCommonGameDirectories();
 
 			this.emit("scanStarted", { paths: scanPaths, options: this.options });
+			
+			// Emit initial stats to ensure UI gets baseline data
+			this.emit("statsUpdate", finalStats);
+			
 			this.startBatchTimer();
 
 			// Scan each path
 			for (const scanPath of scanPaths) {
+				// Check for abort signal before starting each path
 				if (this.abortController?.signal.aborted) {
 					break;
 				}
@@ -189,28 +204,31 @@ export class GameLocator extends EventEmitter {
 				this.emit("pathStarted", { path: scanPath });
 
 				try {
-					await traverseFileSystem(
-						scanPath,
-						this.options,
-						// Stats update callback
-						(stats: ScanStats) => {
-							finalStats = stats;
-							this.batchStats(stats);
-						},
-						// File found callback
-						(fileInfo: FileInfo) => {
-							finalStats.processedFiles++;
+						await traverseFileSystem(
+							scanPath,
+							this.options,
+							// Stats update callback
+							(stats: ScanStats) => {
+								// Update finalStats with current stats and games found
+								finalStats = {
+									...stats,
+									gamesFound: games.length,
+								};
+								this.batchStats(finalStats);
+							},
+							// File found callback
+							(fileInfo: FileInfo) => {
+								// Check if the file is a game
+								if (isGame(fileInfo, this.options)) {
+									games.push(fileInfo);
+									this.batchGame(fileInfo);
+								}
 
-							// Check if the file is a game
-							if (isGame(fileInfo, this.options)) {
-								games.push(fileInfo);
-								finalStats.gamesFound++;
-								this.batchGame(fileInfo);
-							}
-
-							this.batchFile(fileInfo);
-						},
-					);
+								this.batchFile(fileInfo);
+							},
+							// Abort signal
+							this.abortController?.signal,
+						);
 
 					this.emit("pathCompleted", { path: scanPath });
 				} catch (error) {
@@ -222,10 +240,21 @@ export class GameLocator extends EventEmitter {
 			// Flush any remaining batched events
 			this.flushBatchedEvents();
 
+			// Ensure final stats include all discovered games
+			finalStats.gamesFound = games.length;
+
+			// Emit final stats with completion
+			const completionStats = {
+				...finalStats,
+				progressPercentage: 100,
+				estimatedTimeRemaining: 0,
+			};
+			this.emit("statsUpdate", completionStats);
+
 			const duration = Date.now() - startTime;
 			const result: ScanResult = {
 				games,
-				stats: finalStats,
+				stats: completionStats,
 				duration,
 				success: !this.abortController?.signal.aborted,
 			};
@@ -259,6 +288,11 @@ export class GameLocator extends EventEmitter {
 			this.abortController.abort();
 			this.stopBatchTimer();
 			this.flushBatchedEvents(); // Flush any pending events
+			
+			// Reset scanning state immediately
+			this.isScanning = false;
+			this.abortController = null;
+			
 			this.emit("scanStopped");
 		}
 	}

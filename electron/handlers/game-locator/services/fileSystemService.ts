@@ -51,6 +51,7 @@ export const traverseFileSystem = async (
 	options: ScanOptions = {},
 	onStatsUpdate?: StatsCallback,
 	onFileFound?: FileFoundCallback,
+	abortSignal?: AbortSignal,
 ): Promise<void> => {
 	const stats: ScanStats = {
 		processedDirs: 0,
@@ -82,6 +83,11 @@ export const traverseFileSystem = async (
 			}
 
 			return semaphore.acquire(async () => {
+				// Check for abort signal before processing
+				if (abortSignal?.aborted) {
+					return;
+				}
+				
 				try {
 					stats.processedDirs++;
 					onStatsUpdate?.(stats);
@@ -109,9 +115,15 @@ export const traverseFileSystem = async (
 					// Process files in parallel
 					await Promise.all(
 						fileBatch.map(async (filePath) => {
+							// Check abort signal before processing each file
+							if (abortSignal?.aborted) {
+								return;
+							}
+							
 							try {
 								const fileStats = await getFileStatsSafely(filePath);
 								if (fileStats) {
+									stats.processedFiles++;
 									const fileInfo: FileInfo = {
 										name: path.basename(filePath),
 										path: filePath,
@@ -140,6 +152,11 @@ export const traverseFileSystem = async (
 
 	// Process directories in batches
 	while (directoriesToExplore.length > 0) {
+		// Check for abort signal
+		if (abortSignal?.aborted) {
+			break;
+		}
+		
 		const batch = directoriesToExplore.splice(0, BATCH_SIZE);
 		await processBatch(batch);
 	}
