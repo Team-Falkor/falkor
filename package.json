@@ -1,7 +1,7 @@
 {
   "name": "falkor",
   "description": "Dive into Falkor, where you'll discover a vast selection of games coupled with community-driven enhancements. Experience seamless and secure gaming within a single, universal hub.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "main": "dist-electron/main/index.js",
   "license": "BSD-3-Clause",
   "private": true,
@@ -48,6 +48,7 @@
     "@tanstack/react-router": "^1.121.34",
     "@tanstack/react-router-devtools": "^1.121.34",
     "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.12",
     "@tanstack/zod-adapter": "^1.121.34",
     "@team-falkor/game-launcher": "^0.6.0",
     "@team-falkor/shared-types": "^1.0.6",

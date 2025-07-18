@@ -247,7 +247,9 @@ export const MultiStepDialog: FC<MultiStepDialogProps> = ({
 						)}
 					</DialogHeader>
 
-					{steps[currentStep]?.component}
+					<div className="flex-1 overflow-y-auto">
+						{steps[currentStep]?.component}
+					</div>
 
 					{footer || defaultFooter}
 				</MultiStepDialogContext.Provider>

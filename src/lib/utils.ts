@@ -69,26 +69,6 @@ export const bytesToHumanReadable = (bytes: number): string => {
 	return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 };
 
-export const convertBytesToHumanReadable = (bytes: number): string => {
-	if (bytes === 0) return "0 Bytes";
-	const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
-	const i = Math.floor(Math.log(bytes) / Math.log(1024));
-	const value = bytes / 1024 ** i;
-	return `${value.toFixed(2)} ${sizes[i]}`;
-};
-
-export function formatBytes(bytes: number, decimals = 2): string {
-	if (bytes === 0) return "0 Bytes";
-
-	const k = 1024;
-	const dm = decimals < 0 ? 0 : decimals;
-	const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-	return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
-}
-
 export function scrapeOptions(html: string): Record<string, string[]> {
 	const pattern = /<strong>([^<]+)<\/strong>\s*([^<]+?)<br>/g;
 	const options: Record<string, string[]> = {};

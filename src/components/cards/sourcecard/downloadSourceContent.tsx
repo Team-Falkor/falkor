@@ -11,7 +11,7 @@ import {
 import type { DownloadgameData } from "@/@types";
 import { useDownloadActions } from "@/hooks/use-download-actions";
 import { useLanguageContext } from "@/i18n/I18N";
-import { cn, formatBytes } from "@/lib";
+import { bytesToHumanReadable, cn } from "@/lib";
 import { Button } from "../../ui/button";
 import { P } from "../../ui/typography";
 import StatPill from "./statPill";
@@ -37,7 +37,7 @@ export const DownloadSourceContent = ({
 	const { addDownload } = useDownloadActions();
 
 	const stats = {
-		...(source?.size ? { size: formatBytes(source.size) } : {}),
+		...(source?.size ? { size: bytesToHumanReadable(source.size) } : {}),
 		...("seeds" in source && !!source?.seeds ? { seeds: source.seeds } : {}),
 		...("leechs" in source && !!source?.leechs
 			? { leechs: source.leechs }

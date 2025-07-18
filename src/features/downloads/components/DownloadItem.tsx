@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useDownloadActions } from "@/hooks";
-import { formatBytes, formatTimeRemaining } from "@/lib/utils";
+import { bytesToHumanReadable, formatTimeRemaining } from "@/lib/utils";
 
 type Item = RouterOutputs["downloads"]["getAll"][number];
 
@@ -150,7 +150,7 @@ export function DownloadItem(data: DownloadItemData) {
 						: download.type === "http"
 							? "HTTP"
 							: (download.type?.toUpperCase() ?? "Download")}{" "}
-					• {formatBytes(download.size || 0)}
+					• {bytesToHumanReadable(download.size || 0)}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -194,7 +194,7 @@ export function DownloadItem(data: DownloadItemData) {
 									<span>Seeding</span>
 									{download?.uploadSpeed && download.uploadSpeed > 0 && (
 										<span className="ml-1">
-											{formatBytes(download.uploadSpeed)}/s
+											{bytesToHumanReadable(download.uploadSpeed)}/s
 										</span>
 									)}
 								</div>
@@ -207,7 +207,9 @@ export function DownloadItem(data: DownloadItemData) {
 							{download?.uploaded && download.uploaded > 0 && (
 								<div className="flex items-center gap-1 text-muted-foreground text-xs">
 									<ArrowUpFromLine className="h-3 w-3 text-green-500" />
-									<span>Uploaded: {formatBytes(download.uploaded)}</span>
+									<span>
+										Uploaded: {bytesToHumanReadable(download.uploaded)}
+									</span>
 								</div>
 							)}
 						</div>
@@ -227,7 +229,7 @@ export function DownloadItem(data: DownloadItemData) {
 								{isActive && (
 									<>
 										<ArrowDownToLine className="h-3 w-3 text-blue-500" />
-										<span>{formatBytes(download.speed || 0)}/s</span>
+										<span>{bytesToHumanReadable(download.speed || 0)}/s</span>
 									</>
 								)}
 								{isPaused && (

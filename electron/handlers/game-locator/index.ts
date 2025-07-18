@@ -5,6 +5,13 @@ import { isGame } from "./filters/gameFilter";
 import { traverseFileSystem } from "./services/fileSystemService";
 import { validateScanOptions } from "./utils/validation";
 
+// Export the GameMatcher class
+export {
+	GameMatcher,
+	type GameMatchOptions,
+	type GameMatchResult,
+} from "./gameMatcher";
+
 export class GameLocator extends EventEmitter {
 	private isScanning = false;
 	private abortController: AbortController | null = null;
@@ -188,10 +195,10 @@ export class GameLocator extends EventEmitter {
 			const scanPaths = paths.length > 0 ? paths : getCommonGameDirectories();
 
 			this.emit("scanStarted", { paths: scanPaths, options: this.options });
-			
+
 			// Emit initial stats to ensure UI gets baseline data
 			this.emit("statsUpdate", finalStats);
-			
+
 			this.startBatchTimer();
 
 			// Scan each path
@@ -204,31 +211,31 @@ export class GameLocator extends EventEmitter {
 				this.emit("pathStarted", { path: scanPath });
 
 				try {
-						await traverseFileSystem(
-							scanPath,
-							this.options,
-							// Stats update callback
-							(stats: ScanStats) => {
-								// Update finalStats with current stats and games found
-								finalStats = {
-									...stats,
-									gamesFound: games.length,
-								};
-								this.batchStats(finalStats);
-							},
-							// File found callback
-							(fileInfo: FileInfo) => {
-								// Check if the file is a game
-								if (isGame(fileInfo, this.options)) {
-									games.push(fileInfo);
-									this.batchGame(fileInfo);
-								}
+					await traverseFileSystem(
+						scanPath,
+						this.options,
+						// Stats update callback
+						(stats: ScanStats) => {
+							// Update finalStats with current stats and games found
+							finalStats = {
+								...stats,
+								gamesFound: games.length,
+							};
+							this.batchStats(finalStats);
+						},
+						// File found callback
+						(fileInfo: FileInfo) => {
+							// Check if the file is a game
+							if (isGame(fileInfo, this.options)) {
+								games.push(fileInfo);
+								this.batchGame(fileInfo);
+							}
 
-								this.batchFile(fileInfo);
-							},
-							// Abort signal
-							this.abortController?.signal,
-						);
+							this.batchFile(fileInfo);
+						},
+						// Abort signal
+						this.abortController?.signal,
+					);
 
 					this.emit("pathCompleted", { path: scanPath });
 				} catch (error) {
@@ -288,11 +295,11 @@ export class GameLocator extends EventEmitter {
 			this.abortController.abort();
 			this.stopBatchTimer();
 			this.flushBatchedEvents(); // Flush any pending events
-			
+
 			// Reset scanning state immediately
 			this.isScanning = false;
 			this.abortController = null;
-			
+
 			this.emit("scanStopped");
 		}
 	}
