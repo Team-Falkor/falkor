@@ -11,6 +11,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestRouteImport } from './routes/test'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FilterIndexRouteImport } from './routes/filter/index'
@@ -41,6 +42,11 @@ const CalendarLazyRoute = CalendarLazyRouteImport.update({
   path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/calendar.lazy').then((d) => d.Route))
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -65,6 +71,7 @@ const InfoIdLazyRoute = InfoIdLazyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/test': typeof TestRoute
   '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/test': typeof TestRoute
   '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/test': typeof TestRoute
   '/calendar': typeof CalendarLazyRoute
   '/downloads': typeof DownloadsLazyRoute
   '/library': typeof LibraryLazyRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
+    | '/test'
     | '/calendar'
     | '/downloads'
     | '/library'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/settings'
+    | '/test'
     | '/calendar'
     | '/downloads'
     | '/library'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/settings'
+    | '/test'
     | '/calendar'
     | '/downloads'
     | '/library'
@@ -129,6 +141,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRoute
+  TestRoute: typeof TestRoute
   CalendarLazyRoute: typeof CalendarLazyRoute
   DownloadsLazyRoute: typeof DownloadsLazyRoute
   LibraryLazyRoute: typeof LibraryLazyRoute
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -201,6 +221,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
+  TestRoute: TestRoute,
   CalendarLazyRoute: CalendarLazyRoute,
   DownloadsLazyRoute: DownloadsLazyRoute,
   LibraryLazyRoute: LibraryLazyRoute,
