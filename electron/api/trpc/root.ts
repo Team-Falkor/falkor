@@ -10,6 +10,7 @@ import { listsRouter } from "../routers/lists";
 import { loggingRouter } from "../routers/logging";
 import { pluginProvidersRouter } from "../routers/plugins/providers";
 import { communityProvidersRouter } from "../routers/plugins/providers/community";
+import { protonRouter } from "../routers/proton";
 import { protonDbRouter } from "../routers/protondb";
 import { realDebridAuthRouter } from "../routers/real-debrid/auth";
 import { settingsRouter } from "../routers/settings";
@@ -24,6 +25,7 @@ export const appRouter = router({
 	accounts: externalAccountsRouter,
 	igdb: igdbRouter,
 	itad: itadRouter,
+	proton: protonRouter,
 	protondb: protonDbRouter,
 	launcher: gameLauncherRouter,
 	lists: listsRouter,
