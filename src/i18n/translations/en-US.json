@@ -218,5 +218,31 @@
 		"real_time_updates_failed": "Real-time updates failed",
 		"game_status_delayed": "Game status updates may be delayed",
 		"game_id_missing": "Game ID is missing"
+	},
+	"proton": {
+		"title": "Proton Version Manager",
+		"description": "Manage and install Proton compatibility layers for running Windows games on Linux.",
+		"variant": "Variant:",
+		"version": "Version",
+		"status": "Status",
+		"release_date": "Release Date",
+		"size": "Size",
+		"description_column": "Description",
+		"actions": "Actions",
+		"installing": "Installing",
+		"installed": "Installed",
+		"not_installed": "Not Installed",
+		"latest": "Latest",
+		"preparing_installation": "Preparing installation...",
+		"downloading": "Downloading...",
+		"extracting": "Extracting...",
+		"installation_complete": "Installation complete!",
+		"installation_completed_successfully": "Installation completed successfully!",
+		"installation_failed": "Installation failed",
+		"installation_error": "Installation error",
+		"version_removed_successfully": "Version removed successfully!",
+		"failed_to_remove_version": "Failed to remove version",
+		"versions_refreshed": "Versions refreshed!",
+		"failed_to_refresh": "Failed to refresh"
 	}
 }

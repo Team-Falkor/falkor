@@ -1990,10 +1990,10 @@
   resolved "https://registry.yarnpkg.com/@tanstack/zod-adapter/-/zod-adapter-1.121.34.tgz#daab1e23718664fa62155d4eab37e1167c14054d"
   integrity sha512-tUFjmJL4e3S6Au1KH0xCM12OejsnnPUS8dTfKlzYCnYmwMLHoXGOKKwBYtOvypZqi4EXrtoajI7CSneVA7bl0A==
 
-"@team-falkor/game-launcher@^0.7.1":
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/@team-falkor/game-launcher/-/game-launcher-0.7.1.tgz#f17ed99b848dbe6bc0187f4236123273098e15e9"
-  integrity sha512-bPIB4nA8DK49tnFpIn2fIARWe1mNslBdrbrmw8xVETa/jTtml4KYc7JQrijClm4PDwTQP/c7RzCXvKG6DGwIKA==
+"@team-falkor/game-launcher@^0.7.2":
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/@team-falkor/game-launcher/-/game-launcher-0.7.3.tgz#0ce05dae541fa8b043383441dfb4b171d544ef2b"
+  integrity sha512-F1p4FXUXvQcW0cJutX/xHbYOx58uQ3ZR0Cc//v13mHsqUGVEMyyntlo0e5BNsmfL6qy3EemXcSDJ9xwZv1micA==
   dependencies:
     "@expo/sudo-prompt" "^9.3.2"
     tar "^7.4.3"

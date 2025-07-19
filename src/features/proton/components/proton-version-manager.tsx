@@ -1,4 +1,12 @@
-import { CheckCircle, Download, Loader2, Trash2 } from "lucide-react";
+import type { ProtonVersionInfo } from "@team-falkor/game-launcher";
+import {
+	CheckCircle,
+	Download,
+	Loader2,
+	RefreshCcw,
+	Trash2,
+	XCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -22,186 +30,184 @@ import {
 } from "@/components/ui/table";
 import { H2, H5, TypographyMuted } from "@/components/ui/typography";
 import { useLanguageContext } from "@/i18n/I18N";
-import { cn } from "@/lib";
-
-interface ProtonVersion {
-	version: string;
-	variant: "proton-ge";
-	releaseDate: string;
-	size: string;
-	isInstalled: boolean;
-	isLatest: boolean;
-	description?: string;
-}
-
-interface InstallProgress {
-	type:
-		| "status"
-		| "downloadProgress"
-		| "extractionProgress"
-		| "complete"
-		| "error";
-	data: {
-		progress?: number;
-		status?: string;
-		error?: string;
-		variant?: string;
-		version?: string;
-	};
-}
+import { cn, formatBytes, trpc } from "@/lib";
 
 interface ProtonVersionManagerProps {
 	className?: string;
 }
-
-const mockVersions: ProtonVersion[] = [
-	{
-		version: "GE-Proton9-16",
-		variant: "proton-ge",
-		releaseDate: "2024-11-15",
-		size: "1.2 GB",
-		isInstalled: true,
-		isLatest: true,
-		description: "Latest stable release with improved compatibility",
-	},
-	{
-		version: "GE-Proton9-15",
-		variant: "proton-ge",
-		releaseDate: "2024-11-01",
-		size: "1.1 GB",
-		isInstalled: true,
-		isLatest: false,
-		description: "Previous stable release",
-	},
-	{
-		version: "GE-Proton9-14",
-		variant: "proton-ge",
-		releaseDate: "2024-10-20",
-		size: "1.1 GB",
-		isInstalled: false,
-		isLatest: false,
-		description: "Older stable release",
-	},
-	{
-		version: "GE-Proton9-13",
-		variant: "proton-ge",
-		releaseDate: "2024-10-05",
-		size: "1.0 GB",
-		isInstalled: false,
-		isLatest: false,
-		description: "Legacy release",
-	},
-];
-
 export const ProtonVersionManager = ({
 	className,
 }: ProtonVersionManagerProps) => {
 	const { t } = useLanguageContext();
 	const [selectedVariant, setSelectedVariant] =
 		useState<"proton-ge">("proton-ge");
-	const [versions, setVersions] = useState<ProtonVersion[]>(mockVersions);
 	const [installingVersion, setInstallingVersion] = useState<string | null>(
 		null,
 	);
 	const [installProgress, setInstallProgress] = useState<number>(0);
 	const [installStatus, setInstallStatus] = useState<string>("");
-	const [isLoading, setIsLoading] = useState(false);
 
-	const simulateInstallation = async (version: string) => {
-		setInstallingVersion(version);
-		setInstallProgress(0);
-		setInstallStatus("Downloading...");
+	// tRPC queries
+	const {
+		data: availableVersions = [],
+		isLoading,
+		refetch: refetchVersions,
+	} = trpc.proton.getVersionsForVariant.useQuery({
+		variant: selectedVariant,
+	});
 
-		for (let i = 0; i <= 100; i += 10) {
-			await new Promise((resolve) => setTimeout(resolve, 200));
-			setInstallProgress(i);
-			if (i === 50) setInstallStatus("Extracting...");
-			if (i === 90) setInstallStatus("Installing...");
-		}
-
-		setVersions((prev) =>
-			prev.map((v) =>
-				v.version === version ? { ...v, isInstalled: true } : v,
-			),
-		);
-
-		setInstallingVersion(null);
-		setInstallProgress(0);
-		setInstallStatus("");
-		toast.success(`${version} installed successfully`);
-	};
-
-	const handleInstall = async (version: string) => {
-		try {
-			await simulateInstallation(version);
-		} catch (error) {
-			toast.error(`Failed to install ${version}`);
+	// tRPC mutations
+	const installMutation = trpc.proton.installVersion.useMutation({
+		onSuccess: () => {
+			toast.success(t("proton.installation_completed_successfully"));
 			setInstallingVersion(null);
 			setInstallProgress(0);
 			setInstallStatus("");
-		}
+			refetchVersions();
+		},
+		onError: (error) => {
+			toast.error(`${t("proton.installation_failed")}: ${error.message}`);
+			setInstallingVersion(null);
+			setInstallProgress(0);
+			setInstallStatus("");
+		},
+	});
+
+	const removeMutation = trpc.proton.removeVersion.useMutation({
+		onSuccess: () => {
+			toast.success(t("proton.version_removed_successfully"));
+			refetchVersions();
+		},
+		onError: (error) => {
+			toast.error(`${t("proton.failed_to_remove_version")}: ${error.message}`);
+		},
+	});
+
+	const refreshMutation = trpc.proton.refreshVersions.useMutation({
+		onSuccess: () => {
+			toast.success(t("proton.versions_refreshed"));
+			refetchVersions();
+		},
+		onError: (error) => {
+			toast.error(`${t("proton.failed_to_refresh")}: ${error.message}`);
+		},
+	});
+
+	// Subscribe to installation progress
+	trpc.proton.subscribeToInstallProgress.useSubscription(undefined, {
+		onData: (data) => {
+			switch (data.type) {
+				case "status":
+					if (
+						!("status" in data.data) ||
+						typeof data.data.status !== "string"
+					) {
+						break;
+					}
+					setInstallStatus(data.data.status);
+					break;
+				case "downloadProgress":
+					if (
+						!("percent" in data.data) ||
+						typeof data.data.percent !== "number"
+					) {
+						break;
+					}
+					setInstallProgress(Math.round(data.data.percent));
+					setInstallStatus(
+						`${t("proton.downloading")} ${data.data.percent.toFixed(1)}%`,
+					);
+					break;
+				case "extractionProgress":
+					if (
+						!("percent" in data.data) ||
+						typeof data.data.percent !== "number"
+					) {
+						break;
+					}
+					setInstallProgress(Math.round(data.data.percent));
+					setInstallStatus(
+						`${t("proton.extracting")} ${data.data.percent.toFixed(1)}%`,
+					);
+					break;
+				case "complete":
+					setInstallProgress(100);
+					setInstallStatus(t("proton.installation_complete"));
+					break;
+				case "error":
+					if (!("error" in data.data) || typeof data.data.error !== "string") {
+						break;
+					}
+					toast.error(`${t("proton.installation_error")}: ${data.data.error}`);
+					setInstallingVersion(null);
+					setInstallProgress(0);
+					setInstallStatus("");
+					break;
+			}
+		},
+		enabled: !!installingVersion,
+	});
+
+	const handleInstall = async (version: string) => {
+		setInstallingVersion(version);
+		setInstallProgress(0);
+		setInstallStatus(t("proton.preparing_installation"));
+
+		installMutation.mutate({
+			version,
+			variant: selectedVariant,
+		});
 	};
 
 	const handleUninstall = async (version: string) => {
-		try {
-			setVersions((prev) =>
-				prev.map((v) =>
-					v.version === version ? { ...v, isInstalled: false } : v,
-				),
-			);
-			toast.success(`${version} uninstalled successfully`);
-		} catch (error) {
-			toast.error(`Failed to uninstall ${version}`);
-		}
+		removeMutation.mutate({
+			version,
+			variant: selectedVariant,
+		});
 	};
 
 	const handleRefresh = async () => {
-		setIsLoading(true);
-		try {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			toast.success("Version list refreshed");
-		} catch (error) {
-			toast.error("Failed to refresh versions");
-		} finally {
-			setIsLoading(false);
-		}
+		refreshMutation.mutate();
 	};
 
-	const getStatusBadge = (version: ProtonVersion) => {
+	const getStatusBadge = (version: ProtonVersionInfo) => {
 		if (installingVersion === version.version) {
 			return (
 				<Badge variant="secondary" className="gap-1">
 					<Loader2 className="size-3 animate-spin" />
-					Installing
+					{t("proton.installing")}
 				</Badge>
 			);
 		}
-		if (version.isInstalled) {
+		if (version.installed) {
 			return (
 				<Badge variant="default" className="gap-1">
 					<CheckCircle className="size-3" />
-					Installed
+					{t("proton.installed")}
 				</Badge>
 			);
 		}
-		return null;
+
+		return (
+			<Badge variant="destructive" className="gap-1">
+				<XCircle />
+				{t("proton.not_installed")}
+			</Badge>
+		);
 	};
 
 	return (
 		<div className={cn("flex h-full flex-col gap-6 p-6", className)}>
 			{/* Header */}
 			<div className="flex-shrink-0">
-				<H2 className="mb-2">Proton Version Manager</H2>
-				<TypographyMuted>
-					Manage and install Proton compatibility layers for running Windows
-					games on Linux.
-				</TypographyMuted>
+				<H2 className="mb-2">{t("proton.title")}</H2>
+				<TypographyMuted>{t("proton.description")}</TypographyMuted>
 			</div>
 
 			{/* Controls */}
 			<div className="flex flex-shrink-0 items-center gap-4">
 				<div className="flex items-center gap-2">
-					<TypographyMuted>Variant:</TypographyMuted>
+					<TypographyMuted>{t("proton.variant")}</TypographyMuted>
 					<Select
 						value={selectedVariant}
 						onValueChange={(value: "proton-ge") => setSelectedVariant(value)}
@@ -216,12 +222,15 @@ export const ProtonVersionManager = ({
 				</div>
 				<Button
 					variant="outline"
-					size="sm"
+					// size="sm"
 					onClick={handleRefresh}
-					disabled={isLoading}
+					disabled={isLoading || refreshMutation.isPending}
 				>
-					{isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-					Refresh
+					{isLoading || refreshMutation.isPending ? (
+						<Loader2 className="animate-spin" />
+					) : (
+						<RefreshCcw />
+					)}
 				</Button>
 			</div>
 
@@ -229,7 +238,9 @@ export const ProtonVersionManager = ({
 			{installingVersion && (
 				<div className="flex-shrink-0 rounded-lg border bg-muted/50 p-4">
 					<div className="mb-2 flex items-center justify-between">
-						<H5>Installing {installingVersion}</H5>
+						<H5>
+							{t("proton.installing")} {installingVersion}
+						</H5>
 						<TypographyMuted>{installProgress}%</TypographyMuted>
 					</div>
 					<Progress value={installProgress} className="mb-2" />
@@ -238,80 +249,103 @@ export const ProtonVersionManager = ({
 			)}
 
 			{/* Versions Table */}
-			<div className="min-h-0 flex-1 rounded-md border">
+			<div className="min-h-0 flex-1 overflow-hidden rounded-md border">
 				<ScrollArea className="h-full">
 					<Table>
 						<TableHeader className="sticky top-0 z-10 bg-background">
 							<TableRow>
-								<TableHead className="w-[20%] min-w-[180px]">Version</TableHead>
-								<TableHead className="w-[15%] min-w-[120px]">Status</TableHead>
-								<TableHead className="w-[15%] min-w-[120px]">
-									Release Date
+								<TableHead className="w-[20%] min-w-[180px]">
+									{t("proton.version")}
 								</TableHead>
-								<TableHead className="w-[10%] min-w-[80px]">Size</TableHead>
-								<TableHead>Description</TableHead>
+								<TableHead className="w-[15%] min-w-[120px]">
+									{t("proton.status")}
+								</TableHead>
+								<TableHead className="w-[15%] min-w-[120px]">
+									{t("proton.release_date")}
+								</TableHead>
+								<TableHead className="w-[10%] min-w-[80px]">
+									{t("proton.size")}
+								</TableHead>
+								<TableHead>{t("proton.description_column")}</TableHead>
 								<TableHead className="w-[10%] min-w-[100px] text-right">
-									Actions
+									{t("proton.actions")}
 								</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{versions.map((version) => (
-								<TableRow key={version.version}>
-									<TableCell className="font-medium">
-										<div className="flex items-center gap-2">
-											<span className="truncate">{version.version}</span>
-											{version.isLatest && (
-												<Badge
-													variant="secondary"
-													className="flex-shrink-0 text-xs"
-												>
-													Latest
-												</Badge>
-											)}
-										</div>
-									</TableCell>
-									<TableCell>{getStatusBadge(version)}</TableCell>
-									<TableCell>
-										<TypographyMuted className="text-sm">
-											{new Date(version.releaseDate).toLocaleDateString()}
-										</TypographyMuted>
-									</TableCell>
-									<TableCell>
-										<TypographyMuted className="text-sm">
-											{version.size}
-										</TypographyMuted>
-									</TableCell>
-									<TableCell className="truncate">
-										<TypographyMuted className="text-sm">
-											{version.description}
-										</TypographyMuted>
-									</TableCell>
-									<TableCell className="text-right">
-										<div className="flex items-center justify-end gap-2">
-											{version.isInstalled ? (
-												<Button
-													variant="destructive"
-													size="icon"
-													onClick={() => handleUninstall(version.version)}
-													disabled={installingVersion !== null}
-												>
-													<Trash2 className="size-4" />
-												</Button>
-											) : (
-												<Button
-													variant="default"
-													size="icon"
-													onClick={() => handleInstall(version.version)}
-													disabled={installingVersion !== null}
-												>
-													<Download className="size-4" />
-												</Button>
-											)}
-										</div>
-									</TableCell>
-								</TableRow>
-							))}
+							{availableVersions.map((version) => {
+								return (
+									<TableRow key={version.version}>
+										<TableCell className="font-medium">
+											<div className="flex items-center gap-2">
+												<span className="truncate">{version.version}</span>
+												{version.isLatestVersion && (
+													<Badge
+														variant="secondary"
+														className="flex-shrink-0 text-xs"
+													>
+														{t("proton.latest")}
+													</Badge>
+												)}
+											</div>
+										</TableCell>
+										<TableCell>{getStatusBadge(version)}</TableCell>
+										<TableCell>
+											<TypographyMuted className="text-sm">
+												{new Date(version.releaseDate).toLocaleDateString()}
+											</TypographyMuted>
+										</TableCell>
+										<TableCell>
+											<TypographyMuted className="text-sm">
+												{formatBytes(version.size)}
+											</TypographyMuted>
+										</TableCell>
+										<TableCell className="max-w-0">
+											<TypographyMuted className="line-clamp-2 break-words text-sm">
+												{version.description}
+											</TypographyMuted>
+										</TableCell>
+										<TableCell className="text-right">
+											<div className="flex items-center justify-end gap-2">
+												{version.installed ? (
+													<Button
+														variant="destructive"
+														size="icon"
+														onClick={() => handleUninstall(version.version)}
+														disabled={
+															installingVersion !== null ||
+															removeMutation.isPending
+														}
+													>
+														{removeMutation.isPending ? (
+															<Loader2 className="animate-spin" />
+														) : (
+															<Trash2 />
+														)}
+													</Button>
+												) : (
+													<Button
+														variant="default"
+														size="icon"
+														onClick={() => handleInstall(version.version)}
+														disabled={
+															installingVersion !== null ||
+															installMutation.isPending
+														}
+													>
+														{installMutation.isPending &&
+														installingVersion === version.version ? (
+															<Loader2 className="size-4 animate-spin" />
+														) : (
+															<Download className="size-4" />
+														)}
+													</Button>
+												)}
+											</div>
+										</TableCell>
+									</TableRow>
+								);
+							})}
 						</TableBody>
 					</Table>
 				</ScrollArea>
