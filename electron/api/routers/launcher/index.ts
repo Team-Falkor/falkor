@@ -47,6 +47,9 @@ export const gameLauncherRouter = router({
 				commandOverride: game.gameCommand ?? undefined,
 				winePrefixPath: game.winePrefixFolder ?? undefined,
 				runAsAdmin: game.runAsAdmin ?? false,
+				useProton: game.useProton ?? false,
+				protonVariant: game.protonVariant ?? undefined,
+				protonVersion: game.protonVersion ?? undefined,
 			});
 
 			await launcher.launchGame();

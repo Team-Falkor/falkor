@@ -2,7 +2,11 @@ import EventEmitter from "node:events";
 import { db } from "@backend/database";
 import { libraryGames } from "@backend/database/schemas";
 import logger from "@backend/handlers/logging";
-import type { Game, GameClosedEvent } from "@team-falkor/game-launcher";
+import type {
+	Game,
+	GameClosedEvent,
+	ProtonVariant,
+} from "@team-falkor/game-launcher";
 import { eq } from "drizzle-orm";
 import { AchievementItem } from "../achievements/item";
 import { gamesLaunched } from "./games-launched";
@@ -19,6 +23,9 @@ interface LauncherOptions {
 	commandOverride?: string;
 	winePrefixPath?: string;
 	runAsAdmin?: boolean;
+	useProton?: boolean;
+	protonVariant?: ProtonVariant;
+	protonVersion?: string;
 }
 
 export default class GameProcessLauncher extends EventEmitter {
@@ -45,6 +52,11 @@ export default class GameProcessLauncher extends EventEmitter {
 			executable: this.opts.gamePath,
 			args: this.opts.gameArgs,
 			runAsAdmin: this.opts.runAsAdmin,
+			proton: {
+				enabled: this.opts.useProton,
+				variant: this.opts.protonVariant,
+				version: this.opts.protonVersion,
+			},
 		});
 
 		// Safety timeout to detect missed close events

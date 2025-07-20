@@ -64,6 +64,13 @@
       "when": 1752329866417,
       "tag": "0008_goofy_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1752974612829,
+      "tag": "0009_clammy_monster_badoon",
+      "breakpoints": true
     }
   ]
 }

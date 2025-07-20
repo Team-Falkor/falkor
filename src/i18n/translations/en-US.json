@@ -244,5 +244,53 @@
 		"failed_to_remove_version": "Failed to remove version",
 		"versions_refreshed": "Versions refreshed!",
 		"failed_to_refresh": "Failed to refresh"
+	},
+	"game_form": {
+		"game_details": {
+			"title": "Game Details",
+			"game_name": "Game Name",
+			"game_name_placeholder": "e.g., Cyberpunk 2077",
+			"game_icon": "Game Icon URL or Path",
+			"game_icon_placeholder": "https://url.to/icon.png or /path/to/icon.ico",
+			"browse_for_icon": "Browse for Icon"
+		},
+		"launch_configuration": {
+			"title": "Launch Configuration",
+			"game_path": "Game Path",
+			"game_path_placeholder": "e.g., /path/to/game.exe",
+			"browse_for_game_path": "Browse for Game Path",
+			"launch_arguments": "Launch Arguments",
+			"launch_arguments_placeholder": "e.g., -nolauncher --skip-intro",
+			"run_as_admin": "Run as Administrator"
+		},
+		"proton_configuration": {
+			"title": "Proton Configuration",
+			"enable_proton": "Enable Proton",
+			"enable_proton_description": "Run games using the Proton compatibility layer.",
+			"proton_variant": "Proton Variant",
+			"proton_variant_description": "Choose a specific Proton variant for compatibility.",
+			"select_proton_variant": "Select Proton Variant",
+			"proton_version": "Proton Version",
+			"proton_version_description_enabled": "Choose from installed versions or install new ones in Proton Manager.",
+			"proton_version_description_disabled": "Enable Proton to select a version.",
+			"loading_versions": "Loading versions...",
+			"select_proton_version": "Select Proton Version",
+			"no_proton_versions_installed": "No Proton versions installed",
+			"proton_note": "If you don't see the Proton version you need, you can install additional versions using the Proton Version Manager in the settings.",
+			"note": "Note",
+			"active": " (Active)"
+		},
+		"database_ids": {
+			"title": "Database IDs",
+			"igdb_id": "IGDB ID",
+			"igdb_id_placeholder": "e.g., 11169",
+			"steam_id": "Steam ID",
+			"steam_id_placeholder": "e.g., 1091500"
+		},
+		"advanced": {
+			"title": "Advanced (Optional)",
+			"wine_prefix": "WINE Prefix",
+			"wine_prefix_placeholder": "e.g., ~/.wine-game"
+		}
 	}
 }

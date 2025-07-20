@@ -1,3 +1,4 @@
+import type { ProtonVariant } from "@team-falkor/game-launcher";
 import { relations } from "drizzle-orm";
 import {
 	integer,
@@ -28,6 +29,9 @@ export const libraryGames = sqliteTable(
 			.notNull(),
 		isFavorite: integer("is_favorite", { mode: "boolean" }).default(false),
 		isHidden: integer("is_hidden", { mode: "boolean" }).default(false),
+		useProton: integer("use_proton", { mode: "boolean" }).default(false),
+		protonVariant: text("proton_variant").$type<ProtonVariant>(),
+		protonVersion: text("proton_version"),
 	},
 	(table) => [
 		uniqueIndex("library_games_game_path_unique").on(table.gamePath),

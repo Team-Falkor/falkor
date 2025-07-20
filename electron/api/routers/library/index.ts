@@ -1,5 +1,6 @@
 import { publicProcedure, router } from "@backend/api/trpc";
 import { libraryGames, listsToGames } from "@backend/database/schemas";
+import type { ProtonVariant } from "@team-falkor/game-launcher";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, type InferInsertModel } from "drizzle-orm";
 import { z } from "zod";
@@ -124,6 +125,9 @@ export const libraryGamesRouter = router({
 				igdbId: z.number().int().optional(),
 				installed: z.boolean().default(true),
 				runAsAdmin: z.boolean().optional().default(false),
+				useProton: z.boolean().optional().default(false),
+				protonVariant: z.string().optional(),
+				protonVersion: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -132,6 +136,9 @@ export const libraryGamesRouter = router({
 				...input,
 				gameLastPlayed: input.gameLastPlayed ?? null,
 				gameId,
+				useProton: input.useProton ?? false,
+				protonVariant: (input.protonVariant as ProtonVariant) ?? undefined,
+				protonVersion: input.protonVersion ?? undefined,
 			};
 			const created = ctx.db
 				.insert(libraryGames)
@@ -163,6 +170,9 @@ export const libraryGamesRouter = router({
 					igdbId: z.number().int().optional(),
 					installed: z.boolean().optional(),
 					runAsAdmin: z.boolean().optional(),
+					useProton: z.boolean().optional(),
+					protonVariant: z.string().optional(),
+					protonVersion: z.string().optional(),
 				}),
 			}),
 		)
@@ -170,6 +180,9 @@ export const libraryGamesRouter = router({
 			const updates = {
 				...input.data,
 				gameLastPlayed: input.data.gameLastPlayed ?? undefined,
+				useProton: input.data.useProton ?? undefined,
+				protonVariant: (input.data.protonVariant as ProtonVariant) ?? undefined,
+				protonVersion: input.data.protonVersion ?? undefined,
 			};
 			const [updated] = await ctx.db
 				.update(libraryGames)
