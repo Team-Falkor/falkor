@@ -25,7 +25,7 @@ const PluginSettings = () => {
 
 	return (
 		<div className="relative h-[calc(100vh-3rem)] w-full">
-			<SettingTitle>{t("settings.titles.plugins")}</SettingTitle>
+			<SettingTitle>{t("settings.titles.Plugins")}</SettingTitle>
 
 			<Tabs defaultValue="installed" className="h-full">
 				<SettingsContainer>

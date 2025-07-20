@@ -92,7 +92,7 @@ const TorrentSettings = () => {
 
 	return (
 		<div>
-			<SettingTitle>{t("settings.titles.download")}</SettingTitle>
+			<SettingTitle>{t("settings.titles.Download")}</SettingTitle>
 
 			<SettingsContainer>
 				<SettingsSection title="downloads_path">

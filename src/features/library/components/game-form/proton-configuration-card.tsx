@@ -1,6 +1,7 @@
 import type { ProtonVariant } from "@team-falkor/game-launcher";
 import { useEffect, useState } from "react";
 import type { Game } from "@/@types";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -72,7 +73,12 @@ export const ProtonConfigurationCard = ({
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>{t("game_form.proton_configuration.title")}</CardTitle>
+				<CardTitle className="flex items-center gap-2">
+					{t("game_form.proton_configuration.title")}
+					<Badge variant="secondary" className="text-xs">
+						{t("beta")}
+					</Badge>
+				</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="mb-6 flex items-center justify-between space-x-2">

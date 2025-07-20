@@ -17,7 +17,7 @@ const DeveloperSettings = () => {
 
 	return (
 		<div>
-			<SettingTitle>{t("settings.titles.developer")}</SettingTitle>
+			<SettingTitle>{t("settings.titles.Developer")}</SettingTitle>
 
 			<SettingsContainer>
 				<SettingsSection>

@@ -11,12 +11,13 @@
 	},
 	"settings": {
 		"titles": {
-			"general": "General Settings",
-			"download": "Download Configuration Settings",
-			"accounts": "Accounts Settings",
-			"plugins": "Plugins Settings",
-			"developer": "Developer Settings",
-			"miscellaneous": "Miscellaneous Settings"
+			"General": "General Settings",
+			"Download": "Download Configuration Settings",
+			"Accounts": "Accounts Settings",
+			"Plugins": "Plugins Settings",
+			"Developer": "Developer Settings",
+			"Miscellaneous": "Miscellaneous Settings",
+			"Proton": "Proton Settings"
 		},
 		"plugins": {
 			"community_title": "Community Plugins",
@@ -191,6 +192,7 @@
 	"unfavorite": "Unfavorite",
 	"hide": "Hide",
 	"show": "Show",
+	"beta": "Beta",
 	"categories": {
 		"action": "Action",
 		"adventure": "Adventure",

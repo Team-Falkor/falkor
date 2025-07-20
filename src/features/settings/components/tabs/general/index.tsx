@@ -15,7 +15,7 @@ const GeneralSetting = () => {
 
 	return (
 		<div>
-			<SettingTitle>{t("settings.titles.general")}</SettingTitle>
+			<SettingTitle>{t("settings.titles.General")}</SettingTitle>
 
 			<SettingsContainer>
 				<SettingsSection title="update_settings">

@@ -53,7 +53,7 @@ const MiscellaneousSettings = () => {
 
 	return (
 		<div>
-			<SettingTitle>{t("settings.titles.miscellaneous")}</SettingTitle>
+			<SettingTitle>{t("settings.titles.Miscellaneous")}</SettingTitle>
 
 			<SettingsContainer>
 				<SettingsSection title="reset-igdb-cache">

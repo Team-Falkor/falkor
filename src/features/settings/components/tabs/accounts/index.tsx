@@ -26,7 +26,7 @@ const AccountSettings = () => {
 
 	return (
 		<div>
-			<SettingTitle>{t("settings.titles.accounts")}</SettingTitle>
+			<SettingTitle>{t("settings.titles.Accounts")}</SettingTitle>
 
 			<SettingsContainer>
 				<SettingsSection>
