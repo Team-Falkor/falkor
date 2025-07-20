@@ -1,4 +1,5 @@
 import type { Game } from "@/@types";
+import { trpc } from "@/lib";
 import { AdvancedCard } from "./advanced-card";
 import { DatabaseIdsCard } from "./database-ids-card";
 import { GameDetailsCard } from "./game-details-card";
@@ -22,6 +23,8 @@ export const GameForm = ({
 	onGameChange,
 	onFileBrowse,
 }: GameFormProps) => {
+	const { data: isProtonSupported } = trpc.proton.isProtonSupported.useQuery();
+
 	return (
 		<div className="flex-1 space-y-6 overflow-y-auto py-6 pr-4">
 			<GameDetailsCard
@@ -38,9 +41,17 @@ export const GameForm = ({
 
 			<DatabaseIdsCard game={game} onGameChange={onGameChange} />
 
-			<AdvancedCard game={game} onGameChange={onGameChange} />
+			<AdvancedCard 
+				game={game} 
+				onGameChange={onGameChange} 
+				isProtonSupported={isProtonSupported}
+			/>
 
-			<ProtonConfigurationCard game={game} onGameChange={onGameChange} />
+			<ProtonConfigurationCard 
+				game={game} 
+				onGameChange={onGameChange} 
+				isProtonSupported={isProtonSupported}
+			/>
 		</div>
 	);
 };

@@ -18,11 +18,13 @@ import { trpc } from "@/lib";
 interface ProtonConfigurationCardProps {
 	game: Partial<Game>;
 	onGameChange: (updatedFields: Partial<Game>) => void;
+	isProtonSupported?: boolean;
 }
 
 export const ProtonConfigurationCard = ({
 	game,
 	onGameChange,
+	isProtonSupported,
 }: ProtonConfigurationCardProps) => {
 	const { t } = useLanguageContext();
 	// Local state for UI responsiveness
@@ -36,7 +38,6 @@ export const ProtonConfigurationCard = ({
 	// tRPC queries
 	const { data: installedBuilds, isLoading: isLoadingBuilds } =
 		trpc.proton.getInstalledBuilds.useQuery();
-	const { data: isProtonSupported } = trpc.proton.isProtonSupported.useQuery();
 
 	// Update local state when game prop changes
 	useEffect(() => {
