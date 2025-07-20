@@ -65,6 +65,9 @@ async function fetchListWithGames(
 				runAsAdmin: game.runAsAdmin,
 				isFavorite: game.isFavorite,
 				isHidden: game.isHidden,
+				protonVersion: game.protonVersion,
+				protonVariant: game.protonVariant,
+				useProton: game.useProton,
 			});
 		}
 	}
@@ -167,6 +170,9 @@ export const listsRouter = router({
 					runAsAdmin: game.runAsAdmin,
 					isFavorite: game.isFavorite,
 					isHidden: game.isHidden,
+					protonVersion: game.protonVersion,
+					protonVariant: game.protonVariant,
+					useProton: game.useProton,
 				});
 			}
 		}
