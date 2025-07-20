@@ -78,7 +78,7 @@ export const GameDetailsCard = ({
 										type="button"
 										onClick={handleGameIconSelect}
 										aria-label={t("game_form.game_details.browse_for_icon")}
-										className="cursor-pointer"
+										className="cursor-pointer transition-all focus-states:scale-105 focus-states:opacity-70"
 									>
 										<FolderOpen />
 									</Button>

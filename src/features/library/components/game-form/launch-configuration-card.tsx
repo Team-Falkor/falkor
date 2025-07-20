@@ -65,19 +65,25 @@ export const LaunchConfigurationCard = ({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="grid w-full items-center gap-2">
-					<Label htmlFor="gamePath">{t("game_form.launch_configuration.game_path")}</Label>
+					<Label htmlFor="gamePath">
+						{t("game_form.launch_configuration.game_path")}
+					</Label>
 					<InputWithIcon
 						id="gamePath"
 						name="gamePath"
 						value={game.gamePath || ""}
 						onChange={handleChange}
-						placeholder={t("game_form.launch_configuration.game_path_placeholder")}
+						placeholder={t(
+							"game_form.launch_configuration.game_path_placeholder",
+						)}
 						endIcon={
 							<Button
 								type="button"
 								onClick={handleGamePathSelect}
-								aria-label={t("game_form.launch_configuration.browse_for_game_path")}
-								className="cursor-pointer"
+								aria-label={t(
+									"game_form.launch_configuration.browse_for_game_path",
+								)}
+								className="cursor-pointer transition-all focus-states:scale-105 focus-states:opacity-70"
 							>
 								<FolderOpen />
 							</Button>
@@ -85,13 +91,17 @@ export const LaunchConfigurationCard = ({
 					/>
 				</div>
 				<div className="grid w-full items-center gap-2">
-					<Label htmlFor="gameArgs">{t("game_form.launch_configuration.launch_arguments")}</Label>
+					<Label htmlFor="gameArgs">
+						{t("game_form.launch_configuration.launch_arguments")}
+					</Label>
 					<InputWithIcon
 						id="gameArgs"
 						name="gameArgs"
 						value={game.gameArgs || ""}
 						onChange={handleChange}
-						placeholder={t("game_form.launch_configuration.launch_arguments_placeholder")}
+						placeholder={t(
+							"game_form.launch_configuration.launch_arguments_placeholder",
+						)}
 					/>
 				</div>
 
@@ -101,7 +111,9 @@ export const LaunchConfigurationCard = ({
 						checked={game.runAsAdmin ?? false}
 						onCheckedChange={handleRunAsAdminToggle}
 					/>
-					<Label htmlFor="runAsAdmin">{t("game_form.launch_configuration.run_as_admin")}</Label>
+					<Label htmlFor="runAsAdmin">
+						{t("game_form.launch_configuration.run_as_admin")}
+					</Label>
 				</div>
 			</CardContent>
 		</Card>
