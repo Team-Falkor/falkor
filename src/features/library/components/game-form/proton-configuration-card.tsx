@@ -27,12 +27,15 @@ export const ProtonConfigurationCard = ({
 	isProtonSupported,
 }: ProtonConfigurationCardProps) => {
 	const { t } = useLanguageContext();
-	// Local state for UI responsiveness
+	// Local state for UI responsiveness and proper synchronization
 	const [isProtonEnabled, setIsProtonEnabled] = useState(
 		game.useProton ?? false,
 	);
 	const [selectedVariant, setSelectedVariant] = useState<ProtonVariant>(
 		game.protonVariant ?? "proton-ge",
+	);
+	const [selectedVersion, setSelectedVersion] = useState<string>(
+		game.protonVersion ?? "",
 	);
 
 	// tRPC queries
@@ -43,7 +46,8 @@ export const ProtonConfigurationCard = ({
 	useEffect(() => {
 		setIsProtonEnabled(game.useProton ?? false);
 		setSelectedVariant(game.protonVariant ?? "proton-ge");
-	}, [game.useProton, game.protonVariant]);
+		setSelectedVersion(game.protonVersion ?? "");
+	}, [game.useProton, game.protonVariant, game.protonVersion]);
 
 	// Handle proton toggle
 	const handleProtonToggle = (checked: boolean) => {
@@ -51,6 +55,8 @@ export const ProtonConfigurationCard = ({
 		onGameChange({ useProton: checked });
 		if (!checked) {
 			// Clear proton settings when disabled
+			setSelectedVariant("proton-ge");
+			setSelectedVersion("");
 			onGameChange({ protonVariant: undefined, protonVersion: undefined });
 		}
 	};
@@ -58,18 +64,21 @@ export const ProtonConfigurationCard = ({
 	// Handle variant change
 	const handleVariantChange = (variant: ProtonVariant) => {
 		setSelectedVariant(variant);
+		// Clear version when variant changes as versions are variant-specific
+		setSelectedVersion("");
 		onGameChange({ protonVariant: variant, protonVersion: undefined });
 	};
 
 	// Handle version change
 	const handleVersionChange = (version: string) => {
+		setSelectedVersion(version);
 		onGameChange({ protonVersion: version });
 	};
 
 	// Don't render if Proton is not supported
-	if (isProtonSupported === false) {
-		return null;
-	}
+	// if (isProtonSupported === false) {
+	// 	return null;
+	// }
 
 	return (
 		<Card>
@@ -99,7 +108,7 @@ export const ProtonConfigurationCard = ({
 				</div>
 
 				<fieldset
-					className="grid gap-4 border-border border-t pt-4"
+					className="grid gap-6 border-border border-t pt-6"
 					disabled={!isProtonEnabled}
 				>
 					<legend className="sr-only">
@@ -149,7 +158,7 @@ export const ProtonConfigurationCard = ({
 										)}
 							</p>
 							<Select
-								value={game.protonVersion || ""}
+								value={selectedVersion}
 								onValueChange={handleVersionChange}
 								disabled={!isProtonEnabled || isLoadingBuilds}
 							>
@@ -170,9 +179,14 @@ export const ProtonConfigurationCard = ({
 											.filter((build) => build.variant === selectedVariant)
 											.map((build) => (
 												<SelectItem key={build.version} value={build.version}>
-													{build.version}
-													{build.isActive &&
-														t("game_form.proton_configuration.active")}
+													<div className="flex w-full items-center justify-between">
+														<span>{build.version}</span>
+														{build.isActive && (
+															<Badge variant="outline" className="ml-2 text-xs">
+																{t("game_form.proton_configuration.active")}
+															</Badge>
+														)}
+													</div>
 												</SelectItem>
 											))
 									) : (
@@ -187,13 +201,16 @@ export const ProtonConfigurationCard = ({
 						</div>
 					</div>
 
-					{/* Additional info section */}
+					{/* Status and info section */}
 					{isProtonEnabled && (
-						<div className="rounded-md bg-muted/50 p-3">
-							<p className="text-muted-foreground text-sm">
-								<strong>{t("game_form.proton_configuration.note")}:</strong>{" "}
-								{t("game_form.proton_configuration.proton_note")}
-							</p>
+						<div className="space-y-3">
+							{/* Info note */}
+							<div className="rounded-md border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/20">
+								<p className="text-blue-700 text-sm dark:text-blue-300">
+									<strong>{t("game_form.proton_configuration.note")}:</strong>{" "}
+									{t("game_form.proton_configuration.proton_note")}
+								</p>
+							</div>
 						</div>
 					)}
 				</fieldset>
