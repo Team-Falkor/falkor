@@ -31,7 +31,7 @@ export const ProtonConfigurationCard = ({
 	const [isProtonEnabled, setIsProtonEnabled] = useState(
 		game.useProton ?? false,
 	);
-	const [selectedVariant, setSelectedVariant] = useState<ProtonVariant>(
+	const [selectedVariant, setSelectedVariant] = useState<string>(
 		game.protonVariant ?? "proton-ge",
 	);
 	const [selectedVersion, setSelectedVersion] = useState<string>(
@@ -42,15 +42,36 @@ export const ProtonConfigurationCard = ({
 	const { data: installedBuilds, isLoading: isLoadingBuilds } =
 		trpc.proton.getInstalledBuilds.useQuery();
 
-	// Update local state when game prop changes
+	// Update local state when game prop changes, but only if the user hasn't made local changes
+	// This prevents external API calls from overriding user selections
+	const [hasUserInteracted, setHasUserInteracted] = useState(false);
+
 	useEffect(() => {
-		setIsProtonEnabled(game.useProton ?? false);
-		setSelectedVariant(game.protonVariant ?? "proton-ge");
-		setSelectedVersion(game.protonVersion ?? "");
-	}, [game.useProton, game.protonVariant, game.protonVersion]);
+		// Only update from props if user hasn't interacted with the form yet
+		if (!hasUserInteracted) {
+			setIsProtonEnabled(game.useProton ?? false);
+			setSelectedVariant(game.protonVariant ?? "proton-ge");
+			setSelectedVersion(game.protonVersion ?? "");
+		}
+	}, [
+		game.useProton,
+		game.protonVariant,
+		game.protonVersion,
+		hasUserInteracted,
+	]);
+
+	useEffect(() => {
+		onGameChange({
+			useProton: isProtonEnabled,
+			protonVariant: isProtonEnabled ? selectedVariant : undefined,
+			protonVersion:
+				isProtonEnabled && selectedVersion ? selectedVersion : undefined,
+		});
+	}, [isProtonEnabled, onGameChange, selectedVariant, selectedVersion]);
 
 	// Handle proton toggle
 	const handleProtonToggle = (checked: boolean) => {
+		setHasUserInteracted(true);
 		setIsProtonEnabled(checked);
 		onGameChange({ useProton: checked });
 		if (!checked) {
@@ -63,6 +84,7 @@ export const ProtonConfigurationCard = ({
 
 	// Handle variant change
 	const handleVariantChange = (variant: ProtonVariant) => {
+		setHasUserInteracted(true);
 		setSelectedVariant(variant);
 		// Clear version when variant changes as versions are variant-specific
 		setSelectedVersion("");
@@ -71,6 +93,7 @@ export const ProtonConfigurationCard = ({
 
 	// Handle version change
 	const handleVersionChange = (version: string) => {
+		setHasUserInteracted(true);
 		setSelectedVersion(version);
 		onGameChange({ protonVersion: version });
 	};

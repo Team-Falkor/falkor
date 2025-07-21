@@ -1,4 +1,3 @@
-import type { ProtonVariant } from "@team-falkor/game-launcher";
 import { relations } from "drizzle-orm";
 import {
 	integer,
@@ -30,7 +29,7 @@ export const libraryGames = sqliteTable(
 		isFavorite: integer("is_favorite", { mode: "boolean" }).default(false),
 		isHidden: integer("is_hidden", { mode: "boolean" }).default(false),
 		useProton: integer("use_proton", { mode: "boolean" }).default(false),
-		protonVariant: text("proton_variant").$type<ProtonVariant>(),
+		protonVariant: text("proton_variant"),
 		protonVersion: text("proton_version"),
 	},
 	(table) => [
