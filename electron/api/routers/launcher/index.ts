@@ -36,7 +36,7 @@ export const gameLauncherRouter = router({
 				return { success: false, error: "Game path not found" };
 			}
 
-			const launcher = new GameProcessLauncher({
+			const gameOptions = {
 				id: game.id,
 				gameId: game.gameId,
 				gamePath: game.gamePath,
@@ -50,7 +50,11 @@ export const gameLauncherRouter = router({
 				useProton: game.useProton ?? false,
 				protonVariant: game.protonVariant ?? undefined,
 				protonVersion: game.protonVersion ?? undefined,
-			});
+			};
+
+			console.log("gameOptions", gameOptions);
+
+			const launcher = new GameProcessLauncher(gameOptions);
 
 			await launcher.launchGame();
 		}),

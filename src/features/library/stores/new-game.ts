@@ -21,6 +21,7 @@ const initialState: NewGameState = {
 		runAsAdmin: false,
 		gameArgs: "",
 		winePrefixFolder: "",
+		useProton: false,
 	},
 	error: null,
 };

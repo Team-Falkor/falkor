@@ -108,6 +108,9 @@ const UpdateDialog = ({ game: initialGame }: UpdateDialogProps) => {
 				gameSteamId: editedGame.gameSteamId ?? undefined,
 				winePrefixFolder: editedGame.winePrefixFolder ?? undefined,
 				runAsAdmin: editedGame.runAsAdmin,
+				useProton: editedGame.useProton ?? false,
+				protonVersion: editedGame.protonVersion ?? undefined,
+				protonVariant: editedGame.protonVariant ?? undefined,
 			},
 		});
 	};
