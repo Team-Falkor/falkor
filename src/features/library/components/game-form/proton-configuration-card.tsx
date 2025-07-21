@@ -99,9 +99,9 @@ export const ProtonConfigurationCard = ({
 	};
 
 	// Don't render if Proton is not supported
-	// if (isProtonSupported === false) {
-	// 	return null;
-	// }
+	if (isProtonSupported === false) {
+		return null;
+	}
 
 	return (
 		<Card>
