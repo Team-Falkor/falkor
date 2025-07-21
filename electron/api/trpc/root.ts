@@ -3,6 +3,7 @@ import { appFunctionsRouter } from "../routers/app";
 import { downloadQueueRouter } from "../routers/downloads";
 import { externalAccountsRouter } from "../routers/external-accounts";
 import { gameLocatorRouter } from "../routers/game-locator";
+import { gameMatcherRouter } from "../routers/game-matcher";
 import { igdbRouter } from "../routers/igdb";
 import { itadRouter } from "../routers/itad";
 import { gameLauncherRouter } from "../routers/launcher";
@@ -24,6 +25,7 @@ export const appRouter = router({
 	downloads: downloadQueueRouter,
 	accounts: externalAccountsRouter,
 	gameLocator: gameLocatorRouter,
+	gameMatcher: gameMatcherRouter,
 	igdb: igdbRouter,
 	itad: itadRouter,
 	protondb: protonDbRouter,

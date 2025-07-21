@@ -8,6 +8,12 @@ export interface GameMatchResult {
 	reason: string;
 }
 
+export interface GameFileMatchResult {
+	file: FileInfo;
+	matches: GameMatchResult[];
+	bestMatch: GameMatchResult | null;
+}
+
 export interface GameMatchOptions {
 	minConfidence?: number;
 	maxResults?: number;
@@ -36,7 +42,6 @@ export class GameMatcher {
 		const {
 			minConfidence = this.DEFAULT_MIN_CONFIDENCE,
 			maxResults = this.DEFAULT_MAX_RESULTS,
-			includeAlternativeNames = true,
 		} = options;
 
 		// Extract game name from file path and name
@@ -101,6 +106,110 @@ export class GameMatcher {
 	 */
 	requiresUserSelection(confidence: number): boolean {
 		return confidence >= 0.4 && confidence < 0.85;
+	}
+
+	/**
+	 * Find matching games for multiple game files
+	 * @param gameFiles - Array of local game files to match
+	 * @param options - Matching options
+	 * @returns Array of results for each file with their matches
+	 */
+	async findMatchesForFiles(
+		gameFiles: FileInfo[],
+		options: GameMatchOptions = {},
+	): Promise<GameFileMatchResult[]> {
+		const results: GameFileMatchResult[] = [];
+
+		for (const file of gameFiles) {
+			try {
+				const matches = await this.findMatches(file, options);
+				const bestMatch = matches.length > 0 ? matches[0] : null;
+
+				results.push({
+					file,
+					matches,
+					bestMatch,
+				});
+			} catch (error) {
+				console.warn(`Failed to find matches for "${file.name}":`, error);
+				results.push({
+					file,
+					matches: [],
+					bestMatch: null,
+				});
+			}
+		}
+
+		return results;
+	}
+
+	/**
+	 * Get the best matches for multiple game files
+	 * @param gameFiles - Array of local game files to match
+	 * @param options - Matching options
+	 * @returns Array of best matches for each file (null if no good match found)
+	 */
+	async getBestMatches(
+		gameFiles: FileInfo[],
+		options: GameMatchOptions = {},
+	): Promise<(GameMatchResult | null)[]> {
+		const results: (GameMatchResult | null)[] = [];
+
+		for (const file of gameFiles) {
+			try {
+				const bestMatch = await this.getBestMatch(file, options);
+				results.push(bestMatch);
+			} catch (error) {
+				console.warn(`Failed to find best match for "${file.name}":`, error);
+				results.push(null);
+			}
+		}
+
+		return results;
+	}
+
+	/**
+	 * Find matches for multiple files with batch processing for better performance
+	 * @param gameFiles - Array of local game files to match
+	 * @param options - Matching options
+	 * @param batchSize - Number of files to process concurrently (default: 5)
+	 * @returns Array of results for each file with their matches
+	 */
+	async findMatchesForFilesBatch(
+		gameFiles: FileInfo[],
+		options: GameMatchOptions = {},
+		batchSize = 5,
+	): Promise<GameFileMatchResult[]> {
+		const results: GameFileMatchResult[] = [];
+
+		// Process files in batches to avoid overwhelming the API
+		for (let i = 0; i < gameFiles.length; i += batchSize) {
+			const batch = gameFiles.slice(i, i + batchSize);
+			const batchPromises = batch.map(async (file) => {
+				try {
+					const matches = await this.findMatches(file, options);
+					const bestMatch = matches.length > 0 ? matches[0] : null;
+
+					return {
+						file,
+						matches,
+						bestMatch,
+					};
+				} catch (error) {
+					console.warn(`Failed to find matches for "${file.name}":`, error);
+					return {
+						file,
+						matches: [],
+						bestMatch: null,
+					};
+				}
+			});
+
+			const batchResults = await Promise.all(batchPromises);
+			results.push(...batchResults);
+		}
+
+		return results;
 	}
 
 	/**
@@ -297,9 +406,9 @@ export class GameMatcher {
 	 * Get a human-readable reason for the match
 	 */
 	private getMatchReason(
-		gameFile: FileInfo,
+		_gameFile: FileInfo,
 		igdbGame: IGDBReturnDataType,
-		query: string,
+		_query: string,
 		confidence: number,
 	): string {
 		const gameName = igdbGame.name || "Unknown";
