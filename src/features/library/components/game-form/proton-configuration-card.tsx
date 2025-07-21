@@ -31,7 +31,7 @@ export const ProtonConfigurationCard = ({
 	const [isProtonEnabled, setIsProtonEnabled] = useState(
 		game.useProton ?? false,
 	);
-	const [selectedVariant, setSelectedVariant] = useState<string>(
+	const [selectedVariant, setSelectedVariant] = useState<ProtonVariant>(
 		game.protonVariant ?? "proton-ge",
 	);
 	const [selectedVersion, setSelectedVersion] = useState<string>(
