@@ -248,6 +248,10 @@ export class GameMatcher {
 	private cleanGameName(name: string): string {
 		return (
 			name
+				// Remove file extensions
+				.replace(/\.[^.]*$/, "")
+				// Add spaces at camelCase boundaries
+				.replace(/([a-z])([A-Z])/g, "$1 $2")
 				// Remove common patterns
 				.replace(/[[(].*?[\])]/g, "") // Remove content in brackets/parentheses
 				.replace(
