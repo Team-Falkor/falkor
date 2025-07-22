@@ -1,5 +1,5 @@
 import { Calendar, Check, Plus, Star, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { RouterOutputs } from "@/@types";
 import IGDBImage from "@/components/IGDBImage";
@@ -20,15 +20,26 @@ interface GameMatchCardProps {
 	match: GameMatchResult;
 	isBestMatch: boolean;
 	onGameAdded?: (gameId: string) => void;
+	isAddedExternally?: boolean;
+	filePath?: string; // Add file path prop
 }
 
 export const GameMatchCard = ({
 	match,
 	isBestMatch,
 	onGameAdded,
+	isAddedExternally = false,
+	filePath,
 }: GameMatchCardProps) => {
-	const [isAdded, setIsAdded] = useState(false);
+	const [isAdded, setIsAdded] = useState(isAddedExternally);
 	const utils = trpc.useUtils();
+
+	// Update isAdded state when isAddedExternally changes
+	useEffect(() => {
+		if (isAddedExternally) {
+			setIsAdded(true);
+		}
+	}, [isAddedExternally]);
 
 	const { mutate: createGame, isPending: isCreating } =
 		trpc.library.create.useMutation({
@@ -157,10 +168,10 @@ export const GameMatchCard = ({
 
 										createGame({
 											gameName: match.game.name,
-											gamePath: "", // Will need to be set later
+											gamePath: filePath || "",
 											igdbId: match.game.id,
 											gameIcon,
-											installed: false, // Mark as not installed since we don't have a path
+											installed: !!filePath,
 										});
 									}
 								}}
