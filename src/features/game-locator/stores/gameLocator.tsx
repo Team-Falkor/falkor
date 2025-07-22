@@ -2,6 +2,10 @@ import { create } from "zustand";
 import type { FileInfo } from "@/@types";
 
 type GameLocatorStoreState = {
+	hasCompletedScanFolders: boolean;
+	hasCompletedSelectGames: boolean;
+	hasCompletedAddGames: boolean;
+
 	// All discovered games from scan results (persistent for reuse)
 	games: FileInfo[];
 	// Games selected by user to be added to their library
@@ -21,11 +25,19 @@ type GameLocatorStoreActions = {
 	clearSelectedGames: () => void;
 	selectAllGames: () => void;
 	isGameSelected: (gamePath: string) => boolean;
+
+	// Step states
+	setHasCompletedScanFolders: (hasCompleted: boolean) => void;
+	setHasCompletedSelectGames: (hasCompleted: boolean) => void;
+	setHasCompletedAddGames: (hasCompleted: boolean) => void;
 };
 
 type GameLocatorStore = GameLocatorStoreState & GameLocatorStoreActions;
 
 const initialState: GameLocatorStoreState = {
+	hasCompletedScanFolders: false,
+	hasCompletedSelectGames: false,
+	hasCompletedAddGames: false,
 	games: [],
 	selectedGames: [],
 };
@@ -80,4 +92,12 @@ export const useGameLocatorStore = create<GameLocatorStore>((set, get) => ({
 		const { selectedGames } = get();
 		return selectedGames.some((g) => g.path === gamePath);
 	},
+
+	// Step states
+	setHasCompletedScanFolders: (hasCompleted) =>
+		set({ hasCompletedScanFolders: hasCompleted }),
+	setHasCompletedSelectGames: (hasCompleted) =>
+		set({ hasCompletedSelectGames: hasCompleted }),
+	setHasCompletedAddGames: (hasCompleted) =>
+		set({ hasCompletedAddGames: hasCompleted }),
 }));

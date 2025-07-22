@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 
 type BeforeNextHandler = () => boolean | Promise<boolean>;
+type BeforePrevHandler = () => boolean | Promise<boolean>;
 
 interface MultiStepDialogContextType {
 	currentStep: number;
@@ -30,7 +31,7 @@ interface MultiStepDialogContextType {
 	isLastStep: boolean;
 	isNavigating: boolean;
 	goToNextStep: () => Promise<void>;
-	goToPrevStep: () => void;
+	goToPrevStep: () => Promise<void>;
 	goToStep: (step: number) => void;
 	close: () => void;
 	setTitle: (title: string) => void;
@@ -58,6 +59,8 @@ export interface Step {
 	title?: string;
 	description?: ReactNode;
 	component: ReactNode;
+	beforeNext?: BeforeNextHandler;
+	beforePrev?: BeforePrevHandler;
 }
 
 interface MultiStepDialogProps {
@@ -130,7 +133,10 @@ export const MultiStepDialog: FC<MultiStepDialogProps> = ({
 	const goToNextStep = useCallback(async () => {
 		if (isLastStep) return;
 
-		const handler = beforeNextHandlerRef.current;
+		// Check for step-specific beforeNext handler first, then fallback to global handler
+		const stepHandler = steps[currentStep]?.beforeNext;
+		const globalHandler = beforeNextHandlerRef.current;
+		const handler = stepHandler || globalHandler;
 
 		if (handler) {
 			setIsNavigating(true);
@@ -145,13 +151,28 @@ export const MultiStepDialog: FC<MultiStepDialogProps> = ({
 		}
 
 		goToStep(currentStep + 1);
-	}, [isLastStep, goToStep, currentStep]);
+	}, [isLastStep, goToStep, currentStep, steps]);
 
-	const goToPrevStep = useCallback(() => {
-		if (!isFirstStep) {
-			goToStep(currentStep - 1);
+	const goToPrevStep = useCallback(async () => {
+		if (isFirstStep) return;
+
+		// Check for step-specific beforePrev handler
+		const handler = steps[currentStep]?.beforePrev;
+
+		if (handler) {
+			setIsNavigating(true);
+			try {
+				const canProceed = await handler();
+				if (!canProceed) {
+					return;
+				}
+			} finally {
+				setIsNavigating(false);
+			}
 		}
-	}, [isFirstStep, goToStep, currentStep]);
+
+		goToStep(currentStep - 1);
+	}, [isFirstStep, goToStep, currentStep, steps]);
 
 	const handleConfirm = () => {
 		onConfirm?.();

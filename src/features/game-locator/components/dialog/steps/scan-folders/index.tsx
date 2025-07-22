@@ -19,7 +19,8 @@ const INITIAL_STATS: ScanStats = {
 };
 
 export const GameLocatorScanFoldersStep = () => {
-	const { setGames } = useGameLocatorStore();
+	const { setGames, hasCompletedScanFolders, setHasCompletedScanFolders } =
+		useGameLocatorStore();
 	const {
 		scan,
 		stop,
@@ -75,11 +76,12 @@ export const GameLocatorScanFoldersStep = () => {
 				setGames(gamesWithDateConversion);
 				setDiscoveredGames(gamesWithDateConversion);
 			}
+			setHasCompletedScanFolders(true);
 			toast.success(
 				`Scan completed! Found ${"data" in result ? result.data.games.length : 0} games.`,
 			);
 		}
-	}, [lastScanResult, isScanning, setGames]);
+	}, [lastScanResult, isScanning, setGames, setHasCompletedScanFolders]);
 
 	const handleAddFolder = useCallback(async () => {
 		if (isSelectingFolder || openDialog.isPending) {
