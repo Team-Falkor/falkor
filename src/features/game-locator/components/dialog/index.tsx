@@ -3,7 +3,9 @@ import { toast } from "sonner";
 import { MultiStepDialog } from "@/components/MultiStepDialog";
 import { Button } from "@/components/ui/button";
 import { useGameLocatorStore } from "../../stores/gameLocator";
+import { useManualGameSelectionStore } from "../../stores/manualGameSelection";
 import { GameLocatorAddGamesStep } from "./steps/add-games";
+import { GameLocatorManualSelectionStep } from "./steps/manual-selection";
 import { GameLocatorScanFoldersStep } from "./steps/scan-folders";
 import { GameLocatorSelectGamesStep } from "./steps/select-games";
 
@@ -14,12 +16,18 @@ export const GameLocatorDialog = () => {
 		hasCompletedSelectGames,
 		reset,
 	} = useGameLocatorStore();
+	const {
+		hasCompletedManualSelection,
+		requiresManualSelection,
+		reset: resetManualSelection,
+	} = useManualGameSelectionStore();
 	const [open, setOpen] = useState(false);
 
 	const handleClose = () => {
 		setOpen(false);
 		// Reset all states when dialog is closed
 		reset();
+		resetManualSelection();
 	};
 
 	return (
@@ -40,6 +48,7 @@ export const GameLocatorDialog = () => {
 							}
 							return true;
 						},
+						disableNextButton: !hasCompletedScanFolders,
 					},
 					{
 						title: "Select games",
@@ -48,6 +57,7 @@ export const GameLocatorDialog = () => {
 							if (!hasCompletedSelectGames) return false;
 							return true;
 						},
+						disableNextButton: !hasCompletedSelectGames,
 					},
 					{
 						title: "Add games",
@@ -56,6 +66,21 @@ export const GameLocatorDialog = () => {
 							if (!hasCompletedAddGames) return false;
 							return true;
 						},
+						disableNextButton: !hasCompletedAddGames,
+						hideNextButton: !requiresManualSelection,
+						cancelButtonText: !requiresManualSelection ? "Confirm" : "Cancel",
+					},
+					{
+						title: "Manual selection",
+						component: <GameLocatorManualSelectionStep />,
+						beforeNext: async () => {
+							if (!hasCompletedManualSelection && requiresManualSelection) {
+								toast.error("Complete manual selection first");
+								return false;
+							}
+							return true;
+						},
+						disableNextButton: !hasCompletedManualSelection,
 					},
 				]}
 			/>

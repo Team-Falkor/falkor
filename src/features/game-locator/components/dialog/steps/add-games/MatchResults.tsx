@@ -1,7 +1,6 @@
 import { ChevronDown, ChevronRight, Plus, Star } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { RouterOutputs } from "@/@types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,29 +10,12 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { H4, P, TypographyMuted } from "@/components/ui/typography";
+import { useGameLocatorStore } from "@/features/game-locator/stores/gameLocator";
+import { useManualGameSelectionStore } from "@/features/game-locator/stores/manualGameSelection";
+import type { GameFileMatchResult } from "@/features/game-locator/types";
 import { trpc } from "@/lib";
 import { cn } from "@/lib/utils";
 import { GameMatchCard } from "./GameMatchCard";
-
-type GameFileMatchResult = {
-	file: {
-		name: string;
-		path: string;
-		isDirectory: boolean;
-		size?: number;
-		lastModified?: string;
-	};
-	matches: {
-		game: RouterOutputs["igdb"]["search"][number];
-		confidence: number;
-		reason: string;
-	}[];
-	bestMatch: {
-		game: RouterOutputs["igdb"]["search"][number];
-		confidence: number;
-		reason: string;
-	} | null;
-};
 
 interface MatchResultsProps {
 	results: GameFileMatchResult[];
@@ -44,6 +26,12 @@ export const MatchResults = ({ results }: MatchResultsProps) => {
 	const [isAddingAll, setIsAddingAll] = useState(false);
 	const [addedGameIds, setAddedGameIds] = useState<Set<number>>(new Set());
 	const utils = trpc.useUtils();
+
+	// Access the manual game selection store
+	const { setGamesNeedingManualSelection } = useManualGameSelectionStore();
+
+	// Access the game locator store to mark steps as completed
+	const { setHasCompletedAddGames } = useGameLocatorStore();
 
 	const toggleExpanded = (filePath: string) => {
 		setExpandedItems((prev) => {
@@ -96,9 +84,33 @@ export const MatchResults = ({ results }: MatchResultsProps) => {
 		},
 	});
 
+	// Identify games that need manual selection (no matches or low confidence)
+	useEffect(() => {
+		const gamesNeedingManualSelection = results.filter((result) => {
+			// Include games with no matches
+			if (result.matches.length === 0) return true;
+
+			// Include games with a best match but low confidence (below 60%)
+			if (result.bestMatch && result.bestMatch.confidence < 0.6) return true;
+
+			return false;
+		});
+
+		// Set the games needing manual selection in the store
+		setGamesNeedingManualSelection(gamesNeedingManualSelection);
+
+		// Mark the add games step as completed if there are no games needing manual selection
+		if (gamesNeedingManualSelection.length === 0) {
+			setHasCompletedAddGames(true);
+		}
+	}, [results, setGamesNeedingManualSelection, setHasCompletedAddGames]);
+
 	const handleAddAllGames = () => {
 		const gamesToAdd = results
-			.filter((result) => result.bestMatch !== null)
+			.filter((result) => {
+				// Only add games with a best match and good confidence (60% or higher)
+				return result.bestMatch !== null && result.bestMatch.confidence >= 0.6;
+			})
 			.map((result) => {
 				const bestMatch = result.bestMatch;
 				if (!bestMatch) return null;
@@ -116,7 +128,7 @@ export const MatchResults = ({ results }: MatchResultsProps) => {
 			});
 
 		if (gamesToAdd.length === 0) {
-			toast.error("No games with matches to add");
+			toast.error("No games with good matches to add");
 			return;
 		}
 
@@ -272,8 +284,8 @@ export const MatchResults = ({ results }: MatchResultsProps) => {
 									) : (
 										<div className="py-8 text-center">
 											<TypographyMuted>
-												No matches found for this game. You may need to manually
-												search or add it.
+												No matches found for this game. It will be available for
+												manual selection in the next step.
 											</TypographyMuted>
 										</div>
 									)}

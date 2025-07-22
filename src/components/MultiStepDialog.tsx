@@ -1,3 +1,18 @@
+/**
+ * MultiStepDialog Component
+ *
+ * A dialog component that supports multiple steps with navigation controls.
+ *
+ * Features:
+ * - Step-by-step navigation with Next/Previous buttons
+ * - Confirmation on the last step
+ * - Customizable button behavior per step (hide, disable, custom text)
+ * - Validation before proceeding to next/previous steps
+ *
+ * Button customization options can be set globally for the dialog or per step.
+ * Per-step options take precedence over global options when both are provided.
+ */
+
 import { Loader2 } from "lucide-react";
 import {
 	createContext,
@@ -61,6 +76,19 @@ export interface Step {
 	component: ReactNode;
 	beforeNext?: BeforeNextHandler;
 	beforePrev?: BeforePrevHandler;
+	// Button customization options
+	hideNextButton?: boolean;
+	disableNextButton?: boolean;
+	nextButtonText?: string;
+	hideConfirmButton?: boolean;
+	disableConfirmButton?: boolean;
+	confirmButtonText?: string;
+	hidePrevButton?: boolean;
+	disablePrevButton?: boolean;
+	prevButtonText?: string;
+	hideCancelButton?: boolean;
+	disableCancelButton?: boolean;
+	cancelButtonText?: string;
 }
 
 interface MultiStepDialogProps {
@@ -77,6 +105,13 @@ interface MultiStepDialogProps {
 	confirmLabel?: string;
 	cancelLabel?: string;
 	resetOnCancel?: boolean;
+	// Global button customization options
+	hidePrevButton?: boolean;
+	disablePrevButton?: boolean;
+	prevButtonText?: string;
+	hideCancelButton?: boolean;
+	disableCancelButton?: boolean;
+	cancelButtonText?: string;
 }
 
 export const MultiStepDialog: FC<MultiStepDialogProps> = ({
@@ -93,6 +128,13 @@ export const MultiStepDialog: FC<MultiStepDialogProps> = ({
 	confirmLabel = "Confirm",
 	cancelLabel = "Cancel",
 	resetOnCancel = false,
+	// Global button customization options
+	hidePrevButton = false,
+	disablePrevButton = false,
+	prevButtonText,
+	hideCancelButton = false,
+	disableCancelButton = false,
+	cancelButtonText,
 }) => {
 	const [currentStep, setCurrentStep] = useState(initialStep);
 	const [isNavigating, setIsNavigating] = useState(false);
@@ -196,31 +238,56 @@ export const MultiStepDialog: FC<MultiStepDialogProps> = ({
 		beforeNextHandlerRef.current = null;
 	}, [currentStep, steps]);
 
+	const currentStepOptions = steps[currentStep] || {};
 	const defaultFooter = (
 		<DialogFooter>
-			{!isFirstStep && (
+			{!isFirstStep &&
+				!hidePrevButton &&
+				!currentStepOptions.hidePrevButton && (
+					<Button
+						variant="outline"
+						onClick={goToPrevStep}
+						disabled={
+							isNavigating ||
+							disablePrevButton ||
+							currentStepOptions.disablePrevButton
+						}
+					>
+						{currentStepOptions.prevButtonText || prevButtonText || prevLabel}
+					</Button>
+				)}
+			{!isLastStep && !currentStepOptions.hideNextButton && (
 				<Button
-					variant="outline"
-					onClick={goToPrevStep}
-					disabled={isNavigating}
+					onClick={goToNextStep}
+					disabled={isNavigating || currentStepOptions.disableNextButton}
 				>
-					{prevLabel}
-				</Button>
-			)}
-			{!isLastStep && (
-				<Button onClick={goToNextStep} disabled={isNavigating}>
 					{isNavigating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-					{nextLabel}
+					{currentStepOptions.nextButtonText || nextLabel}
 				</Button>
 			)}
-			{isLastStep && (
-				<Button onClick={handleConfirm} disabled={isNavigating}>
-					{confirmLabel}
+			{isLastStep && !currentStepOptions.hideConfirmButton && (
+				<Button
+					onClick={handleConfirm}
+					disabled={isNavigating || currentStepOptions.disableConfirmButton}
+				>
+					{currentStepOptions.confirmButtonText || confirmLabel}
 				</Button>
 			)}
-			<Button variant="ghost" onClick={handleCancel} disabled={isNavigating}>
-				{cancelLabel}
-			</Button>
+			{!hideCancelButton && !currentStepOptions.hideCancelButton && (
+				<Button
+					variant="ghost"
+					onClick={handleCancel}
+					disabled={
+						isNavigating ||
+						disableCancelButton ||
+						currentStepOptions.disableCancelButton
+					}
+				>
+					{currentStepOptions.cancelButtonText ||
+						cancelButtonText ||
+						cancelLabel}
+				</Button>
+			)}
 		</DialogFooter>
 	);
 
