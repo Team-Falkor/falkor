@@ -1,11 +1,13 @@
 import { Calendar, Check, Plus, Star, Users } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import type { RouterOutputs } from "@/@types";
 import IGDBImage from "@/components/IGDBImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TypographyMuted } from "@/components/ui/typography";
+import { trpc } from "@/lib";
 import { cn } from "@/lib/utils";
 
 type GameMatchResult = {
@@ -17,10 +19,41 @@ type GameMatchResult = {
 interface GameMatchCardProps {
 	match: GameMatchResult;
 	isBestMatch: boolean;
+	onGameAdded?: (gameId: string) => void;
 }
 
-export const GameMatchCard = ({ match, isBestMatch }: GameMatchCardProps) => {
+export const GameMatchCard = ({
+	match,
+	isBestMatch,
+	onGameAdded,
+}: GameMatchCardProps) => {
 	const [isAdded, setIsAdded] = useState(false);
+	const utils = trpc.useUtils();
+
+	const { mutate: createGame, isPending: isCreating } =
+		trpc.library.create.useMutation({
+			onSuccess: async (data) => {
+				if (!data) {
+					toast.error("Error creating game");
+					return;
+				}
+
+				setIsAdded(true);
+				onGameAdded?.(data.gameId);
+
+				await utils.library.invalidate(undefined, {
+					refetchType: "all",
+					type: "all",
+				});
+
+				toast.success(`${match.game.name} added to library!`);
+			},
+			onError: (error) => {
+				toast.error("Error adding game to library", {
+					description: error.message,
+				});
+			},
+		});
 
 	const getConfidenceBadgeVariant = (confidence: number) => {
 		if (confidence >= 0.8) return "default";
@@ -114,9 +147,30 @@ export const GameMatchCard = ({ match, isBestMatch }: GameMatchCardProps) => {
 								variant={isAdded ? "secondary" : "default"}
 								size="sm"
 								className="h-7 text-xs"
-								onClick={() => setIsAdded(!isAdded)}
+								disabled={isAdded || isCreating}
+								onClick={() => {
+									if (!isAdded) {
+										// Create game from IGDB data
+										const gameIcon = match.game.cover?.image_id
+											? `https://images.igdb.com/igdb/image/upload/t_cover_big/${match.game.cover.image_id}.jpg`
+											: undefined;
+
+										createGame({
+											gameName: match.game.name,
+											gamePath: "", // Will need to be set later
+											igdbId: match.game.id,
+											gameIcon,
+											installed: false, // Mark as not installed since we don't have a path
+										});
+									}
+								}}
 							>
-								{isAdded ? (
+								{isCreating ? (
+									<>
+										<div className="mr-1 h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+										Adding...
+									</>
+								) : isAdded ? (
 									<>
 										<Check className="mr-1 h-3 w-3" />
 										Added
@@ -124,7 +178,7 @@ export const GameMatchCard = ({ match, isBestMatch }: GameMatchCardProps) => {
 								) : (
 									<>
 										<Plus className="mr-1 h-3 w-3" />
-										Add
+										Add to Library
 									</>
 								)}
 							</Button>

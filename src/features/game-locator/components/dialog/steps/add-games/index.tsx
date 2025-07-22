@@ -30,8 +30,6 @@ type GameFileMatchResult = {
 	} | null;
 };
 
-type MatchingResults = GameFileMatchResult[];
-
 interface MatchingState {
 	status: "idle" | "matching" | "completed" | "error";
 	progress: number;
@@ -41,7 +39,7 @@ interface MatchingState {
 }
 
 export const GameLocatorAddGamesStep = () => {
-	const { selectedGames } = useGameLocatorStore();
+	const { selectedGames, setHasCompletedAddGames } = useGameLocatorStore();
 	const [matchingState, setMatchingState] = useState<MatchingState>({
 		status: "idle",
 		progress: 0,
@@ -57,12 +55,17 @@ export const GameLocatorAddGamesStep = () => {
 					progress: 100,
 					results: response.data,
 				}));
+				// Mark this step as completed when matching is successful
+				setHasCompletedAddGames(true);
 			} else {
 				setMatchingState((prev) => ({
 					...prev,
 					status: "error",
-					errorMessage: "error" in response ? response.error : "Unknown error occurred",
+					errorMessage:
+						"error" in response ? response.error : "Unknown error occurred",
 				}));
+				// Reset completion state on error
+				setHasCompletedAddGames(false);
 			}
 		},
 		onError: (error) => {
@@ -71,6 +74,8 @@ export const GameLocatorAddGamesStep = () => {
 				status: "error",
 				errorMessage: error.message,
 			}));
+			// Reset completion state on error
+			setHasCompletedAddGames(false);
 		},
 	});
 
@@ -116,6 +121,8 @@ export const GameLocatorAddGamesStep = () => {
 			progress: 0,
 			results: [],
 		});
+		// Reset completion state when retrying
+		setHasCompletedAddGames(false);
 	};
 
 	if (selectedGames.length === 0) {

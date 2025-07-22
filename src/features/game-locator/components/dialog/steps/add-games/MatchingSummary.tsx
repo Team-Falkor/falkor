@@ -24,8 +24,6 @@ type GameFileMatchResult = {
 	} | null;
 };
 
-type MatchingResults = GameFileMatchResult[];
-
 interface MatchingSummaryProps {
 	results: GameFileMatchResult[];
 }

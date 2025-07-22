@@ -1,5 +1,5 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FileInfo } from "@/@types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGameLocatorStore } from "@/features/game-locator/stores/gameLocator";
@@ -10,8 +10,18 @@ import { SearchBar } from "./SearchBar";
 import { SelectionControls } from "./SelectionControls";
 
 export const GameLocatorSelectGamesStep = () => {
-	const { games, selectedGames, toggleGameSelection, clearSelectedGames } =
-		useGameLocatorStore();
+	const {
+		games,
+		selectedGames,
+		toggleGameSelection,
+		clearSelectedGames,
+		setHasCompletedSelectGames,
+	} = useGameLocatorStore();
+
+	// Update completion state when games are selected
+	useEffect(() => {
+		setHasCompletedSelectGames(selectedGames.length > 0);
+	}, [selectedGames.length, setHasCompletedSelectGames]);
 
 	// Local state for search, filtering, and sorting
 	const [searchQuery, setSearchQuery] = useState("");

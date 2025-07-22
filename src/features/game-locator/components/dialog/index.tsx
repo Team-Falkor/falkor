@@ -12,15 +12,22 @@ export const GameLocatorDialog = () => {
 		hasCompletedAddGames,
 		hasCompletedScanFolders,
 		hasCompletedSelectGames,
+		reset,
 	} = useGameLocatorStore();
 	const [open, setOpen] = useState(false);
+
+	const handleClose = () => {
+		setOpen(false);
+		// Reset all states when dialog is closed
+		reset();
+	};
 
 	return (
 		<>
 			<Button onClick={() => setOpen(true)}>Open</Button>
 			<MultiStepDialog
 				isOpen={open}
-				onClose={() => setOpen(false)}
+				onClose={handleClose}
 				dialogContentClassName="w-full sm:max-w-3xl flex flex-col h-[85vh]"
 				steps={[
 					{

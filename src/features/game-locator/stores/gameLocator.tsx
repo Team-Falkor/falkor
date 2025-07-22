@@ -30,6 +30,9 @@ type GameLocatorStoreActions = {
 	setHasCompletedScanFolders: (hasCompleted: boolean) => void;
 	setHasCompletedSelectGames: (hasCompleted: boolean) => void;
 	setHasCompletedAddGames: (hasCompleted: boolean) => void;
+
+	// Reset all states
+	reset: () => void;
 };
 
 type GameLocatorStore = GameLocatorStoreState & GameLocatorStoreActions;
@@ -100,4 +103,7 @@ export const useGameLocatorStore = create<GameLocatorStore>((set, get) => ({
 		set({ hasCompletedSelectGames: hasCompleted }),
 	setHasCompletedAddGames: (hasCompleted) =>
 		set({ hasCompletedAddGames: hasCompleted }),
+
+	// Reset all states
+	reset: () => set(initialState),
 }));
