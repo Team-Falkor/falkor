@@ -1,28 +1,8 @@
 import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
-import type { RouterOutputs } from "@/@types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { H3, TypographyMuted } from "@/components/ui/typography";
-
-type GameFileMatchResult = {
-	file: {
-		name: string;
-		path: string;
-		isDirectory: boolean;
-		size?: number;
-		lastModified?: string;
-	};
-	matches: {
-		game: RouterOutputs["igdb"]["search"][number];
-		confidence: number;
-		reason: string;
-	}[];
-	bestMatch: {
-		game: RouterOutputs["igdb"]["search"][number];
-		confidence: number;
-		reason: string;
-	} | null;
-};
+import type { GameFileMatchResult } from "@/features/game-locator/types";
 
 interface MatchingSummaryProps {
 	results: GameFileMatchResult[];

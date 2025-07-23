@@ -1,5 +1,9 @@
 import { memo, useCallback, useMemo } from "react";
 import type { FileInfo } from "@/@types";
+import {
+	createGamePathSet,
+	isGameSelected,
+} from "@/features/game-locator/utils";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "./EmptyState";
 import { GameCard } from "./GameCard";
@@ -35,12 +39,12 @@ export const GameGrid = memo(
 	}: GameGridProps) => {
 		// Memoize selected games set for O(1) lookup
 		const selectedGamePaths = useMemo(() => {
-			return new Set(selectedGames.map((game) => game.path));
+			return createGamePathSet(selectedGames);
 		}, [selectedGames]);
 
-		const isGameSelected = useCallback(
+		const isGameSelectedCallback = useCallback(
 			(game: FileInfo) => {
-				return selectedGamePaths.has(game.path);
+				return isGameSelected(game, selectedGamePaths);
 			},
 			[selectedGamePaths],
 		);
@@ -88,7 +92,7 @@ export const GameGrid = memo(
 					<GameCard
 						key={game.path}
 						game={game}
-						isSelected={isGameSelected(game)}
+						isSelected={isGameSelectedCallback(game)}
 						onToggleSelection={onToggleSelection}
 						showSelectionControls={showSelectionControls}
 					/>

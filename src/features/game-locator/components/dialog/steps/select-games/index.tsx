@@ -3,6 +3,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FileInfo } from "@/@types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGameLocatorStore } from "@/features/game-locator/stores/gameLocator";
+import {
+	chunkArray,
+	countSelectedGames,
+	createGamePathSet,
+	filterAndSortGames,
+	getEmptyStateType,
+	isGameSelected,
+} from "@/features/game-locator/utils";
 import { EmptyState } from "./EmptyState";
 import { GameCard } from "./GameCard";
 import { GameGrid } from "./GameGrid";
@@ -27,43 +35,20 @@ export const GameLocatorSelectGamesStep = () => {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [sortBy, setSortBy] = useState<"name" | "size">("name");
 
-	// Filter and search games
+	// Filter and search games using utility function
 	const filteredGames = useMemo(() => {
-		let filtered = games.filter((game) => !game.isDirectory);
-
-		// Apply search filter
-		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase().trim();
-			filtered = filtered.filter(
-				(game) =>
-					game.name.toLowerCase().includes(query) ||
-					game.path.toLowerCase().includes(query),
-			);
-		}
-
-		// Apply sorting
-		filtered.sort((a, b) => {
-			if (sortBy === "name") {
-				return a.name.localeCompare(b.name);
-			}
-			if (sortBy === "size") {
-				return (b.size ?? 0) - (a.size ?? 0);
-			}
-			return 0;
-		});
-
-		return filtered;
+		return filterAndSortGames(games, searchQuery, sortBy, true);
 	}, [games, searchQuery, sortBy]);
 
 	// Memoize selected games set for O(1) lookup
 	const selectedGamePaths = useMemo(
-		() => new Set(selectedGames.map((game) => game.path)),
+		() => createGamePathSet(selectedGames),
 		[selectedGames],
 	);
 
-	const isGameSelected = useCallback(
+	const isGameSelectedCallback = useCallback(
 		(game: FileInfo) => {
-			return selectedGamePaths.has(game.path);
+			return isGameSelected(game, selectedGamePaths);
 		},
 		[selectedGamePaths],
 	);
@@ -83,13 +68,8 @@ export const GameLocatorSelectGamesStep = () => {
 	}, [filteredGames, selectedGamePaths, toggleGameSelection]);
 
 	// Memoize empty state type calculation
-	const emptyStateType = useMemo(():
-		| "no-games"
-		| "no-results"
-		| "no-selection" => {
-		if (games.length === 0) return "no-games";
-		if (filteredGames.length === 0) return "no-results";
-		return "no-selection";
+	const emptyStateType = useMemo(() => {
+		return getEmptyStateType(games.length, filteredGames.length);
 	}, [games.length, filteredGames.length]);
 
 	// Use virtualized grid for large lists to improve performance
@@ -97,8 +77,7 @@ export const GameLocatorSelectGamesStep = () => {
 
 	// Count selected games within the current filter
 	const selectedInFilterCount = useMemo(
-		() =>
-			filteredGames.filter((game) => selectedGamePaths.has(game.path)).length,
+		() => countSelectedGames(filteredGames, selectedGamePaths),
 		[filteredGames, selectedGamePaths],
 	);
 
@@ -108,13 +87,9 @@ export const GameLocatorSelectGamesStep = () => {
 	const gap = 16;
 	const columnsPerRow = 3; // Adjust based on your design needs
 
-	// Calculate rows for virtualization
+	// Calculate rows for virtualization using utility function
 	const rows = useMemo(() => {
-		const gameRows: FileInfo[][] = [];
-		for (let i = 0; i < filteredGames.length; i += columnsPerRow) {
-			gameRows.push(filteredGames.slice(i, i + columnsPerRow));
-		}
-		return gameRows;
+		return chunkArray(filteredGames, columnsPerRow);
 	}, [filteredGames]);
 
 	const virtualizer = useVirtualizer({
@@ -208,7 +183,7 @@ export const GameLocatorSelectGamesStep = () => {
 												>
 													<GameCard
 														game={game}
-														isSelected={isGameSelected(game)}
+														isSelected={isGameSelectedCallback(game)}
 														onToggleSelection={toggleGameSelection}
 													/>
 												</div>

@@ -1,34 +1,14 @@
 import { AlertCircle, Loader2, Search } from "lucide-react";
 import { useState } from "react";
-import type { RouterOutputs } from "@/@types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { H2, P, TypographyMuted } from "@/components/ui/typography";
 import { useGameLocatorStore } from "@/features/game-locator/stores/gameLocator";
+import type { GameFileMatchResult } from "@/features/game-locator/types";
 import { trpc } from "@/lib/trpc";
 import { MatchingProgress } from "./MatchingProgress";
 import { MatchingSummary } from "./MatchingSummary";
 import { MatchResults } from "./MatchResults";
-
-type GameFileMatchResult = {
-	file: {
-		name: string;
-		path: string;
-		isDirectory: boolean;
-		size?: number;
-		lastModified?: string;
-	};
-	matches: {
-		game: RouterOutputs["igdb"]["search"][number];
-		confidence: number;
-		reason: string;
-	}[];
-	bestMatch: {
-		game: RouterOutputs["igdb"]["search"][number];
-		confidence: number;
-		reason: string;
-	} | null;
-};
 
 interface MatchingState {
 	status: "idle" | "matching" | "completed" | "error";
